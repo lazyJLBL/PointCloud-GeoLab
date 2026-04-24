@@ -1,0 +1,7 @@
+input: data/room.pcd
+threshold: 0.02
+max_iterations: 1000
+seed: 7
+save_results: true
+visualize: false
+
