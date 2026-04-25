@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pointcloud-geolab"
+version = "0.1.0"
+description = "Point cloud registration and 3D geometry processing system with custom KD-Tree, ICP, RANSAC, PCA, AABB/OBB and Open3D visualization."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "lazyJLBL" }]
+dependencies = [
+    "numpy>=1.24",
+    "open3d>=0.18",
+    "matplotlib>=3.7",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "black>=24.0", "ruff>=0.5"]
+
+[project.scripts]
+pointcloud-geolab = "main:main"
+
+[tool.setuptools]
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+include = ["pointcloud_geolab*"]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = []
+

@@ -44,6 +44,10 @@ def compute_obb(points: np.ndarray) -> OBB:
     pts = np.asarray(points, dtype=float)
     if pts.ndim != 2 or pts.shape[1] != 3 or len(pts) == 0:
         raise ValueError("points must have non-empty shape (N, 3)")
+    if len(pts) == 1:
+        center = pts[0].copy()
+        corners = np.tile(center, (8, 1))
+        return OBB(center=center, rotation=np.eye(3), extent=np.zeros(3), corners=corners)
     pca = pca_analysis(pts)
     axes = pca.eigenvectors
     local = (pts - pca.center) @ axes
@@ -73,4 +77,3 @@ def _corners_from_bounds(min_bound: np.ndarray, max_bound: np.ndarray) -> np.nda
         ],
         dtype=float,
     )
-
