@@ -1,0 +1,20 @@
+jobs:
+  - name: geometry_demo
+    task: geometry
+    input: data/object.ply
+    save_results: true
+
+  - name: preprocess_demo
+    task: preprocess
+    input: data/room.pcd
+    output: results/batch/preprocess_demo/room_clean.ply
+    voxel_size: 0.04
+    radius: 0.12
+    estimate_normals: true
+    save_results: true
+
+  - name: kdtree_quick_benchmark
+    task: benchmark
+    benchmark: kdtree
+    quick: true
+    save_md: results/batch/kdtree_quick_benchmark/kdtree_benchmark.md

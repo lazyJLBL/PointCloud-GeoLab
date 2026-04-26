@@ -21,7 +21,7 @@ dependencies = [
 dev = ["pytest>=8.0", "black>=24.0", "ruff>=0.5"]
 
 [project.scripts]
-pointcloud-geolab = "main:main"
+pointcloud-geolab = "pointcloud_geolab.cli:main"
 
 [tool.setuptools]
 py-modules = ["main"]
@@ -39,4 +39,3 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
 ignore = []
-
