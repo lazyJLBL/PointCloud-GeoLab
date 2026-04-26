@@ -15,9 +15,15 @@ from pointcloud_geolab.api import (
     TaskResult,
     run_benchmark,
     run_geometry_analysis,
+    run_global_registration,
     run_icp,
+    run_infer_pointnet,
     run_plane_segmentation,
     run_preprocessing,
+    run_primitive_fitting,
+    run_segmentation,
+    run_train_pointnet,
+    run_visualization,
 )
 
 DEFAULTS: dict[str, dict[str, Any]] = {
@@ -52,12 +58,75 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "radius": 0.0,
         "min_neighbors": 4,
         "estimate_normals": False,
+        "normalize": False,
+        "crop_min": None,
+        "crop_max": None,
+        "sample_count": None,
+        "sample_method": "random",
+        "seed": None,
         "save_results": False,
         "visualize": False,
+    },
+    "register": {
+        "output_dir": "outputs/registration",
+        "method": "fpfh_ransac_icp",
+        "icp_method": "point_to_point",
+        "voxel_size": 0.05,
+        "threshold": None,
+        "seed": 7,
+        "output": None,
+        "save_transform": None,
+        "save_results": False,
+        "export_html": None,
+    },
+    "fit-primitive": {
+        "output_dir": "outputs/primitives",
+        "model": "plane",
+        "threshold": 0.02,
+        "max_iterations": 1000,
+        "min_inliers": 0,
+        "seed": 7,
+        "output": None,
+        "save_results": False,
+        "export_html": None,
+    },
+    "segment": {
+        "output_dir": "outputs/segmentation",
+        "method": "dbscan",
+        "eps": 0.05,
+        "min_points": 20,
+        "tolerance": None,
+        "radius": 0.1,
+        "angle_threshold": 25.0,
+        "output": None,
+        "export_html": None,
+    },
+    "visualize": {
+        "output_dir": "outputs/visualization",
+        "mode": "pointcloud",
+        "labels_path": None,
+        "source": None,
+        "target": None,
+        "transform_path": None,
+    },
+    "train-pointnet": {
+        "output_dir": "outputs/ml",
+        "output": "outputs/pointnet_model.pt",
+        "epochs": 2,
+        "batch_size": 16,
+        "samples_per_class": 16,
+        "points_per_sample": 128,
+        "seed": 7,
+    },
+    "infer-pointnet": {
+        "output_dir": "outputs/ml",
+        "model": None,
+        "points_per_sample": 128,
     },
     "benchmark": {
         "output_dir": "results",
         "benchmark_name": "kdtree",
+        "suite": None,
         "quick": True,
         "full": False,
         "save_json": None,
@@ -132,6 +201,11 @@ def build_parser() -> argparse.ArgumentParser:
     preprocess.add_argument("--statistical-std-ratio", type=float)
     preprocess.add_argument("--radius", type=float)
     preprocess.add_argument("--min-neighbors", type=int)
+    preprocess.add_argument("--normalize", action=argparse.BooleanOptionalAction, default=None)
+    preprocess.add_argument("--crop-min", nargs=3, type=float)
+    preprocess.add_argument("--crop-max", nargs=3, type=float)
+    preprocess.add_argument("--sample-count", type=int)
+    preprocess.add_argument("--sample-method", choices=["random", "farthest"])
     preprocess.add_argument(
         "--estimate-normals",
         action=argparse.BooleanOptionalAction,
@@ -139,14 +213,74 @@ def build_parser() -> argparse.ArgumentParser:
         help="estimate normals after filtering",
     )
 
+    register = subparsers.add_parser("register", help="run FPFH RANSAC global registration")
+    _add_common_options(register)
+    register.add_argument("--source", required=False, help="source point cloud")
+    register.add_argument("--target", required=False, help="target point cloud")
+    register.add_argument("--method", choices=["fpfh_ransac_icp"])
+    register.add_argument("--icp-method", choices=["point_to_point", "point_to_plane"])
+    register.add_argument("--voxel-size", type=float)
+    register.add_argument("--threshold", type=float)
+    register.add_argument("--output", type=Path)
+    register.add_argument("--save-transform", type=Path)
+    register.add_argument("--export-html", type=Path)
+
+    primitive = subparsers.add_parser("fit-primitive", help="fit plane/sphere/cylinder with RANSAC")
+    _add_common_options(primitive)
+    primitive.add_argument("--input", help="input point cloud")
+    primitive.add_argument("--model", choices=["plane", "sphere", "cylinder"])
+    primitive.add_argument("--threshold", type=float)
+    primitive.add_argument("--max-iterations", type=int)
+    primitive.add_argument("--min-inliers", type=int)
+    primitive.add_argument("--output", type=Path)
+    primitive.add_argument("--export-html", type=Path)
+
+    segment = subparsers.add_parser("segment", help="segment points into clusters")
+    _add_common_options(segment, include_save_flags=False)
+    segment.add_argument("--input", help="input point cloud")
+    segment.add_argument("--method", choices=["dbscan", "euclidean", "region_growing"])
+    segment.add_argument("--eps", type=float)
+    segment.add_argument("--min-points", type=int)
+    segment.add_argument("--tolerance", type=float)
+    segment.add_argument("--radius", type=float)
+    segment.add_argument("--angle-threshold", type=float)
+    segment.add_argument("--output", type=Path)
+    segment.add_argument("--export-html", type=Path)
+
+    visualize = subparsers.add_parser("visualize", help="export HTML visualizations")
+    _add_common_options(visualize, include_save_flags=False)
+    visualize.add_argument("--input", help="input point cloud")
+    visualize.add_argument("--mode", choices=["pointcloud", "clusters", "registration"])
+    visualize.add_argument("--labels-path", type=Path)
+    visualize.add_argument("--source", type=Path)
+    visualize.add_argument("--target", type=Path)
+    visualize.add_argument("--transform-path", type=Path)
+    visualize.add_argument("--output", type=Path, required=False)
+
+    train = subparsers.add_parser("train-pointnet", help="train optional PointNet demo")
+    _add_common_options(train, include_save_flags=False)
+    train.add_argument("--output", type=Path)
+    train.add_argument("--epochs", type=int)
+    train.add_argument("--batch-size", type=int)
+    train.add_argument("--samples-per-class", type=int)
+    train.add_argument("--points-per-sample", type=int)
+
+    infer = subparsers.add_parser("infer-pointnet", help="run optional PointNet inference")
+    _add_common_options(infer, include_save_flags=False)
+    infer.add_argument("--model", type=Path)
+    infer.add_argument("--input", help="input point cloud")
+    infer.add_argument("--points-per-sample", type=int)
+
     benchmark = subparsers.add_parser("benchmark", help="run built-in benchmarks")
     _add_common_options(benchmark, include_save_flags=False)
     benchmark.add_argument(
         "benchmark_name",
         nargs="?",
-        choices=["kdtree", "icp"],
+        choices=["kdtree", "icp", "ransac", "registration", "all"],
         help="benchmark suite",
     )
+    benchmark.add_argument("--suite", choices=["kdtree", "icp", "ransac", "registration", "all"])
+    benchmark.add_argument("--output", dest="output_dir", type=Path)
     benchmark.add_argument("--quick", action=argparse.BooleanOptionalAction, default=None)
     benchmark.add_argument("--full", action=argparse.BooleanOptionalAction, default=None)
     benchmark.add_argument("--save-json", type=Path)
@@ -268,8 +402,9 @@ def _run_batch(args: argparse.Namespace) -> int:
                     task=str(task),
                     success=False,
                     error=(
-                        "batch job task must be one of: icp, plane, geometry, "
-                        "preprocess, benchmark"
+                        "batch job task must be one of: icp, plane, geometry, preprocess, "
+                        "register, fit-primitive, segment, visualize, train-pointnet, "
+                        "infer-pointnet, benchmark"
                     ),
                     parameters=job,
                 )
@@ -340,14 +475,90 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             radius=params["radius"],
             min_neighbors=params["min_neighbors"],
             estimate_normals_flag=params["estimate_normals"],
+            normalize=params["normalize"],
+            crop_min=params["crop_min"],
+            crop_max=params["crop_max"],
+            sample_count=params["sample_count"],
+            sample_method=params["sample_method"],
+            seed=params["seed"],
             save_results=params["save_results"],
             visualize=params["visualize"],
+        )
+    if task == "register":
+        return run_global_registration(
+            source=params.get("source"),
+            target=params.get("target"),
+            output=params["output"],
+            save_transform=params["save_transform"],
+            output_dir=params["output_dir"],
+            voxel_size=params["voxel_size"],
+            method=params["method"],
+            icp_method=params["icp_method"],
+            threshold=params["threshold"],
+            seed=params["seed"],
+            save_results=params["save_results"],
+            export_html=params["export_html"],
+        )
+    if task == "fit-primitive":
+        return run_primitive_fitting(
+            input_path=params.get("input"),
+            model=params["model"],
+            output=params["output"],
+            output_dir=params["output_dir"],
+            threshold=params["threshold"],
+            max_iterations=params["max_iterations"],
+            min_inliers=params["min_inliers"],
+            seed=params["seed"],
+            save_results=params["save_results"],
+            export_html=params["export_html"],
+        )
+    if task == "segment":
+        return run_segmentation(
+            input_path=params.get("input"),
+            output=params["output"],
+            output_dir=params["output_dir"],
+            method=params["method"],
+            eps=params["eps"],
+            min_points=params["min_points"],
+            tolerance=params["tolerance"],
+            radius=params["radius"],
+            angle_threshold=params["angle_threshold"],
+            export_html=params["export_html"],
+        )
+    if task == "visualize":
+        return run_visualization(
+            input_path=params.get("input"),
+            output=params.get("output") or Path(params["output_dir"]) / "visualization.html",
+            mode=params["mode"],
+            labels_path=params["labels_path"],
+            source=params["source"],
+            target=params["target"],
+            transform_path=params["transform_path"],
+            output_dir=params["output_dir"],
+        )
+    if task == "train-pointnet":
+        return run_train_pointnet(
+            output=params["output"],
+            output_dir=params["output_dir"],
+            epochs=params["epochs"],
+            batch_size=params["batch_size"],
+            samples_per_class=params["samples_per_class"],
+            points_per_sample=params["points_per_sample"],
+            seed=params["seed"],
+        )
+    if task == "infer-pointnet":
+        return run_infer_pointnet(
+            model=params.get("model"),
+            input_path=params.get("input"),
+            output_dir=params["output_dir"],
+            points_per_sample=params["points_per_sample"],
         )
     if task == "benchmark":
         full = bool(params["full"])
         quick = bool(params["quick"]) and not full
+        benchmark_name = params["suite"] or params["benchmark_name"]
         return run_benchmark(
-            benchmark=params["benchmark_name"],
+            benchmark=benchmark_name,
             output_dir=params["output_dir"],
             quick=quick,
             full=full,
@@ -400,7 +611,10 @@ def _load_yaml(path: str | Path | None) -> dict[str, Any]:
         return {}
     file_path = Path(path)
     with file_path.open("r", encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+        if file_path.suffix.lower() == ".json":
+            data = json.load(f) or {}
+        else:
+            data = yaml.safe_load(f) or {}
     if not isinstance(data, dict) and not isinstance(data, list):
         raise ValueError(f"{file_path} must contain a YAML mapping or list")
     return data
@@ -483,6 +697,61 @@ def _format_text_result(result: TaskResult) -> str:
             f"Benchmark Result: {metrics['benchmark']}",
             "-----------------",
             details["markdown"],
+        ]
+    elif task == "register":
+        lines = [
+            "Global Registration Result",
+            "--------------------------",
+            f"Coarse Fitness: {metrics['coarse_fitness']:.4f}",
+            f"Coarse Inlier RMSE: {metrics['coarse_inlier_rmse']:.6f}",
+            f"Refined Fitness: {metrics['refined_fitness']:.4f}",
+            f"Final RMSE: {metrics['final_rmse']:.6f}",
+            "",
+            "Refined Transformation:",
+            _json_matrix(details["refined_transform"]),
+        ]
+    elif task == "fit-primitive":
+        lines = [
+            "Primitive Fitting Result",
+            "------------------------",
+            f"Model: {metrics['model']}",
+            f"Inliers: {metrics['inliers']}",
+            f"Outliers: {metrics['outliers']}",
+            f"Inlier Ratio: {metrics['inlier_ratio']:.2%}",
+            f"Mean Residual: {metrics['residual_mean']:.6f}",
+            "",
+            "Parameters:",
+            json.dumps(details["model_params"], indent=2, ensure_ascii=False),
+        ]
+    elif task == "segment":
+        lines = [
+            "Segmentation Result",
+            "-------------------",
+            f"Clusters: {metrics['cluster_count']}",
+            f"Noise Points: {metrics['noise_points']}",
+            "",
+            "Cluster Stats:",
+            json.dumps(details["clusters"], indent=2, ensure_ascii=False),
+        ]
+    elif task == "visualize":
+        lines = [
+            "Visualization Result",
+            "--------------------",
+            f"Mode: {metrics['mode']}",
+        ]
+    elif task == "train-pointnet":
+        lines = [
+            "PointNet Training Result",
+            "------------------------",
+            f"Loss: {metrics.get('loss')}",
+            f"Accuracy: {metrics.get('accuracy')}",
+        ]
+    elif task == "infer-pointnet":
+        lines = [
+            "PointNet Inference Result",
+            "-------------------------",
+            f"Class: {metrics.get('class')}",
+            f"Confidence: {metrics.get('confidence')}",
         ]
     else:
         lines = [json.dumps(data, indent=2, ensure_ascii=False)]

@@ -229,6 +229,60 @@ def test_cli_benchmark_kdtree_quick(tmp_path: Path) -> None:
     assert md_path.exists()
 
 
+def test_cli_fit_primitive_and_segment(tmp_path: Path) -> None:
+    rng = np.random.default_rng(23)
+    xy = rng.uniform(-1, 1, size=(80, 2))
+    plane = np.column_stack([xy, np.zeros(80)])
+    input_path = tmp_path / "plane.ply"
+    save_point_cloud(input_path, plane)
+
+    fit = run_cli(
+        "fit-primitive",
+        "--input",
+        str(input_path),
+        "--model",
+        "plane",
+        "--threshold",
+        "0.01",
+        "--output-dir",
+        str(tmp_path / "fit"),
+        "--format",
+        "json",
+    )
+    assert fit.returncode == 0, fit.stderr
+    assert json.loads(fit.stdout)["metrics"]["inliers"] == len(plane)
+
+    clusters = np.vstack(
+        [
+            rng.normal([0, 0, 0], 0.01, size=(20, 3)),
+            rng.normal([1, 0, 0], 0.01, size=(20, 3)),
+        ]
+    )
+    cluster_path = tmp_path / "clusters.ply"
+    save_point_cloud(cluster_path, clusters)
+    segmented_path = tmp_path / "segmented.ply"
+    segment = run_cli(
+        "segment",
+        "--input",
+        str(cluster_path),
+        "--method",
+        "dbscan",
+        "--eps",
+        "0.08",
+        "--min-points",
+        "3",
+        "--output",
+        str(segmented_path),
+        "--output-dir",
+        str(tmp_path / "segment"),
+        "--format",
+        "json",
+    )
+    assert segment.returncode == 0, segment.stderr
+    assert json.loads(segment.stdout)["metrics"]["cluster_count"] == 2
+    assert segmented_path.exists()
+
+
 def test_cli_missing_file_returns_error_and_metrics(tmp_path: Path) -> None:
     results_dir = tmp_path / "missing_results"
 

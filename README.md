@@ -1,56 +1,55 @@
-# PointCloud-GeoLab: Point Cloud Registration and 3D Geometry Lab
+# PointCloud-GeoLab
 
-![Tests](https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/python-tests.yml/badge.svg)
+![Tests](https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml/badge.svg)
 
-PointCloud-GeoLab is a Python project for point cloud registration, preprocessing,
-and 3D geometry experiments. It is designed for 3D reconstruction, SLAM,
-robotics perception, 3D vision practice, and interview-ready algorithm demos.
+PointCloud-GeoLab is a geometry-first point cloud processing lab featuring
+from-scratch implementations of classic computational geometry algorithms,
+robust registration, primitive fitting, segmentation, benchmarking, and
+interactive visualization.
 
-PointCloud-GeoLab 是一个点云配准与三维几何处理实验项目。核心算法以
-NumPy 自实现为主，Open3D 主要用于可选的点云 I/O 和交互式可视化。
+This project is built as a 3D Vision / Robotics / Geometry Processing portfolio
+project: it keeps the math visible, produces reproducible outputs, and compares
+custom implementations against standard libraries where useful.
 
-## Features
+## Technical Highlights
 
-- Point cloud I/O for `.ply`, `.pcd`, and `.xyz`.
-- Voxel downsampling, statistical outlier removal, radius outlier removal, and
-  normal estimation.
-- Custom KDTree with nearest-neighbor, KNN, and radius search.
-- Point-to-point ICP using custom KDTree correspondence search and SVD rigid
-  transform estimation.
-- RANSAC plane fitting for robust dominant-plane extraction.
-- AABB, PCA-based OBB, PCA principal direction analysis, point-to-plane
-  distance, and point-to-line distance.
-- Stable CLI subcommands, YAML configuration, batch manifests, JSON output,
-  metrics files, examples, tests, docs, and benchmarks.
+- From-scratch KDTree, point-to-point ICP, RANSAC plane fitting, PCA, AABB, and OBB.
+- Feature-based global registration: `Downsample -> Normal Estimation -> FPFH -> RANSAC -> ICP`.
+- Robust primitive fitting for planes, spheres, and cylinders with a generic RANSAC framework.
+- DBSCAN, Euclidean clustering, and normal-aware region growing segmentation.
+- Real point cloud I/O: PLY, PCD, XYZ/TXT, KITTI `.bin`, and optional LAS/LAZ via `laspy`.
+- Benchmark system for KDTree, ICP, RANSAC, and global registration with CSV, Markdown, JSON, and PNG outputs.
+- Plotly HTML export for registration, segmentation, and inlier/outlier inspection.
+- Optional PointNet demo on synthetic shapes without affecting the lightweight geometry install.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    IO[IO: PLY/PCD/XYZ/TXT/LAS/KITTI] --> Pre[Preprocessing]
+    Pre --> Geo[Geometry: PCA/AABB/OBB/Primitives]
+    Pre --> Reg[Registration: ICP/FPFH-RANSAC]
+    Pre --> Seg[Segmentation: DBSCAN/Region Growing]
+    Geo --> Bench[Benchmark]
+    Reg --> Bench
+    Seg --> Viz[Visualization: PNG/HTML]
+    Bench --> Docs[Portfolio Docs]
+```
 
 ## Installation
 
 ```bash
 python -m venv .venv
-```
-
-Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-macOS / Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-python -m pip install -r requirements.txt
+.venv\Scripts\Activate.ps1  # Windows PowerShell
 python -m pip install -e .
 ```
 
-Open3D is optional for the core tests because this repo includes small ASCII
-fallback readers and writers. Install Open3D for interactive visualization and
-broader real-world format support.
+Optional extras:
+
+```bash
+python -m pip install -e ".[dev,vis,io,bench]"
+python -m pip install -e ".[ml]"  # optional PyTorch PointNet demo
+```
 
 ## Quick Start
 
@@ -60,138 +59,160 @@ Generate deterministic demo data:
 python examples/generate_demo_data.py
 ```
 
-Run ICP:
+Run the main portfolio commands:
 
 ```bash
-pointcloud-geolab icp --source data/bunny_source.ply --target data/bunny_target.ply --save-results
+python -m pointcloud_geolab preprocess --input data/room.pcd --output outputs/preprocessing/cleaned.ply --voxel-size 0.05 --estimate-normals
+
+python -m pointcloud_geolab register --source data/bunny_source.ply --target data/bunny_target.ply --method fpfh_ransac_icp --voxel-size 0.05 --output outputs/registration/aligned.ply --save-transform outputs/registration/transform.txt --save-results
+
+python -m pointcloud_geolab fit-primitive --input data/object.ply --model sphere --threshold 0.02 --output outputs/primitives/sphere_inliers.ply
+
+python -m pointcloud_geolab segment --input data/object.ply --method dbscan --eps 0.08 --min-points 5 --output outputs/segmentation/segmented_scene.ply
+
+python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+
+python -m pointcloud_geolab visualize --input outputs/segmentation/segmented_scene.ply --mode pointcloud --output outputs/visualization/scene.html
 ```
 
-Run RANSAC plane segmentation:
-
-```bash
-pointcloud-geolab plane --input data/room.pcd --threshold 0.02 --max-iterations 1000 --save-results
-```
-
-Run geometry analysis:
-
-```bash
-pointcloud-geolab geometry --input data/object.ply --save-results
-```
-
-Run preprocessing:
-
-```bash
-pointcloud-geolab preprocess --input data/room.pcd --output results/room_clean.ply --voxel-size 0.04 --radius 0.12 --estimate-normals --save-results
-```
-
-Run a benchmark:
-
-```bash
-pointcloud-geolab benchmark kdtree --quick --save-md results/kdtree_benchmark.md
-```
-
-Run a batch manifest:
-
-```bash
-pointcloud-geolab --batch configs/batch_example.yaml --format json
-```
-
-The old interface is still supported for compatibility:
+The previous compatibility entrypoint still works:
 
 ```bash
 python main.py --mode icp --source data/bunny_source.ply --target data/bunny_target.ply
 ```
 
-## Configuration and Outputs
-
-Every task writes a structured `metrics.json` file under `--output-dir`
-(`results/` by default). Use `--format json` when the CLI output should be
-machine-readable.
-
-YAML config values are loaded with `--config`, and CLI arguments override config
-values:
-
-```bash
-pointcloud-geolab icp --config configs/icp_config.yaml --max-iterations 100
-```
-
-Batch manifests contain a `jobs` list:
-
-```yaml
-jobs:
-  - name: geometry_demo
-    task: geometry
-    input: data/object.ply
-  - name: kdtree_benchmark
-    task: benchmark
-    benchmark: kdtree
-    quick: true
-```
-
 ## Python API
 
 ```python
-from pointcloud_geolab.api import run_icp
+from pointcloud_geolab.api import run_global_registration, run_primitive_fitting, run_segmentation
 
-result = run_icp(
-    "data/bunny_source.ply",
-    "data/bunny_target.ply",
-    output_dir="results/icp_api",
-    max_iterations=60,
-)
+registration = run_global_registration("source.ply", "target.ply", voxel_size=0.05)
+primitive = run_primitive_fitting("scene.ply", model="sphere", threshold=0.02)
+segmentation = run_segmentation("scene.ply", method="dbscan", eps=0.05, min_points=20)
 
-print(result.success)
-print(result.metrics["final_rmse"])
-print(result.artifacts["metrics_json"])
+print(registration.metrics)
+print(primitive.data["model_params"])
+print(segmentation.data["clusters"])
 ```
 
-The API returns a JSON-friendly result envelope with `success`, `metrics`,
-`artifacts`, `parameters`, `data`, and `error` fields.
+All high-level APIs return a JSON-friendly `TaskResult` containing `success`,
+`metrics`, `artifacts`, `parameters`, `data`, and `error`.
 
-## Results
+## Algorithm Notes
 
-### ICP Registration
+### KDTree
 
-Before:
+The custom KDTree recursively median-splits the point set and prunes subtrees
+using the distance to the splitting plane. It supports nearest-neighbor, kNN,
+and radius queries.
 
-![ICP Before](results/icp_before.png)
+### ICP
 
-After:
+Point-to-point ICP alternates between KDTree correspondence search and SVD rigid
+transform estimation. Point-to-plane ICP uses the linearized residual
+`n^T((w x p) + t + p - q) = 0`.
 
-![ICP After](results/icp_after.png)
+### FPFH + RANSAC + ICP
 
-RMSE Curve:
+Global registration uses Open3D for FPFH descriptors and feature RANSAC, then
+refines with the project's ICP implementation. This shows why plain ICP is
+accurate near the solution but brittle under large initial rotations.
 
-![ICP Error Curve](results/icp_error_curve.png)
+### Primitive Fitting
 
-### RANSAC Plane Fitting
+The generic RANSAC framework supports:
 
-![RANSAC Plane](results/ransac_plane.png)
+- Plane residual: `|n^T x + d|`
+- Sphere residual: `abs(||x - c|| - r)`
+- Cylinder residual: `abs(distance_to_axis(x) - r)`
 
-### PCA-based OBB
+### Segmentation
 
-![OBB](results/obb_visualization.png)
+DBSCAN and Euclidean clustering use KDTree radius neighborhoods. Region growing
+adds a normal-angle threshold to avoid merging geometrically different surfaces.
 
-### Preprocessing
+## Benchmarking
 
-![Preprocessing](results/preprocessing.png)
+Quick benchmark:
 
-## Development
+```bash
+python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+```
 
-Run the test suite:
+Outputs:
+
+- `*_benchmark.csv`
+- `*_benchmark.md`
+- `*_benchmark.json`
+- `*_benchmark.png`
+- `metrics.json`
+
+Typical conclusions:
+
+- The custom KDTree is explainable and useful for teaching; optimized SciPy
+  `cKDTree` and sklearn KDTree are expected to be faster at larger scales.
+- Plain ICP can fail when the initial rotation is large; FPFH+RANSAC+ICP is more
+  robust because it first estimates a coarse pose from local geometric features.
+- RANSAC keeps primitive fitting stable as outlier ratios increase, until the
+  probability of sampling a clean minimal set becomes too low.
+
+## Gallery Outputs
+
+The examples write portfolio assets under `outputs/`:
+
+```bash
+python examples/global_registration_demo.py
+python examples/primitive_fitting_demo.py
+python examples/segmentation_demo.py
+python examples/preprocess_lidar_demo.py
+python examples/benchmark_demo.py
+python examples/visualization_demo.py
+python examples/gallery_demo.py
+```
+
+Optional PointNet:
+
+```bash
+python examples/pointnet_demo.py
+python -m pointcloud_geolab train-pointnet --epochs 1 --batch-size 8 --output outputs/ml/pointnet_model.pt
+```
+
+## Supported Formats and Preprocessing
+
+Supported input formats:
+
+- `.ply`, `.pcd`
+- `.xyz`, `.txt`
+- KITTI Velodyne `.bin`
+- `.las`, `.laz` with `laspy`
+
+Preprocessing includes voxel downsampling, statistical outlier removal, radius
+outlier removal, normal estimation, normalization, AABB crop, random sampling,
+and farthest point sampling.
+
+## Tests
 
 ```bash
 python -m pytest
+python -m pytest --cov=pointcloud_geolab
 ```
 
-Run demo scripts:
+Tests use synthetic point clouds and fixed random seeds. Optional PointNet tests
+are skipped automatically when PyTorch is not installed.
 
-```bash
-python examples/demo_kdtree.py
-python examples/demo_icp.py
-python examples/demo_ransac_plane.py
-python examples/demo_bounding_box.py
-python examples/demo_preprocessing.py
-```
+## Docs
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the staged project roadmap.
+- [Algorithms](docs/algorithms.md)
+- [Registration](docs/registration.md)
+- [Benchmarking](docs/benchmark.md)
+- [API](docs/api.md)
+- [Interview Notes](docs/interview_notes.md)
+- [Roadmap](docs/ROADMAP.md)
+
+## Why This Project Matters
+
+Point cloud processing is not just visualization. A strong geometry project
+needs nearest-neighbor search, rigid transform optimization, robust estimation,
+surface reasoning, segmentation, reproducible benchmarks, and clear engineering
+interfaces. PointCloud-GeoLab demonstrates those pieces as one coherent system
+instead of a collection of disconnected scripts.

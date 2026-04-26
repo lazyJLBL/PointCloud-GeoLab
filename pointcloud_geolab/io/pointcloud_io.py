@@ -29,15 +29,23 @@ def _ensure_points(points: np.ndarray) -> np.ndarray:
 
 
 def load_point_cloud(path: str | Path) -> np.ndarray:
-    """Load a .ply, .pcd, or .xyz point cloud as an ``(N, 3)`` array."""
+    """Load a point cloud as an array.
+
+    Supported formats are ``.ply``, ``.pcd``, ``.xyz``, ``.txt``, KITTI
+    Velodyne ``.bin`` and optional LAS/LAZ via ``laspy``.
+    """
 
     file_path = Path(path)
     if not file_path.exists():
         raise FileNotFoundError(file_path)
 
     suffix = file_path.suffix.lower()
-    if suffix == ".xyz":
+    if suffix in {".xyz", ".txt"}:
         return _load_xyz(file_path)
+    if suffix == ".bin":
+        return load_kitti_bin(file_path, include_intensity=False)
+    if suffix in {".las", ".laz"}:
+        return load_las(file_path)["points"]
 
     o3d = _optional_open3d()
     if o3d is not None and suffix in {".ply", ".pcd"}:
@@ -59,7 +67,7 @@ def save_point_cloud(
     colors: np.ndarray | None = None,
     prefer_open3d: bool = False,
 ) -> None:
-    """Save points to .ply, .pcd, or .xyz.
+    """Save points to .ply, .pcd, .xyz, .txt, or optional .las/.laz.
 
     ASCII output is the default because it is deterministic and works in test
     environments without Open3D.
@@ -91,10 +99,66 @@ def save_point_cloud(
         _save_ascii_ply(file_path, pts, cols)
     elif suffix == ".pcd":
         _save_ascii_pcd(file_path, pts)
-    elif suffix == ".xyz":
+    elif suffix in {".xyz", ".txt"}:
         np.savetxt(file_path, pts, fmt="%.8f")
+    elif suffix in {".las", ".laz"}:
+        save_las(file_path, pts)
     else:
         raise ValueError(f"unsupported point cloud format: {suffix}")
+
+
+def load_kitti_bin(path: str | Path, include_intensity: bool = False) -> np.ndarray:
+    """Load a KITTI Velodyne ``.bin`` frame.
+
+    KITTI stores repeated float32 tuples ``x, y, z, intensity``. By default the
+    function returns ``(N, 3)``; set ``include_intensity=True`` for ``(N, 4)``.
+    """
+
+    file_path = Path(path)
+    data = np.fromfile(file_path, dtype=np.float32)
+    if data.size % 4 != 0:
+        raise ValueError("KITTI .bin file length must be divisible by 4")
+    cloud = data.reshape(-1, 4).astype(float)
+    return cloud if include_intensity else cloud[:, :3].copy()
+
+
+def load_las(path: str | Path) -> dict[str, np.ndarray]:
+    """Load LAS/LAZ points and common attributes using optional ``laspy``."""
+
+    try:
+        import laspy  # type: ignore
+    except ImportError as exc:
+        raise ImportError("LAS/LAZ support requires `python -m pip install laspy`.") from exc
+
+    las = laspy.read(str(path))
+    points = np.column_stack([las.x, las.y, las.z]).astype(float)
+    result: dict[str, np.ndarray] = {"points": points}
+    if hasattr(las, "intensity"):
+        result["intensity"] = np.asarray(las.intensity)
+    if hasattr(las, "classification"):
+        result["classification"] = np.asarray(las.classification)
+    return result
+
+
+def save_las(path: str | Path, points: np.ndarray) -> None:
+    """Save points to a simple LAS file using optional ``laspy``."""
+
+    try:
+        import laspy  # type: ignore
+    except ImportError as exc:
+        raise ImportError("LAS/LAZ support requires `python -m pip install laspy`.") from exc
+
+    pts = _ensure_points(points)
+    header = laspy.LasHeader(point_format=3, version="1.2")
+    header.offsets = pts.min(axis=0) if len(pts) else np.zeros(3)
+    header.scales = np.asarray([0.001, 0.001, 0.001])
+    las = laspy.LasData(header)
+    las.x = pts[:, 0]
+    las.y = pts[:, 1]
+    las.z = pts[:, 2]
+    output = Path(path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    las.write(str(output))
 
 
 def _load_xyz(path: Path) -> np.ndarray:
@@ -235,4 +299,3 @@ def stack_point_clouds(point_sets: Iterable[np.ndarray]) -> np.ndarray:
     if not arrays:
         return np.empty((0, 3), dtype=float)
     return np.vstack(arrays)
-
