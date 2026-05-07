@@ -48,8 +48,10 @@ python -m pip install -e ".[dev,vis,bench]"
 Optional extras:
 
 ```bash
+python -m pip install -e ".[open3d]"  # Open3D-backed registration/reconstruction
 python -m pip install -e ".[io]"  # LAS/LAZ
 python -m pip install -e ".[ml]"  # optional PointNet
+python -m pip install -e ".[all]"  # all optional groups
 ```
 
 ## Quick Start
@@ -184,6 +186,7 @@ No benchmark numbers are hard-coded in the README. Regenerate them locally.
 python -m pytest
 python -m pytest --cov=pointcloud_geolab
 python -m ruff check .
+python -m black --check .
 python examples/generate_demo_data.py
 python examples/gallery_demo.py
 python scripts/verify_portfolio.py --quick
