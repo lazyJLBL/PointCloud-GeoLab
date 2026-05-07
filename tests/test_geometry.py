@@ -51,7 +51,9 @@ def test_pca_and_obb_shapes() -> None:
 def test_collinear_and_coplanar_geometry() -> None:
     t = np.linspace(-1.0, 1.0, 20)
     line_points = np.column_stack([t, np.zeros_like(t), np.zeros_like(t)])
-    plane_xy = np.asarray(np.meshgrid(np.linspace(-1, 1, 5), np.linspace(-1, 1, 5))).reshape(2, -1).T
+    plane_xy = (
+        np.asarray(np.meshgrid(np.linspace(-1, 1, 5), np.linspace(-1, 1, 5))).reshape(2, -1).T
+    )
     plane_points = np.column_stack([plane_xy, np.zeros(len(plane_xy))])
 
     line_pca = pca_analysis(line_points)
@@ -67,9 +69,7 @@ def test_collinear_and_coplanar_geometry() -> None:
 
 
 def test_cube_aabb_extent() -> None:
-    points = np.asarray(
-        [[x, y, z] for x in (-1.0, 1.0) for y in (-2.0, 2.0) for z in (-3.0, 3.0)]
-    )
+    points = np.asarray([[x, y, z] for x in (-1.0, 1.0) for y in (-2.0, 2.0) for z in (-3.0, 3.0)])
 
     aabb = compute_aabb(points)
 
@@ -85,4 +85,3 @@ def test_distance_functions() -> None:
         point_to_line_distances(points, [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]),
         [0.0, 0.0, 2.0],
     )
-

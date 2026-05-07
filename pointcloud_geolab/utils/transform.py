@@ -18,7 +18,9 @@ def make_transform(rotation: np.ndarray, translation: np.ndarray) -> np.ndarray:
     return transform
 
 
-def apply_transform(points: np.ndarray, rotation: np.ndarray, translation: np.ndarray) -> np.ndarray:
+def apply_transform(
+    points: np.ndarray, rotation: np.ndarray, translation: np.ndarray
+) -> np.ndarray:
     """Apply ``R p + t`` to an ``(N, 3)`` point cloud."""
 
     pts = np.asarray(points, dtype=float)
@@ -62,4 +64,3 @@ def rotation_matrix_from_euler(rx: float, ry: float, rz: float) -> np.ndarray:
     ry_m = np.asarray([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]], dtype=float)
     rz_m = np.asarray([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]], dtype=float)
     return rz_m @ ry_m @ rx_m
-

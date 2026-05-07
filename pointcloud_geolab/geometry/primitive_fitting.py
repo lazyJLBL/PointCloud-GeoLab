@@ -182,6 +182,38 @@ class RANSACResult:
     iterations: int
 
 
+@dataclass(slots=True)
+class ExtractedPrimitive:
+    """One primitive extracted from a mixed scene."""
+
+    model_type: str
+    model: PrimitiveModel
+    inlier_indices: np.ndarray
+    residual_mean: float
+    inlier_ratio: float
+    selection_score: float
+
+    def get_params(self) -> dict[str, object]:
+        """Return JSON-friendly primitive parameters."""
+
+        return {
+            "model_type": self.model_type,
+            "params": self.model.get_params(),
+            "inliers": self.inlier_indices.tolist(),
+            "residual_mean": self.residual_mean,
+            "inlier_ratio": self.inlier_ratio,
+            "selection_score": self.selection_score,
+        }
+
+
+@dataclass(slots=True)
+class PrimitiveExtractionResult:
+    """Sequential RANSAC extraction result."""
+
+    primitives: list[ExtractedPrimitive]
+    remaining_indices: np.ndarray
+
+
 def ransac_fit_primitive(
     points: np.ndarray,
     model_type: str,
@@ -245,6 +277,88 @@ def ransac_fit_primitive(
         residual_mean=residual_mean,
         iterations=iterations,
     )
+
+
+def extract_primitives(
+    points: np.ndarray,
+    model_types: list[str] | tuple[str, ...] = ("plane", "sphere", "cylinder"),
+    threshold: float = 0.03,
+    max_models: int = 5,
+    min_inliers: int = 30,
+    max_iterations: int = 1000,
+    random_state: int | None = None,
+) -> PrimitiveExtractionResult:
+    """Sequentially extract multiple primitives from a mixed point cloud."""
+
+    pts = _ensure_points(points)
+    if threshold <= 0:
+        raise ValueError("threshold must be positive")
+    if max_models <= 0:
+        raise ValueError("max_models must be positive")
+    if min_inliers <= 0:
+        raise ValueError("min_inliers must be positive")
+    normalized_types = [model.lower() for model in model_types]
+    for model_type in normalized_types:
+        _model_spec(model_type)
+
+    remaining = np.arange(len(pts), dtype=int)
+    primitives: list[ExtractedPrimitive] = []
+    seed = random_state
+    for model_index in range(max_models):
+        if len(remaining) < min_inliers:
+            break
+        best: ExtractedPrimitive | None = None
+        best_local_inliers: np.ndarray | None = None
+        for offset, model_type in enumerate(normalized_types):
+            try:
+                result = ransac_fit_primitive(
+                    pts[remaining],
+                    model_type=model_type,
+                    threshold=threshold,
+                    max_iterations=max_iterations,
+                    min_inliers=min_inliers,
+                    random_state=None if seed is None else seed + model_index * 17 + offset,
+                )
+            except (RuntimeError, ValueError, np.linalg.LinAlgError):
+                continue
+            inlier_ratio = float(len(result.inlier_indices) / len(remaining))
+            score = _model_selection_score(
+                model_type,
+                inlier_ratio=inlier_ratio,
+                residual_mean=result.residual_mean,
+                point_count=len(remaining),
+            )
+            candidate = ExtractedPrimitive(
+                model_type=model_type,
+                model=result.model,
+                inlier_indices=remaining[result.inlier_indices],
+                residual_mean=result.residual_mean,
+                inlier_ratio=inlier_ratio,
+                selection_score=score,
+            )
+            if best is None or candidate.selection_score < best.selection_score:
+                best = candidate
+                best_local_inliers = result.inlier_indices
+        if best is None or best_local_inliers is None:
+            break
+        primitives.append(best)
+        keep_mask = np.ones(len(remaining), dtype=bool)
+        keep_mask[best_local_inliers] = False
+        remaining = remaining[keep_mask]
+
+    return PrimitiveExtractionResult(primitives=primitives, remaining_indices=remaining)
+
+
+def _model_selection_score(
+    model_type: str,
+    inlier_ratio: float,
+    residual_mean: float,
+    point_count: int,
+) -> float:
+    parameter_count = {"plane": 4, "sphere": 4, "cylinder": 7}[model_type]
+    residual_term = np.log(max(residual_mean, 1e-12))
+    complexity = parameter_count * np.log(max(point_count, 2)) / max(point_count, 1)
+    return float(residual_term + complexity - 2.0 * inlier_ratio)
 
 
 def _model_spec(model_type: str):

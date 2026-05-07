@@ -1,9 +1,10 @@
-"""A small custom KD-Tree for 3D nearest-neighbor search."""
+"""A small custom KD-Tree for nearest-neighbor search in arbitrary dimension."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import heapq
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -18,14 +19,22 @@ class KDNode:
 
 
 class KDTree:
-    """Balanced KD-Tree supporting NN, KNN, and radius queries."""
+    """Balanced KD-Tree supporting NN, KNN, radius, and batch queries.
+
+    The implementation is intentionally explicit rather than a wrapper around
+    SciPy or sklearn: it exposes median splitting, branch pruning, and stable
+    tie-breaking while still handling practical edge cases such as empty point
+    sets, repeated points, and non-3D feature spaces.
+    """
 
     def __init__(self, points: np.ndarray):
         pts = np.asarray(points, dtype=float)
-        if pts.ndim != 2 or pts.shape[1] != 3:
-            raise ValueError("points must have shape (N, 3)")
+        if pts.ndim != 2:
+            raise ValueError("points must have shape (N, D)")
+        if pts.shape[1] == 0:
+            raise ValueError("points must have at least one dimension")
         self.points = pts.copy()
-        self.dim = 3
+        self.dim = int(pts.shape[1])
         indices = np.arange(len(self.points), dtype=int)
         self.root = self._build(indices, depth=0)
 
@@ -65,7 +74,9 @@ class KDTree:
             return best_index, best_dist_sq
 
         dist_sq = float(np.sum((query - node.point) ** 2))
-        if dist_sq < best_dist_sq or (np.isclose(dist_sq, best_dist_sq) and node.index < best_index):
+        if dist_sq < best_dist_sq or (
+            np.isclose(dist_sq, best_dist_sq) and (best_index < 0 or node.index < best_index)
+        ):
             best_index, best_dist_sq = node.index, dist_sq
 
         axis = node.axis
@@ -92,7 +103,13 @@ class KDTree:
         result.sort(key=lambda item: (item[1], item[0]))
         return result
 
-    def _knn(self, node: KDNode | None, query: np.ndarray, k: int, heap: list[tuple[float, int]]) -> None:
+    def _knn(
+        self,
+        node: KDNode | None,
+        query: np.ndarray,
+        k: int,
+        heap: list[tuple[float, int]],
+    ) -> None:
         if node is None:
             return
         dist_sq = float(np.sum((query - node.point) ** 2))
@@ -102,7 +119,9 @@ class KDTree:
         else:
             worst_dist_sq = -heap[0][0]
             worst_index = -heap[0][1]
-            if dist_sq < worst_dist_sq or (np.isclose(dist_sq, worst_dist_sq) and node.index < worst_index):
+            if dist_sq < worst_dist_sq or (
+                np.isclose(dist_sq, worst_dist_sq) and node.index < worst_index
+            ):
                 heapq.heapreplace(heap, entry)
 
         axis = node.axis
@@ -153,8 +172,98 @@ class KDTree:
             if diff * diff <= radius_sq:
                 self._radius(node.left, query, radius_sq, result)
 
+    def batch_nearest(
+        self,
+        query_points: np.ndarray,
+        parallel: bool = False,
+        workers: int | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Return nearest-neighbor indices and distances for many queries."""
+
+        queries = self._validate_queries(query_points)
+        if len(queries) == 0:
+            return np.empty(0, dtype=int), np.empty(0, dtype=float)
+        if self.root is None:
+            return (
+                np.full(len(queries), -1, dtype=int),
+                np.full(len(queries), np.inf, dtype=float),
+            )
+
+        results = self._map_queries(queries, self.nearest_neighbor, parallel, workers)
+        indices = np.asarray([idx for idx, _ in results], dtype=int)
+        distances = np.asarray([distance for _, distance in results], dtype=float)
+        return indices, distances
+
+    def batch_knn_search(
+        self,
+        query_points: np.ndarray,
+        k: int,
+        parallel: bool = False,
+        workers: int | None = None,
+    ) -> tuple[list[list[int]], list[list[float]]]:
+        """Return KNN indices and distances for many queries.
+
+        Lists are returned instead of padded arrays because ``k`` can exceed the
+        number of stored points, and empty trees naturally produce empty rows.
+        """
+
+        queries = self._validate_queries(query_points)
+        if len(queries) == 0:
+            return [], []
+        results = self._map_queries(
+            queries,
+            lambda query: self.knn_search(query, k),
+            parallel,
+            workers,
+        )
+        indices = [[idx for idx, _ in row] for row in results]
+        distances = [[distance for _, distance in row] for row in results]
+        return indices, distances
+
+    def batch_radius_search(
+        self,
+        query_points: np.ndarray,
+        radius: float,
+        parallel: bool = False,
+        workers: int | None = None,
+    ) -> tuple[list[list[int]], list[list[float]]]:
+        """Return radius-neighborhood indices and distances for many queries."""
+
+        queries = self._validate_queries(query_points)
+        if len(queries) == 0:
+            return [], []
+        results = self._map_queries(
+            queries,
+            lambda query: self.radius_search(query, radius),
+            parallel,
+            workers,
+        )
+        indices = [[idx for idx, _ in row] for row in results]
+        distances = [[distance for _, distance in row] for row in results]
+        return indices, distances
+
     def _validate_query(self, query_point: np.ndarray) -> np.ndarray:
         query = np.asarray(query_point, dtype=float).reshape(-1)
         if query.shape[0] != self.dim:
-            raise ValueError("query point must have shape (3,)")
+            raise ValueError(f"query point must have shape ({self.dim},)")
         return query
+
+    def _validate_queries(self, query_points: np.ndarray) -> np.ndarray:
+        queries = np.asarray(query_points, dtype=float)
+        if queries.ndim == 1:
+            queries = queries.reshape(1, -1)
+        if queries.ndim != 2 or queries.shape[1] != self.dim:
+            raise ValueError(f"query_points must have shape (M, {self.dim})")
+        return queries
+
+    def _map_queries(
+        self,
+        queries: np.ndarray,
+        fn,
+        parallel: bool,
+        workers: int | None,
+    ):
+        if not parallel or len(queries) <= 1:
+            return [fn(query) for query in queries]
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            return list(executor.map(fn, queries))

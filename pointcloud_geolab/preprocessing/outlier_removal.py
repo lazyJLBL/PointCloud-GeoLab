@@ -58,4 +58,3 @@ def remove_radius_outliers(
             inliers.append(i)
     inlier_indices = np.asarray(inliers, dtype=int)
     return pts[inlier_indices], inlier_indices
-

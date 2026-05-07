@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from pointcloud_geolab.datasets import make_mixed_scene
 from pointcloud_geolab.io.pointcloud_io import save_point_cloud
 from pointcloud_geolab.utils.transform import apply_transform, rotation_matrix_from_euler
 
@@ -52,6 +53,20 @@ def make_rotated_box(rng: np.random.Generator) -> np.ndarray:
     return points + rng.normal(scale=0.003, size=points.shape)
 
 
+def make_lidar_scene(rng: np.random.Generator) -> np.ndarray:
+    ground_xy = rng.uniform([-2.5, -2.0], [2.5, 2.0], size=(600, 2))
+    ground = np.column_stack([ground_xy, rng.normal(0.0, 0.004, size=len(ground_xy))])
+    objects = []
+    for center, scale in [
+        ([0.7, 0.5, 0.35], [0.12, 0.10, 0.18]),
+        ([-0.9, -0.4, 0.45], [0.16, 0.12, 0.22]),
+        ([1.4, -0.8, 0.25], [0.10, 0.08, 0.12]),
+    ]:
+        objects.append(rng.normal(loc=center, scale=scale, size=(120, 3)))
+    outliers = rng.uniform([-2.5, -2.0, 0.05], [2.5, 2.0, 1.2], size=(50, 3))
+    return np.vstack([ground, *objects, outliers])
+
+
 def main() -> int:
     rng = np.random.default_rng(42)
     data_dir = ROOT / "data"
@@ -64,16 +79,19 @@ def main() -> int:
 
     room = make_room_points(rng)
     object_points = make_rotated_box(rng)
+    synthetic_scene, _ = make_mixed_scene(random_state=44, noise=0.006, outliers=60)
+    lidar_scene = make_lidar_scene(rng)
 
     save_point_cloud(data_dir / "bunny_target.ply", target)
     save_point_cloud(data_dir / "bunny_source.ply", source)
     save_point_cloud(data_dir / "room.pcd", room)
     save_point_cloud(data_dir / "room.xyz", room)
     save_point_cloud(data_dir / "object.ply", object_points)
+    save_point_cloud(data_dir / "synthetic_scene.ply", synthetic_scene)
+    save_point_cloud(data_dir / "lidar_scene.ply", lidar_scene)
     print(f"Generated demo data in {data_dir}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

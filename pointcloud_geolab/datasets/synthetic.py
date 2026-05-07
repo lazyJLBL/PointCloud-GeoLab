@@ -43,9 +43,7 @@ def make_sphere(
     phi = rng.uniform(0.0, 2.0 * np.pi, size=n)
     cos_theta = rng.uniform(-1.0, 1.0, size=n)
     sin_theta = np.sqrt(1.0 - cos_theta**2)
-    points = np.column_stack(
-        [sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta]
-    )
+    points = np.column_stack([sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta])
     points = c + radius * points
     if noise > 0:
         points += rng.normal(scale=noise, size=points.shape)

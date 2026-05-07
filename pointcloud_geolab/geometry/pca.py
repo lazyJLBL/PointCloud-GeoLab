@@ -46,4 +46,3 @@ def shape_type_from_eigenvalues(eigenvalues: np.ndarray, eps: float = 1e-9) -> s
     if l2 / l3 > 10:
         return "plane-like"
     return "volume-like"
-

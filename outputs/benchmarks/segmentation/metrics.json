@@ -1,0 +1,51 @@
+{
+  "task": "benchmark:segmentation",
+  "success": true,
+  "metrics": {
+    "benchmark": "segmentation",
+    "cases": 2,
+    "quick": true,
+    "full": false,
+    "all_correct": true,
+    "conclusion": "Euclidean clustering runtime scales with radius-neighborhood queries and benefits directly from spatial indexing."
+  },
+  "artifacts": {
+    "benchmark_csv": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\segmentation\\segmentation_benchmark.csv",
+    "benchmark_markdown": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\segmentation\\segmentation_benchmark.md",
+    "benchmark_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\segmentation\\segmentation_benchmark.json",
+    "benchmark_plot": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\segmentation\\segmentation_benchmark.png",
+    "metrics_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\segmentation\\metrics.json"
+  },
+  "parameters": {
+    "benchmark": "segmentation",
+    "output_dir": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\segmentation",
+    "quick": true,
+    "full": false,
+    "save_json": null,
+    "save_md": null,
+    "seed": 42,
+    "queries": 100,
+    "points": null
+  },
+  "data": {
+    "rows": [
+      {
+        "points": 300,
+        "method": "euclidean",
+        "runtime": 0.14251949964091182,
+        "clusters": 3,
+        "noise_points": 0
+      },
+      {
+        "points": 900,
+        "method": "euclidean",
+        "runtime": 1.1408281000331044,
+        "clusters": 3,
+        "noise_points": 0
+      }
+    ],
+    "markdown": "| clusters | method | noise_points | points | runtime |\n| --- | --- | --- | --- | --- |\n| 3 | euclidean | 0 | 300 | 0.142519 |\n| 3 | euclidean | 0 | 900 | 1.140828 |",
+    "conclusion": "Euclidean clustering runtime scales with radius-neighborhood queries and benefits directly from spatial indexing."
+  },
+  "error": null
+}

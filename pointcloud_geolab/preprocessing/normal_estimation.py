@@ -31,4 +31,3 @@ def estimate_normals(points: np.ndarray, k: int = 16) -> np.ndarray:
         norm = np.linalg.norm(normal)
         normals[i] = normal / norm if norm > 0 else np.asarray([0.0, 0.0, 1.0])
     return normals
-

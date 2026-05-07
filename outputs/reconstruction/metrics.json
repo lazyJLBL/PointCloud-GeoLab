@@ -1,0 +1,24 @@
+{
+  "task": "reconstruct",
+  "success": true,
+  "metrics": {
+    "method": "poisson",
+    "vertices": 4963,
+    "triangles": 9735
+  },
+  "artifacts": {
+    "mesh": "outputs\\reconstruction\\object_mesh.ply",
+    "metrics_json": "outputs\\reconstruction\\metrics.json"
+  },
+  "parameters": {
+    "input_path": "data/object.ply",
+    "output": "outputs\\reconstruction\\object_mesh.ply",
+    "output_dir": "outputs/reconstruction",
+    "method": "poisson",
+    "normal_radius": 0.15,
+    "poisson_depth": 6,
+    "alpha": 0.2
+  },
+  "data": {},
+  "error": null
+}

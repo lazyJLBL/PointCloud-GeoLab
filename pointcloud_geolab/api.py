@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import time
 from csv import DictWriter
 from dataclasses import dataclass, field
@@ -12,8 +14,9 @@ from typing import Any
 import numpy as np
 
 from pointcloud_geolab.datasets import make_sphere
+from pointcloud_geolab.features import compute_local_geometric_descriptors, detect_iss_keypoints
 from pointcloud_geolab.geometry import compute_aabb, compute_obb, pca_analysis
-from pointcloud_geolab.geometry.primitive_fitting import ransac_fit_primitive
+from pointcloud_geolab.geometry.primitive_fitting import extract_primitives, ransac_fit_primitive
 from pointcloud_geolab.io.pointcloud_io import load_point_cloud, save_point_cloud
 from pointcloud_geolab.io.visualization import (
     save_error_curve,
@@ -31,15 +34,25 @@ from pointcloud_geolab.preprocessing import (
     remove_statistical_outliers,
     voxel_downsample,
 )
-from pointcloud_geolab.registration import evaluate_registration, point_to_point_icp
+from pointcloud_geolab.reconstruction import reconstruct_surface
+from pointcloud_geolab.registration import (
+    evaluate_registration,
+    multiscale_icp,
+    point_to_point_icp,
+    robust_icp,
+)
+from pointcloud_geolab.registration.feature_registration import register_iss_descriptor_ransac_icp
 from pointcloud_geolab.registration.global_registration import register_fpfh_ransac_icp
 from pointcloud_geolab.segmentation import (
     cluster_statistics,
     dbscan_clustering,
     euclidean_clustering,
+    ground_object_segmentation,
     region_growing_segmentation,
+    write_cluster_report,
 )
 from pointcloud_geolab.segmentation.ransac_plane import ransac_plane_fitting
+from pointcloud_geolab.spatial import VoxelHashGrid
 from pointcloud_geolab.utils.transform import (
     apply_homogeneous_transform,
     apply_transform,
@@ -165,6 +178,111 @@ def run_icp(
         )
     except Exception as exc:  # pragma: no cover - exercised through CLI failures
         task_result = TaskResult("icp", False, parameters=parameters, error=str(exc))
+    return _finalize_result(task_result, output_dir)
+
+
+def run_robust_icp(
+    source: str | Path,
+    target: str | Path,
+    output_dir: str | Path = "outputs/registration",
+    method: str = "point_to_point",
+    robust_kernel: str = "huber",
+    trim_ratio: float = 0.8,
+    max_iterations: int = 50,
+    tolerance: float = 1e-6,
+    max_correspondence_distance: float | None = None,
+) -> TaskResult:
+    """Run robust ICP and return JSON-friendly diagnostics."""
+
+    parameters = _parameters(locals())
+    try:
+        source_points = load_point_cloud(source)
+        target_points = load_point_cloud(target)
+        result = robust_icp(
+            source_points,
+            target_points,
+            method=method,
+            robust_kernel=robust_kernel,
+            trim_ratio=trim_ratio,
+            max_iterations=max_iterations,
+            tolerance=tolerance,
+            max_correspondence_distance=max_correspondence_distance,
+        )
+        task_result = TaskResult(
+            task="robust-icp",
+            success=True,
+            metrics={
+                "iterations": result.iterations,
+                "final_rmse": result.final_rmse,
+                "fitness": result.fitness,
+                "converged": result.converged,
+            },
+            parameters=parameters,
+            data={
+                "transformation": result.transformation,
+                "rmse_history": result.rmse_history,
+                "diagnostics": result.diagnostics,
+            },
+        )
+    except Exception as exc:  # pragma: no cover - CLI failure path
+        task_result = TaskResult("robust-icp", False, parameters=parameters, error=str(exc))
+    return _finalize_result(task_result, output_dir)
+
+
+def run_multiscale_icp(
+    source: str | Path,
+    target: str | Path,
+    output_dir: str | Path = "outputs/registration",
+    voxel_sizes: list[float] | None = None,
+    max_iterations_per_level: int = 30,
+    method: str = "point_to_point",
+    robust_kernel: str = "none",
+    trim_ratio: float = 1.0,
+    output: str | Path | None = None,
+    save_diagnostics: str | Path | None = None,
+) -> TaskResult:
+    """Run coarse-to-fine ICP."""
+
+    parameters = _parameters(locals())
+    try:
+        source_points = load_point_cloud(source)
+        target_points = load_point_cloud(target)
+        result = multiscale_icp(
+            source_points,
+            target_points,
+            voxel_sizes=voxel_sizes or [0.2, 0.1, 0.05],
+            max_iterations_per_level=max_iterations_per_level,
+            method=method,
+            robust_kernel=robust_kernel,
+            trim_ratio=trim_ratio,
+        )
+        artifacts: dict[str, str] = {}
+        if output:
+            save_point_cloud(output, result.aligned_points)
+            artifacts["aligned_source"] = str(output)
+        if save_diagnostics:
+            path = Path(save_diagnostics)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(_json_ready(result.diagnostics), indent=2) + "\n",
+                encoding="utf-8",
+            )
+            artifacts["diagnostics"] = str(path)
+        task_result = TaskResult(
+            task="multiscale-icp",
+            success=True,
+            metrics={
+                "levels": len(result.diagnostics),
+                "final_rmse": result.final_rmse,
+                "fitness": result.fitness,
+                "converged": result.converged,
+            },
+            artifacts=artifacts,
+            parameters=parameters,
+            data={"transformation": result.transformation, "diagnostics": result.diagnostics},
+        )
+    except Exception as exc:  # pragma: no cover - CLI failure path
+        task_result = TaskResult("multiscale-icp", False, parameters=parameters, error=str(exc))
     return _finalize_result(task_result, output_dir)
 
 
@@ -424,12 +542,12 @@ def run_benchmark(
 
     parameters = _parameters(locals())
     try:
+        conclusion = _benchmark_conclusion(benchmark)
         if benchmark == "kdtree":
             rows = _benchmark_kdtree(
                 seed=seed,
                 queries=queries,
-                point_counts=points
-                or ([1000, 5000, 10000, 50000] if full else [1000, 5000, 10000]),
+                point_counts=points or ([1000, 10000, 100000] if full or quick else [1000, 10000]),
             )
             markdown = _format_kdtree_table(rows)
         elif benchmark == "icp":
@@ -441,9 +559,13 @@ def run_benchmark(
         elif benchmark == "registration":
             rows = _benchmark_registration(seed=seed, quick=quick)
             markdown = _format_generic_table(rows)
+        elif benchmark == "segmentation":
+            rows = _benchmark_segmentation(seed=seed, quick=quick)
+            markdown = _format_generic_table(rows)
         elif benchmark == "all":
             rows = []
-            for suite in ["kdtree", "icp", "ransac", "registration"]:
+            suite_summaries = []
+            for suite in ["kdtree", "icp", "ransac", "registration", "segmentation"]:
                 suite_result = run_benchmark(
                     suite,
                     output_dir=Path(output_dir) / suite,
@@ -457,9 +579,19 @@ def run_benchmark(
                     {"suite": suite, **row}
                     for row in suite_result.to_dict().get("data", {}).get("rows", [])
                 )
+                suite_summaries.append(
+                    {
+                        "suite": suite,
+                        "cases": suite_result.metrics.get("cases", 0),
+                        "conclusion": _benchmark_conclusion(suite),
+                    }
+                )
             markdown = _format_generic_table(rows)
+            conclusion = "Quick portfolio benchmark completed across geometry core suites."
         else:
-            raise ValueError("benchmark must be one of: kdtree, icp, ransac, registration, all")
+            raise ValueError(
+                "benchmark must be one of: kdtree, icp, ransac, registration, segmentation, all"
+            )
 
         artifacts: dict[str, str] = {}
         out_dir = Path(output_dir)
@@ -469,9 +601,13 @@ def run_benchmark(
         json_default_path = out_dir / f"{benchmark}_benchmark.json"
         png_path = out_dir / f"{benchmark}_benchmark.png"
         _write_csv(csv_path, rows)
-        md_default_path.write_text(markdown + "\n", encoding="utf-8")
+        md_default_path.write_text(markdown + f"\n\nConclusion: {conclusion}\n", encoding="utf-8")
         json_default_path.write_text(
-            json.dumps({"benchmark": benchmark, "rows": _json_ready(rows)}, indent=2) + "\n",
+            json.dumps(
+                {"benchmark": benchmark, "conclusion": conclusion, "rows": _json_ready(rows)},
+                indent=2,
+            )
+            + "\n",
             encoding="utf-8",
         )
         _save_benchmark_plot(png_path, benchmark, rows)
@@ -491,8 +627,20 @@ def run_benchmark(
         if save_md:
             md_path = Path(save_md)
             md_path.parent.mkdir(parents=True, exist_ok=True)
-            md_path.write_text(markdown + "\n", encoding="utf-8")
+            md_path.write_text(markdown + f"\n\nConclusion: {conclusion}\n", encoding="utf-8")
             artifacts["benchmark_markdown_custom"] = str(md_path)
+        if benchmark == "all":
+            summary_rows = suite_summaries if "suite_summaries" in locals() else []
+            summary_md = _format_benchmark_summary(summary_rows)
+            summary_json = out_dir / "benchmark_summary.json"
+            summary_md_path = out_dir / "benchmark_summary.md"
+            summary_md_path.write_text(summary_md + "\n", encoding="utf-8")
+            summary_json.write_text(
+                json.dumps({"suites": summary_rows}, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            artifacts["benchmark_summary_markdown"] = str(summary_md_path)
+            artifacts["benchmark_summary_json"] = str(summary_json)
 
         task_result = TaskResult(
             task=f"benchmark:{benchmark}",
@@ -503,10 +651,11 @@ def run_benchmark(
                 "quick": quick,
                 "full": full,
                 "all_correct": all(bool(row.get("correct", True)) for row in rows),
+                "conclusion": conclusion,
             },
             artifacts=artifacts,
             parameters=parameters,
-            data={"rows": rows, "markdown": markdown},
+            data={"rows": rows, "markdown": markdown, "conclusion": conclusion},
         )
     except Exception as exc:  # pragma: no cover - exercised through CLI failures
         task_result = TaskResult(
@@ -515,6 +664,52 @@ def run_benchmark(
             parameters=parameters,
             error=str(exc),
         )
+    return _finalize_result(task_result, output_dir)
+
+
+def run_iss_keypoints(
+    input_path: str | Path,
+    output_dir: str | Path = "outputs/features",
+    salient_radius: float = 0.18,
+    non_max_radius: float = 0.12,
+    descriptor_radius: float = 0.25,
+    export_html: str | Path | None = None,
+) -> TaskResult:
+    """Detect ISS keypoints and compute local geometric descriptors."""
+
+    parameters = _parameters(locals())
+    try:
+        points = load_point_cloud(input_path)
+        result = detect_iss_keypoints(points, salient_radius, non_max_radius)
+        descriptors = compute_local_geometric_descriptors(
+            points,
+            result.indices,
+            radius=descriptor_radius,
+        )
+        artifacts: dict[str, str] = {}
+        if export_html:
+            colors = np.full((len(points), 3), 0.65, dtype=float)
+            colors[result.indices] = np.asarray([0.9, 0.1, 0.1])
+            export_point_cloud_html(points, colors, export_html, title="ISS Keypoints")
+            artifacts["html"] = str(export_html)
+        task_result = TaskResult(
+            task="iss-keypoints",
+            success=True,
+            metrics={
+                "point_count": len(points),
+                "keypoints": len(result.indices),
+                "descriptor_dimension": descriptors.shape[1] if descriptors.ndim == 2 else 0,
+            },
+            artifacts=artifacts,
+            parameters=parameters,
+            data={
+                "indices": result.indices,
+                "saliency": result.saliency,
+                "descriptors": descriptors,
+            },
+        )
+    except Exception as exc:  # pragma: no cover - CLI failure path
+        task_result = TaskResult("iss-keypoints", False, parameters=parameters, error=str(exc))
     return _finalize_result(task_result, output_dir)
 
 
@@ -531,40 +726,98 @@ def run_global_registration(
     seed: int | None = 7,
     save_results: bool = False,
     export_html: str | Path | None = None,
+    multiscale: bool = False,
+    voxel_sizes: list[float] | None = None,
+    robust_kernel: str = "none",
+    trim_ratio: float = 1.0,
+    save_diagnostics: str | Path | None = None,
 ) -> TaskResult:
     """Run feature-based global registration and ICP refinement."""
 
     parameters = _parameters(locals())
     try:
-        if method != "fpfh_ransac_icp":
-            raise ValueError("only method='fpfh_ransac_icp' is currently supported")
         source_points = load_point_cloud(source)
         target_points = load_point_cloud(target)
-        result = register_fpfh_ransac_icp(
-            source_points,
-            target_points,
-            voxel_size=voxel_size,
-            icp_method=icp_method,
-            threshold=threshold,
-            seed=seed,
-        )
+        if method == "fpfh_ransac_icp":
+            result = register_fpfh_ransac_icp(
+                source_points,
+                target_points,
+                voxel_size=voxel_size,
+                icp_method=icp_method,
+                threshold=threshold,
+                seed=seed,
+            )
+        elif method == "iss_descriptor_ransac_icp":
+            result = register_iss_descriptor_ransac_icp(
+                source_points,
+                target_points,
+                salient_radius=max(voxel_size * 3.0, 0.05),
+                non_max_radius=max(voxel_size * 2.0, 0.04),
+                descriptor_radius=max(voxel_size * 4.0, 0.08),
+                threshold=threshold or max(voxel_size * 2.0, 0.05),
+                seed=seed,
+                icp_method=icp_method,
+            )
+        else:
+            raise ValueError("method must be one of: fpfh_ransac_icp, iss_descriptor_ransac_icp")
         eval_threshold = threshold if threshold is not None else voxel_size * 1.5
+        refined_transform = result.refined_transform
+        refined_fitness = result.refined.fitness
+        refined_rmse = result.refined.inlier_rmse
+        diagnostics = {"coarse": result.coarse.metadata, "refined": result.refined.metadata}
+        if multiscale:
+            initialized = apply_homogeneous_transform(source_points, result.initial_transform)
+            ms_result = multiscale_icp(
+                initialized,
+                target_points,
+                voxel_sizes=voxel_sizes or [voxel_size * 4.0, voxel_size * 2.0, voxel_size],
+                method=icp_method,
+                robust_kernel=robust_kernel,
+                trim_ratio=trim_ratio,
+                max_correspondence_distance=eval_threshold,
+            )
+            refined_transform = ms_result.transformation @ result.initial_transform
+            refined_fitness = ms_result.fitness
+            refined_rmse = ms_result.final_rmse
+            diagnostics["multiscale"] = ms_result.diagnostics
+        elif robust_kernel != "none" or trim_ratio < 1.0:
+            initialized = apply_homogeneous_transform(source_points, result.initial_transform)
+            robust_result = robust_icp(
+                initialized,
+                target_points,
+                method=icp_method,
+                robust_kernel=robust_kernel,
+                trim_ratio=trim_ratio,
+                max_correspondence_distance=eval_threshold,
+            )
+            refined_transform = robust_result.transformation @ result.initial_transform
+            refined_fitness = robust_result.fitness
+            refined_rmse = robust_result.final_rmse
+            diagnostics["robust"] = robust_result.diagnostics
         metrics = evaluate_registration(
             source_points,
             target_points,
-            result.refined_transform,
+            refined_transform,
             threshold=eval_threshold,
         )
         artifacts: dict[str, str] = {}
-        aligned = apply_homogeneous_transform(source_points, result.refined_transform)
+        aligned = apply_homogeneous_transform(source_points, refined_transform)
         if output:
             save_point_cloud(output, aligned)
             artifacts["aligned_source"] = str(output)
         if save_transform:
             transform_path = Path(save_transform)
             transform_path.parent.mkdir(parents=True, exist_ok=True)
-            np.savetxt(transform_path, result.refined_transform, fmt="%.10f")
+            np.savetxt(transform_path, refined_transform, fmt="%.10f")
             artifacts["transform"] = str(transform_path)
+        if save_diagnostics:
+            diagnostics_path = Path(save_diagnostics)
+            diagnostics_path.parent.mkdir(parents=True, exist_ok=True)
+            diagnostics_path.write_text(
+                json.dumps(_json_ready(diagnostics), indent=2) + "\n",
+                encoding="utf-8",
+            )
+            artifacts["diagnostics"] = str(diagnostics_path)
         if save_results:
             out_dir = Path(output_dir)
             before_path = out_dir / "registration_before.png"
@@ -602,7 +855,7 @@ def run_global_registration(
             export_registration_html(
                 source_points,
                 target_points,
-                result.refined_transform,
+                refined_transform,
                 export_html,
             )
             artifacts["html"] = str(export_html)
@@ -612,8 +865,8 @@ def run_global_registration(
             metrics={
                 "coarse_fitness": result.coarse.fitness,
                 "coarse_inlier_rmse": result.coarse.inlier_rmse,
-                "refined_fitness": result.refined.fitness,
-                "refined_inlier_rmse": result.refined.inlier_rmse,
+                "refined_fitness": refined_fitness,
+                "refined_inlier_rmse": refined_rmse,
                 "final_rmse": metrics["rmse"],
                 "final_fitness": metrics["fitness"],
                 "source_downsampled": result.source_downsampled,
@@ -623,13 +876,37 @@ def run_global_registration(
             parameters=parameters,
             data={
                 "initial_transform": result.initial_transform,
-                "refined_transform": result.refined_transform,
+                "refined_transform": refined_transform,
                 "method": result.method,
+                "diagnostics": diagnostics,
             },
         )
     except Exception as exc:  # pragma: no cover - exercised through CLI failures
         task_result = TaskResult("register", False, parameters=parameters, error=str(exc))
     return _finalize_result(task_result, output_dir)
+
+
+def run_feature_registration(
+    source: str | Path,
+    target: str | Path,
+    output_dir: str | Path = "outputs/registration",
+    output: str | Path | None = None,
+    threshold: float = 0.08,
+    seed: int | None = 7,
+) -> TaskResult:
+    """Run the self-implemented ISS descriptor RANSAC registration pipeline."""
+
+    return run_global_registration(
+        source=source,
+        target=target,
+        output=output,
+        output_dir=output_dir,
+        voxel_size=max(threshold / 2.0, 0.02),
+        method="iss_descriptor_ransac_icp",
+        threshold=threshold,
+        seed=seed,
+        save_results=True,
+    )
 
 
 def run_primitive_fitting(
@@ -696,6 +973,82 @@ def run_primitive_fitting(
     return _finalize_result(task_result, output_dir)
 
 
+def run_extract_primitives(
+    input_path: str | Path,
+    models: list[str] | None = None,
+    output: str | Path | None = None,
+    output_dir: str | Path = "outputs/primitives",
+    threshold: float = 0.03,
+    max_models: int = 5,
+    min_inliers: int = 30,
+    max_iterations: int = 800,
+    seed: int | None = 7,
+    export_html: str | Path | None = None,
+) -> TaskResult:
+    """Extract multiple geometric primitives with sequential RANSAC."""
+
+    parameters = _parameters(locals())
+    try:
+        points = load_point_cloud(input_path)
+        result = extract_primitives(
+            points,
+            model_types=models or ["plane", "sphere", "cylinder"],
+            threshold=threshold,
+            max_models=max_models,
+            min_inliers=min_inliers,
+            max_iterations=max_iterations,
+            random_state=seed,
+        )
+        labels = np.full(len(points), -1, dtype=int)
+        for label, primitive in enumerate(result.primitives):
+            labels[primitive.inlier_indices] = label
+
+        artifacts: dict[str, str] = {}
+        if output:
+            save_colored_point_cloud(output, points, labels)
+            artifacts["colored_primitives"] = str(output)
+        if export_html:
+            export_point_cloud_html(
+                points,
+                label_colors(labels),
+                export_html,
+                title="Sequential Primitive Extraction",
+            )
+            artifacts["html"] = str(export_html)
+        json_path = Path(output_dir) / "primitive_models.json"
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        json_path.write_text(
+            json.dumps([primitive.get_params() for primitive in result.primitives], indent=2)
+            + "\n",
+            encoding="utf-8",
+        )
+        artifacts["models_json"] = str(json_path)
+        task_result = TaskResult(
+            task="extract-primitives",
+            success=True,
+            metrics={
+                "point_count": len(points),
+                "model_count": len(result.primitives),
+                "remaining_points": len(result.remaining_indices),
+            },
+            artifacts=artifacts,
+            parameters=parameters,
+            data={
+                "labels": labels,
+                "primitives": [primitive.get_params() for primitive in result.primitives],
+                "remaining_indices": result.remaining_indices,
+            },
+        )
+    except Exception as exc:  # pragma: no cover - CLI failure path
+        task_result = TaskResult(
+            "extract-primitives",
+            False,
+            parameters=parameters,
+            error=str(exc),
+        )
+    return _finalize_result(task_result, output_dir)
+
+
 def run_segmentation(
     input_path: str | Path,
     output: str | Path | None = None,
@@ -707,12 +1060,64 @@ def run_segmentation(
     radius: float = 0.1,
     angle_threshold: float = 25.0,
     export_html: str | Path | None = None,
+    remove_ground: bool = False,
+    ground_axis: str = "z",
+    ground_angle_threshold: float = 20.0,
+    export_report: str | Path | None = None,
 ) -> TaskResult:
     """Segment a point cloud with DBSCAN, Euclidean clustering, or region growing."""
 
     parameters = _parameters(locals())
     try:
         points = load_point_cloud(input_path)
+        if remove_ground:
+            ground_result = ground_object_segmentation(
+                points,
+                ground_threshold=radius if radius > 0 else eps,
+                ground_axis=ground_axis,
+                ground_angle_threshold=ground_angle_threshold,
+                cluster_method="dbscan" if method == "dbscan" else "euclidean",
+                eps=tolerance if tolerance is not None else eps,
+                min_points=min_points,
+            )
+            labels = ground_result.labels
+            artifacts: dict[str, str] = {}
+            if output:
+                save_colored_point_cloud(output, points, labels)
+                artifacts["colored_point_cloud"] = str(output)
+            if export_html:
+                export_point_cloud_html(
+                    points,
+                    label_colors(labels),
+                    export_html,
+                    title="Ground Removal and Object Clustering",
+                )
+                artifacts["html"] = str(export_html)
+            if export_report:
+                write_cluster_report(ground_result, export_report)
+                artifacts["cluster_report"] = str(export_report)
+            task_result = TaskResult(
+                task="segment",
+                success=True,
+                metrics={
+                    "point_count": len(points),
+                    "ground_points": len(ground_result.ground.ground_indices),
+                    "cluster_count": len(ground_result.clusters),
+                    "noise_points": len(ground_result.noise_indices),
+                },
+                artifacts=artifacts,
+                parameters=parameters,
+                data={
+                    "labels": labels,
+                    "ground": {
+                        "plane_model": ground_result.ground.plane_model,
+                        "normal_angle_degrees": ground_result.ground.normal_angle_degrees,
+                    },
+                    "clusters": [cluster.to_dict() for cluster in ground_result.clusters],
+                },
+            )
+            return _finalize_result(task_result, output_dir)
+
         if method == "dbscan":
             result = dbscan_clustering(points, eps=eps, min_points=min_points)
         elif method == "euclidean":
@@ -764,6 +1169,189 @@ def run_segmentation(
     return _finalize_result(task_result, output_dir)
 
 
+def run_ground_object_segmentation(
+    input_path: str | Path,
+    output: str | Path | None = None,
+    output_dir: str | Path = "outputs/segmentation",
+    eps: float = 0.15,
+    min_points: int = 10,
+    ground_axis: str = "z",
+    ground_angle_threshold: float = 20.0,
+    export_html: str | Path | None = None,
+    export_report: str | Path | None = None,
+) -> TaskResult:
+    """Run the ground-removal and object-clustering pipeline."""
+
+    return run_segmentation(
+        input_path=input_path,
+        output=output,
+        output_dir=output_dir,
+        method="euclidean",
+        eps=eps,
+        min_points=min_points,
+        radius=0.03,
+        export_html=export_html,
+        remove_ground=True,
+        ground_axis=ground_axis,
+        ground_angle_threshold=ground_angle_threshold,
+        export_report=export_report,
+    )
+
+
+def run_reconstruction(
+    input_path: str | Path,
+    output: str | Path,
+    output_dir: str | Path = "outputs/reconstruction",
+    method: str = "poisson",
+    normal_radius: float = 0.15,
+    poisson_depth: int = 6,
+    alpha: float = 0.2,
+) -> TaskResult:
+    """Run Open3D-backed surface reconstruction."""
+
+    parameters = _parameters(locals())
+    try:
+        points = load_point_cloud(input_path)
+        result = reconstruct_surface(
+            points,
+            method=method,
+            output=output,
+            normal_radius=normal_radius,
+            poisson_depth=poisson_depth,
+            alpha=alpha,
+        )
+        task_result = TaskResult(
+            task="reconstruct",
+            success=True,
+            metrics={
+                "method": result.method,
+                "vertices": len(result.vertices),
+                "triangles": len(result.triangles),
+            },
+            artifacts={"mesh": str(output)},
+            parameters=parameters,
+        )
+    except Exception as exc:  # pragma: no cover - optional dependency path
+        task_result = TaskResult("reconstruct", False, parameters=parameters, error=str(exc))
+    return _finalize_result(task_result, output_dir)
+
+
+def run_portfolio_verification(
+    output_dir: str | Path = "outputs",
+    quick: bool = True,
+) -> TaskResult:
+    """Run a reproducible portfolio smoke-check and write a Markdown report."""
+
+    parameters = _parameters(locals())
+    root = Path(__file__).resolve().parents[1]
+    out_dir = Path(output_dir).resolve()
+    report_path = out_dir / "portfolio_check_report.md"
+    commands = [
+        [sys.executable, "examples/generate_demo_data.py"],
+        [sys.executable, "examples/global_registration_demo.py"],
+        [sys.executable, "examples/primitive_fitting_demo.py"],
+        [sys.executable, "examples/segmentation_demo.py"],
+        [sys.executable, "examples/benchmark_demo.py"],
+        [sys.executable, "examples/visualization_demo.py"],
+        [sys.executable, "examples/gallery_demo.py"],
+        [
+            sys.executable,
+            "-m",
+            "pointcloud_geolab",
+            "benchmark",
+            "--suite",
+            "all",
+            "--quick" if quick else "--no-quick",
+            "--output",
+            str(out_dir / "benchmarks"),
+        ],
+    ]
+    cli_smoke = [
+        [
+            sys.executable,
+            "-m",
+            "pointcloud_geolab",
+            "benchmark",
+            "--suite",
+            "kdtree",
+            "--quick",
+            "--output",
+            str(out_dir / "benchmarks" / "kdtree_smoke"),
+        ],
+        [
+            sys.executable,
+            "-m",
+            "pointcloud_geolab",
+            "extract-primitives",
+            "--input",
+            "data/synthetic_scene.ply",
+            "--models",
+            "plane",
+            "sphere",
+            "cylinder",
+            "--threshold",
+            "0.04",
+            "--max-models",
+            "3",
+            "--min-inliers",
+            "20",
+            "--output",
+            str(out_dir / "primitives" / "verify_primitives.ply"),
+        ],
+    ]
+    commands.extend(cli_smoke)
+
+    passed = []
+    failed = []
+    for command in commands:
+        completed = subprocess.run(
+            command,
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=240,
+            check=False,
+        )
+        record = {
+            "command": " ".join(command),
+            "returncode": completed.returncode,
+            "stdout": completed.stdout[-2000:],
+            "stderr": completed.stderr[-2000:],
+        }
+        if completed.returncode == 0:
+            passed.append(record)
+        else:
+            failed.append(record)
+
+    artifacts = sorted(str(path.relative_to(root)) for path in out_dir.rglob("*") if path.is_file())
+    missing = _missing_readme_artifacts(root)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        _format_portfolio_report(passed, failed, artifacts, missing),
+        encoding="utf-8",
+    )
+    task_result = TaskResult(
+        task="verify-portfolio",
+        success=not failed and not missing,
+        metrics={
+            "passed_commands": len(passed),
+            "failed_commands": len(failed),
+            "generated_artifacts": len(artifacts),
+            "missing_readme_artifacts": len(missing),
+        },
+        artifacts={"report": str(report_path)},
+        parameters=parameters,
+        data={
+            "passed": passed,
+            "failed": failed,
+            "artifacts": artifacts,
+            "missing_readme_artifacts": missing,
+        },
+        error=None if not failed else "one or more portfolio commands failed",
+    )
+    return _finalize_result(task_result, output_dir)
+
+
 def run_visualization(
     input_path: str | Path,
     output: str | Path,
@@ -789,9 +1377,9 @@ def run_visualization(
         else:
             points = load_point_cloud(input_path)
             colors = None
-            if mode == "clusters":
+            if mode in {"clusters", "primitives", "inliers_outliers"}:
                 if labels_path is None:
-                    raise ValueError("labels_path is required for cluster visualization")
+                    raise ValueError(f"labels_path is required for {mode} visualization")
                 labels = np.loadtxt(labels_path, dtype=int)
                 colors = label_colors(labels)
             export_point_cloud_html(points, colors, output, title=mode.title())
@@ -889,12 +1477,29 @@ def _benchmark_kdtree(seed: int, queries: int, point_counts: list[int]) -> list[
         kd_indices = [tree.nearest_neighbor(query)[0] for query in query_points]
         kd_time = time.perf_counter() - start
 
+        radius_queries = query_points[: min(len(query_points), 25)]
+        radius = 0.08
+        start = time.perf_counter()
+        kd_radius_counts = [len(tree.radius_search(query, radius)) for query in radius_queries]
+        kd_radius_time = time.perf_counter() - start
+
+        start = time.perf_counter()
+        voxel = VoxelHashGrid.build(points, voxel_size=radius)
+        voxel_build_time = time.perf_counter() - start
+        start = time.perf_counter()
+        voxel_radius_counts = [len(voxel.radius_search(query, radius)) for query in radius_queries]
+        voxel_radius_time = time.perf_counter() - start
+
         row: dict[str, Any] = {
             "points": points_count,
             "queries": queries,
             "build_time": build_time,
             "brute_time": brute_time,
             "kd_time": kd_time,
+            "kd_radius_time": kd_radius_time,
+            "voxel_build_time": voxel_build_time,
+            "voxel_radius_time": voxel_radius_time,
+            "voxel_radius_correct": kd_radius_counts == voxel_radius_counts,
             "speedup": brute_time / kd_time if kd_time > 0 else float("inf"),
             "correct": brute_indices == kd_indices,
         }
@@ -1111,6 +1716,72 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
     return rows
 
 
+def _benchmark_segmentation(seed: int, quick: bool) -> list[dict[str, Any]]:
+    counts = [300, 900] if quick else [300, 900, 1800]
+    rows = []
+    for count in counts:
+        rng = np.random.default_rng(seed + count)
+        clusters = [
+            rng.normal(scale=0.035, size=(count // 3, 3)) + np.asarray([0.0, 0.0, 0.2]),
+            rng.normal(scale=0.035, size=(count // 3, 3)) + np.asarray([0.8, 0.0, 0.2]),
+            rng.normal(scale=0.035, size=(count - 2 * (count // 3), 3))
+            + np.asarray([0.0, 0.8, 0.2]),
+        ]
+        points = np.vstack(clusters)
+        start = time.perf_counter()
+        result = euclidean_clustering(points, tolerance=0.12, min_points=8)
+        runtime = time.perf_counter() - start
+        rows.append(
+            {
+                "points": len(points),
+                "method": "euclidean",
+                "runtime": runtime,
+                "clusters": result.cluster_count,
+                "noise_points": len(result.noise_indices),
+            }
+        )
+    return rows
+
+
+def _benchmark_conclusion(benchmark: str) -> str:
+    conclusions = {
+        "kdtree": (
+            "Custom KDTree demonstrates pruning logic; SciPy/sklearn are expected "
+            "to win raw throughput at large N, while voxel hash is competitive for "
+            "fixed-radius locality."
+        ),
+        "icp": (
+            "Point-to-point ICP is accurate near the solution but remains sensitive "
+            "to initialization, noise, and outliers."
+        ),
+        "ransac": (
+            "RANSAC remains stable with moderate outliers until clean minimal "
+            "samples become unlikely."
+        ),
+        "registration": (
+            "Feature-based global registration expands ICP's basin of convergence "
+            "by estimating a coarse pose first."
+        ),
+        "segmentation": (
+            "Euclidean clustering runtime scales with radius-neighborhood queries "
+            "and benefits directly from spatial indexing."
+        ),
+    }
+    return conclusions.get(benchmark, "Benchmark completed.")
+
+
+def _format_benchmark_summary(rows: list[dict[str, Any]]) -> str:
+    lines = [
+        "# Benchmark Summary",
+        "",
+        "| Suite | Cases | Conclusion |",
+        "|---|---:|---|",
+    ]
+    for row in rows:
+        lines.append(f"| {row['suite']} | {row['cases']} | {row['conclusion']} |")
+    return "\n".join(lines)
+
+
 def _rotation_error_degrees(estimated: np.ndarray, expected: np.ndarray) -> float:
     delta = estimated @ expected.T
     cos_angle = (np.trace(delta) - 1.0) / 2.0
@@ -1122,7 +1793,15 @@ def _format_kdtree_table(rows: list[dict[str, Any]]) -> str:
     has_open3d = any("open3d_time" in row for row in rows)
     has_scipy = any("scipy_ckdtree_time" in row for row in rows)
     has_sklearn = any("sklearn_kdtree_time" in row for row in rows)
-    headers = ["Points", "Queries", "Build Time (s)", "Brute Force (s)", "KD-Tree (s)"]
+    headers = [
+        "Points",
+        "Queries",
+        "Build Time (s)",
+        "Brute Force (s)",
+        "KD-Tree (s)",
+        "KD Radius (s)",
+        "Voxel Radius (s)",
+    ]
     if has_open3d:
         headers.append("Open3D (s)")
     if has_scipy:
@@ -1142,6 +1821,8 @@ def _format_kdtree_table(rows: list[dict[str, Any]]) -> str:
             f"{row['build_time']:.4f}",
             f"{row['brute_time']:.4f}",
             f"{row['kd_time']:.4f}",
+            f"{row['kd_radius_time']:.4f}",
+            f"{row['voxel_radius_time']:.4f}",
         ]
         if has_open3d:
             values.append(_format_optional_time(row, "open3d_time"))
@@ -1149,7 +1830,8 @@ def _format_kdtree_table(rows: list[dict[str, Any]]) -> str:
             values.append(_format_optional_time(row, "scipy_ckdtree_time"))
         if has_sklearn:
             values.append(_format_optional_time(row, "sklearn_kdtree_time"))
-        values.extend([f"{row['speedup']:.2f}x", "yes" if row["correct"] else "no"])
+        correct = bool(row["correct"]) and bool(row.get("voxel_radius_correct", True))
+        values.extend([f"{row['speedup']:.2f}x", "yes" if correct else "no"])
         lines.append("| " + " | ".join(values) + " |")
     return "\n".join(lines)
 
@@ -1270,6 +1952,11 @@ def _save_benchmark_plot(path: Path, benchmark: str, rows: list[dict[str, Any]])
             )
         ax.set_xlabel("Initial Rotation (deg)")
         ax.set_ylabel("RMSE")
+    elif benchmark == "segmentation":
+        xs = [row["points"] for row in rows]
+        ax.plot(xs, [row["runtime"] for row in rows], marker="o", label="euclidean")
+        ax.set_xlabel("Points")
+        ax.set_ylabel("Runtime (s)")
     else:
         xs = list(range(len(rows)))
         ys = [float(row.get("rmse", row.get("residual_mean", 0.0)) or 0.0) for row in rows]
@@ -1284,6 +1971,72 @@ def _save_benchmark_plot(path: Path, benchmark: str, rows: list[dict[str, Any]])
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)
+
+
+def _missing_readme_artifacts(root: Path) -> list[str]:
+    readme = root / "README.md"
+    if not readme.exists():
+        return ["README.md"]
+    text = readme.read_text(encoding="utf-8")
+    candidates = []
+    for marker in ["docs/assets/", "outputs/gallery/"]:
+        start = 0
+        while True:
+            index = text.find(marker, start)
+            if index == -1:
+                break
+            end = index
+            while end < len(text) and text[end] not in {")", '"', "'", "`", " ", "\n"}:
+                end += 1
+            candidates.append(text[index:end])
+            start = end
+    missing = []
+    for candidate in sorted(set(candidates)):
+        if not (root / candidate).exists():
+            missing.append(candidate)
+    return missing
+
+
+def _format_portfolio_report(
+    passed: list[dict[str, Any]],
+    failed: list[dict[str, Any]],
+    artifacts: list[str],
+    missing: list[str],
+) -> str:
+    lines = [
+        "# Portfolio Check Report",
+        "",
+        "## Passed Commands",
+        "",
+    ]
+    lines.extend(f"- `{item['command']}`" for item in passed)
+    lines.extend(["", "## Failed Commands", ""])
+    if failed:
+        for item in failed:
+            lines.append(f"- `{item['command']}` returned {item['returncode']}")
+            if item["stderr"]:
+                lines.append(f"  - stderr tail: `{item['stderr'].splitlines()[-1]}`")
+    else:
+        lines.append("- None")
+    lines.extend(["", "## Generated Artifacts", ""])
+    lines.extend(f"- `{artifact}`" for artifact in artifacts[:80])
+    if len(artifacts) > 80:
+        lines.append(f"- ... {len(artifacts) - 80} more")
+    lines.extend(["", "## Missing README Artifacts", ""])
+    lines.extend(f"- `{item}`" for item in missing) if missing else lines.append("- None")
+    lines.extend(
+        [
+            "",
+            "## Next Actions",
+            "",
+            (
+                "- Re-run failed commands after dependency installation "
+                "if optional extras are missing."
+            ),
+            "- Regenerate gallery assets before updating README image references.",
+        ]
+    )
+    return "\n".join(lines) + "\n"
 
 
 def _finalize_result(result: TaskResult, output_dir: str | Path) -> TaskResult:

@@ -35,7 +35,9 @@ def compute_aabb(points: np.ndarray) -> AABB:
     center = (min_bound + max_bound) / 2.0
     extent = max_bound - min_bound
     corners = _corners_from_bounds(min_bound, max_bound)
-    return AABB(min_bound=min_bound, max_bound=max_bound, center=center, extent=extent, corners=corners)
+    return AABB(
+        min_bound=min_bound, max_bound=max_bound, center=center, extent=extent, corners=corners
+    )
 
 
 def compute_obb(points: np.ndarray) -> OBB:

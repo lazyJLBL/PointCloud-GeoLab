@@ -39,4 +39,3 @@ def estimate_rigid_transform(source: np.ndarray, target: np.ndarray) -> RigidTra
         rotation = vt.T @ u.T
     translation = tgt_mean - rotation @ src_mean
     return RigidTransformResult(rotation, translation, make_transform(rotation, translation))
-

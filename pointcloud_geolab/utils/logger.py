@@ -14,4 +14,3 @@ def get_logger(name: str = "pointcloud_geolab", level: int = logging.INFO) -> lo
         logger.addHandler(handler)
     logger.setLevel(level)
     return logger
-

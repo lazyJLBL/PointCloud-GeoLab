@@ -1,0 +1,58 @@
+{
+  "task": "benchmark:ransac",
+  "success": true,
+  "metrics": {
+    "benchmark": "ransac",
+    "cases": 3,
+    "quick": true,
+    "full": false,
+    "all_correct": true,
+    "conclusion": "RANSAC remains stable with moderate outliers until clean minimal samples become unlikely."
+  },
+  "artifacts": {
+    "benchmark_csv": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\ransac\\ransac_benchmark.csv",
+    "benchmark_markdown": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\ransac\\ransac_benchmark.md",
+    "benchmark_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\ransac\\ransac_benchmark.json",
+    "benchmark_plot": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\ransac\\ransac_benchmark.png",
+    "metrics_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\ransac\\metrics.json"
+  },
+  "parameters": {
+    "benchmark": "ransac",
+    "output_dir": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\ransac",
+    "quick": true,
+    "full": false,
+    "save_json": null,
+    "save_md": null,
+    "seed": 42,
+    "queries": 100,
+    "points": null
+  },
+  "data": {
+    "rows": [
+      {
+        "outlier_ratio": 0.0,
+        "inliers": 160,
+        "precision": 1.0,
+        "recall": 1.0,
+        "residual_mean": 0.0023823835555810656
+      },
+      {
+        "outlier_ratio": 0.3,
+        "inliers": 161,
+        "precision": 0.9937888198757764,
+        "recall": 1.0,
+        "residual_mean": 0.0023543113616055745
+      },
+      {
+        "outlier_ratio": 0.6,
+        "inliers": 164,
+        "precision": 0.975609756097561,
+        "recall": 1.0,
+        "residual_mean": 0.0026612846158539775
+      }
+    ],
+    "markdown": "| inliers | outlier_ratio | precision | recall | residual_mean |\n| --- | --- | --- | --- | --- |\n| 160 | 0.000000 | 1.000000 | 1.000000 | 0.002382 |\n| 161 | 0.300000 | 0.993789 | 1.000000 | 0.002354 |\n| 164 | 0.600000 | 0.975610 | 1.000000 | 0.002661 |",
+    "conclusion": "RANSAC remains stable with moderate outliers until clean minimal samples become unlikely."
+  },
+  "error": null
+}

@@ -218,7 +218,7 @@ def _save_ascii_ply(path: Path, points: np.ndarray, colors: np.ndarray | None) -
             if cols.max(initial=0) <= 1:
                 cols = np.rint(cols * 255)
             cols = np.clip(cols, 0, 255).astype(int)
-            for point, color in zip(points, cols):
+            for point, color in zip(points, cols, strict=True):
                 f.write(
                     f"{point[0]:.8f} {point[1]:.8f} {point[2]:.8f} "
                     f"{color[0]} {color[1]} {color[2]}\n"

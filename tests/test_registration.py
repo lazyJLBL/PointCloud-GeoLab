@@ -18,7 +18,9 @@ def test_svd_solver_recovers_known_transform() -> None:
 
     assert np.allclose(result.rotation, rotation, atol=1e-10)
     assert np.allclose(result.translation, translation, atol=1e-10)
-    assert np.allclose(apply_transform(source, result.rotation, result.translation), target, atol=1e-10)
+    assert np.allclose(
+        apply_transform(source, result.rotation, result.translation), target, atol=1e-10
+    )
 
 
 def test_icp_converges_on_translated_grid() -> None:
@@ -86,4 +88,3 @@ def test_icp_stops_when_correspondence_threshold_is_too_small() -> None:
 
     assert result.iterations == 0
     assert not result.converged
-

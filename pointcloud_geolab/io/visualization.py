@@ -9,7 +9,6 @@ import numpy as np
 
 from .pointcloud_io import to_open3d_point_cloud
 
-
 DEFAULT_COLORS = np.asarray(
     [
         [0.0, 0.45, 0.95],
@@ -129,4 +128,3 @@ def _set_axes_equal(ax, points: np.ndarray) -> None:
     ax.set_xlim(centers[0] - radius, centers[0] + radius)
     ax.set_ylim(centers[1] - radius, centers[1] + radius)
     ax.set_zlim(centers[2] - radius, centers[2] + radius)
-

@@ -1,0 +1,29 @@
+{
+  "suites": [
+    {
+      "suite": "kdtree",
+      "cases": 3,
+      "conclusion": "Custom KDTree demonstrates pruning logic; SciPy/sklearn are expected to win raw throughput at large N, while voxel hash is competitive for fixed-radius locality."
+    },
+    {
+      "suite": "icp",
+      "cases": 4,
+      "conclusion": "Point-to-point ICP is accurate near the solution but remains sensitive to initialization, noise, and outliers."
+    },
+    {
+      "suite": "ransac",
+      "cases": 3,
+      "conclusion": "RANSAC remains stable with moderate outliers until clean minimal samples become unlikely."
+    },
+    {
+      "suite": "registration",
+      "cases": 4,
+      "conclusion": "Feature-based global registration expands ICP's basin of convergence by estimating a coarse pose first."
+    },
+    {
+      "suite": "segmentation",
+      "cases": 2,
+      "conclusion": "Euclidean clustering runtime scales with radius-neighborhood queries and benefits directly from spatial indexing."
+    }
+  ]
+}

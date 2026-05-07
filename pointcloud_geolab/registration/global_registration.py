@@ -19,9 +19,9 @@ import numpy as np
 from pointcloud_geolab.kdtree import KDTree
 from pointcloud_geolab.preprocessing import estimate_normals as estimate_normals_numpy
 from pointcloud_geolab.preprocessing import voxel_downsample as voxel_downsample_numpy
-from pointcloud_geolab.registration.icp import point_to_point_icp
+from pointcloud_geolab.registration.icp import point_to_plane_icp, point_to_point_icp
 from pointcloud_geolab.registration.metrics import fitness, rmse
-from pointcloud_geolab.utils.transform import apply_homogeneous_transform, make_transform
+from pointcloud_geolab.utils.transform import apply_homogeneous_transform
 
 
 @dataclass(slots=True)
@@ -65,9 +65,7 @@ def estimate_normals(point_cloud, radius: float, max_nn: int = 30):
         return estimate_normals_numpy(point_cloud, k=max_nn)
 
     o3d = _require_open3d()
-    point_cloud.estimate_normals(
-        o3d.geometry.KDTreeSearchParamHybrid(radius=radius, max_nn=max_nn)
-    )
+    point_cloud.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=radius, max_nn=max_nn))
     return point_cloud
 
 
@@ -166,7 +164,21 @@ def refine_registration_icp(
             metadata={"iterations": result.iterations, "converged": result.converged},
         )
     if method == "point_to_plane":
-        return _point_to_plane_icp(source, target, matrix, threshold, max_iterations, tolerance)
+        initialized = apply_homogeneous_transform(source, matrix)
+        result = point_to_plane_icp(
+            initialized,
+            target,
+            max_iterations=max_iterations,
+            tolerance=tolerance,
+            max_correspondence_distance=threshold,
+        )
+        refined = result.transformation @ matrix
+        return RegistrationStage(
+            transformation=refined,
+            fitness=result.fitness,
+            inlier_rmse=result.final_rmse,
+            metadata=result.diagnostics | {"iterations": result.iterations},
+        )
     raise ValueError("method must be 'point_to_point' or 'point_to_plane'")
 
 
@@ -219,75 +231,6 @@ def evaluate_registration(
         "rmse": rmse(distances),
         "fitness": fitness(distances, threshold),
     }
-
-
-def _point_to_plane_icp(
-    source: np.ndarray,
-    target: np.ndarray,
-    init_transform: np.ndarray,
-    threshold: float,
-    max_iterations: int,
-    tolerance: float,
-) -> RegistrationStage:
-    """Linearized point-to-plane ICP.
-
-    For each correspondence ``(p, q, n)``, solve the small-angle update:
-    ``n^T((w x p) + t + p - q) = 0``. The least-squares variables are the
-    rotation vector ``w`` and translation ``t``.
-    """
-
-    transform = init_transform.copy()
-    target_normals = estimate_normals_numpy(target, k=min(24, max(3, len(target))))
-    tree = KDTree(target)
-    previous_error = float("inf")
-    iterations = 0
-    for iteration in range(1, max_iterations + 1):
-        transformed = apply_homogeneous_transform(source, transform)
-        rows = []
-        rhs = []
-        distances = []
-        for point in transformed:
-            idx, distance = tree.nearest_neighbor(point)
-            if distance > threshold:
-                continue
-            normal = target_normals[idx]
-            target_point = target[idx]
-            rows.append(np.hstack((np.cross(point, normal), normal)))
-            rhs.append(-float(normal @ (point - target_point)))
-            distances.append(distance)
-        if len(rows) < 6:
-            break
-        solution, *_ = np.linalg.lstsq(np.asarray(rows), np.asarray(rhs), rcond=None)
-        delta = make_transform(_rodrigues(solution[:3]), solution[3:])
-        transform = delta @ transform
-        current_error = rmse(np.asarray(distances))
-        iterations = iteration
-        if abs(previous_error - current_error) < tolerance:
-            break
-        previous_error = current_error
-
-    metrics = evaluate_registration(source, target, transform, threshold=threshold)
-    return RegistrationStage(
-        transformation=transform,
-        fitness=metrics["fitness"],
-        inlier_rmse=metrics["rmse"],
-        metadata={"iterations": iterations},
-    )
-
-
-def _rodrigues(vector: np.ndarray) -> np.ndarray:
-    theta = float(np.linalg.norm(vector))
-    if theta < 1e-12:
-        return np.eye(3)
-    axis = vector / theta
-    kx = np.asarray(
-        [
-            [0.0, -axis[2], axis[1]],
-            [axis[2], 0.0, -axis[0]],
-            [-axis[1], axis[0], 0.0],
-        ]
-    )
-    return np.eye(3) + np.sin(theta) * kx + (1.0 - np.cos(theta)) * (kx @ kx)
 
 
 def _to_o3d(points: np.ndarray):

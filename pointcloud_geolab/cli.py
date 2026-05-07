@@ -14,13 +14,16 @@ import yaml
 from pointcloud_geolab.api import (
     TaskResult,
     run_benchmark,
+    run_extract_primitives,
     run_geometry_analysis,
     run_global_registration,
     run_icp,
     run_infer_pointnet,
     run_plane_segmentation,
+    run_portfolio_verification,
     run_preprocessing,
     run_primitive_fitting,
+    run_reconstruction,
     run_segmentation,
     run_train_pointnet,
     run_visualization,
@@ -78,6 +81,11 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "save_transform": None,
         "save_results": False,
         "export_html": None,
+        "multiscale": False,
+        "voxel_sizes": None,
+        "robust_kernel": "none",
+        "trim_ratio": 1.0,
+        "save_diagnostics": None,
     },
     "fit-primitive": {
         "output_dir": "outputs/primitives",
@@ -90,6 +98,17 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "save_results": False,
         "export_html": None,
     },
+    "extract-primitives": {
+        "output_dir": "outputs/primitives",
+        "models": ["plane", "sphere", "cylinder"],
+        "threshold": 0.03,
+        "max_models": 5,
+        "min_inliers": 30,
+        "max_iterations": 800,
+        "seed": 7,
+        "output": None,
+        "export_html": None,
+    },
     "segment": {
         "output_dir": "outputs/segmentation",
         "method": "dbscan",
@@ -100,6 +119,10 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "angle_threshold": 25.0,
         "output": None,
         "export_html": None,
+        "remove_ground": False,
+        "ground_axis": "z",
+        "ground_angle_threshold": 20.0,
+        "export_report": None,
     },
     "visualize": {
         "output_dir": "outputs/visualization",
@@ -108,6 +131,18 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "source": None,
         "target": None,
         "transform_path": None,
+    },
+    "reconstruct": {
+        "output_dir": "outputs/reconstruction",
+        "method": "poisson",
+        "output": "outputs/reconstruction/object_mesh.ply",
+        "normal_radius": 0.15,
+        "poisson_depth": 6,
+        "alpha": 0.2,
+    },
+    "verify-portfolio": {
+        "output_dir": "outputs",
+        "quick": True,
     },
     "train-pointnet": {
         "output_dir": "outputs/ml",
@@ -213,16 +248,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="estimate normals after filtering",
     )
 
-    register = subparsers.add_parser("register", help="run FPFH RANSAC global registration")
+    register = subparsers.add_parser("register", help="run feature-based global registration")
     _add_common_options(register)
     register.add_argument("--source", required=False, help="source point cloud")
     register.add_argument("--target", required=False, help="target point cloud")
-    register.add_argument("--method", choices=["fpfh_ransac_icp"])
+    register.add_argument("--method", choices=["fpfh_ransac_icp", "iss_descriptor_ransac_icp"])
     register.add_argument("--icp-method", choices=["point_to_point", "point_to_plane"])
     register.add_argument("--voxel-size", type=float)
+    register.add_argument("--voxel-sizes", nargs="*", type=float)
     register.add_argument("--threshold", type=float)
+    register.add_argument("--multiscale", action=argparse.BooleanOptionalAction, default=None)
+    register.add_argument("--robust-kernel", choices=["none", "huber", "tukey"])
+    register.add_argument("--trim-ratio", type=float)
     register.add_argument("--output", type=Path)
     register.add_argument("--save-transform", type=Path)
+    register.add_argument("--save-diagnostics", type=Path)
     register.add_argument("--export-html", type=Path)
 
     primitive = subparsers.add_parser("fit-primitive", help="fit plane/sphere/cylinder with RANSAC")
@@ -235,6 +275,20 @@ def build_parser() -> argparse.ArgumentParser:
     primitive.add_argument("--output", type=Path)
     primitive.add_argument("--export-html", type=Path)
 
+    extract = subparsers.add_parser(
+        "extract-primitives",
+        help="sequentially extract plane/sphere/cylinder primitives",
+    )
+    _add_common_options(extract, include_save_flags=False)
+    extract.add_argument("--input", help="input point cloud")
+    extract.add_argument("--models", nargs="+", choices=["plane", "sphere", "cylinder"])
+    extract.add_argument("--threshold", type=float)
+    extract.add_argument("--max-models", type=int)
+    extract.add_argument("--min-inliers", type=int)
+    extract.add_argument("--max-iterations", type=int)
+    extract.add_argument("--output", type=Path)
+    extract.add_argument("--export-html", type=Path)
+
     segment = subparsers.add_parser("segment", help="segment points into clusters")
     _add_common_options(segment, include_save_flags=False)
     segment.add_argument("--input", help="input point cloud")
@@ -244,13 +298,20 @@ def build_parser() -> argparse.ArgumentParser:
     segment.add_argument("--tolerance", type=float)
     segment.add_argument("--radius", type=float)
     segment.add_argument("--angle-threshold", type=float)
+    segment.add_argument("--remove-ground", action=argparse.BooleanOptionalAction, default=None)
+    segment.add_argument("--ground-axis", choices=["x", "y", "z"])
+    segment.add_argument("--ground-angle-threshold", type=float)
     segment.add_argument("--output", type=Path)
     segment.add_argument("--export-html", type=Path)
+    segment.add_argument("--export-report", type=Path)
 
     visualize = subparsers.add_parser("visualize", help="export HTML visualizations")
     _add_common_options(visualize, include_save_flags=False)
     visualize.add_argument("--input", help="input point cloud")
-    visualize.add_argument("--mode", choices=["pointcloud", "clusters", "registration"])
+    visualize.add_argument(
+        "--mode",
+        choices=["pointcloud", "clusters", "registration", "primitives", "inliers_outliers"],
+    )
     visualize.add_argument("--labels-path", type=Path)
     visualize.add_argument("--source", type=Path)
     visualize.add_argument("--target", type=Path)
@@ -271,15 +332,31 @@ def build_parser() -> argparse.ArgumentParser:
     infer.add_argument("--input", help="input point cloud")
     infer.add_argument("--points-per-sample", type=int)
 
+    reconstruct = subparsers.add_parser("reconstruct", help="reconstruct a surface mesh")
+    _add_common_options(reconstruct, include_save_flags=False)
+    reconstruct.add_argument("--input", help="input point cloud")
+    reconstruct.add_argument("--method", choices=["poisson", "ball_pivoting", "bpa", "alpha_shape"])
+    reconstruct.add_argument("--output", type=Path)
+    reconstruct.add_argument("--normal-radius", type=float)
+    reconstruct.add_argument("--poisson-depth", type=int)
+    reconstruct.add_argument("--alpha", type=float)
+
+    verify = subparsers.add_parser("verify-portfolio", help="run portfolio smoke checks")
+    _add_common_options(verify, include_save_flags=False)
+    verify.add_argument("--quick", action=argparse.BooleanOptionalAction, default=None)
+
     benchmark = subparsers.add_parser("benchmark", help="run built-in benchmarks")
     _add_common_options(benchmark, include_save_flags=False)
     benchmark.add_argument(
         "benchmark_name",
         nargs="?",
-        choices=["kdtree", "icp", "ransac", "registration", "all"],
+        choices=["kdtree", "icp", "ransac", "registration", "segmentation", "all"],
         help="benchmark suite",
     )
-    benchmark.add_argument("--suite", choices=["kdtree", "icp", "ransac", "registration", "all"])
+    benchmark.add_argument(
+        "--suite",
+        choices=["kdtree", "icp", "ransac", "registration", "segmentation", "all"],
+    )
     benchmark.add_argument("--output", dest="output_dir", type=Path)
     benchmark.add_argument("--quick", action=argparse.BooleanOptionalAction, default=None)
     benchmark.add_argument("--full", action=argparse.BooleanOptionalAction, default=None)
@@ -403,8 +480,8 @@ def _run_batch(args: argparse.Namespace) -> int:
                     success=False,
                     error=(
                         "batch job task must be one of: icp, plane, geometry, preprocess, "
-                        "register, fit-primitive, segment, visualize, train-pointnet, "
-                        "infer-pointnet, benchmark"
+                        "register, fit-primitive, extract-primitives, segment, visualize, "
+                        "reconstruct, verify-portfolio, train-pointnet, infer-pointnet, benchmark"
                     ),
                     parameters=job,
                 )
@@ -498,6 +575,11 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             seed=params["seed"],
             save_results=params["save_results"],
             export_html=params["export_html"],
+            multiscale=params["multiscale"],
+            voxel_sizes=params["voxel_sizes"],
+            robust_kernel=params["robust_kernel"],
+            trim_ratio=params["trim_ratio"],
+            save_diagnostics=params["save_diagnostics"],
         )
     if task == "fit-primitive":
         return run_primitive_fitting(
@@ -512,6 +594,19 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             save_results=params["save_results"],
             export_html=params["export_html"],
         )
+    if task == "extract-primitives":
+        return run_extract_primitives(
+            input_path=params.get("input"),
+            models=params["models"],
+            output=params["output"],
+            output_dir=params["output_dir"],
+            threshold=params["threshold"],
+            max_models=params["max_models"],
+            min_inliers=params["min_inliers"],
+            max_iterations=params["max_iterations"],
+            seed=params["seed"],
+            export_html=params["export_html"],
+        )
     if task == "segment":
         return run_segmentation(
             input_path=params.get("input"),
@@ -524,6 +619,10 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             radius=params["radius"],
             angle_threshold=params["angle_threshold"],
             export_html=params["export_html"],
+            remove_ground=params["remove_ground"],
+            ground_axis=params["ground_axis"],
+            ground_angle_threshold=params["ground_angle_threshold"],
+            export_report=params["export_report"],
         )
     if task == "visualize":
         return run_visualization(
@@ -535,6 +634,21 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             target=params["target"],
             transform_path=params["transform_path"],
             output_dir=params["output_dir"],
+        )
+    if task == "reconstruct":
+        return run_reconstruction(
+            input_path=params.get("input"),
+            output=params["output"],
+            output_dir=params["output_dir"],
+            method=params["method"],
+            normal_radius=params["normal_radius"],
+            poisson_depth=params["poisson_depth"],
+            alpha=params["alpha"],
+        )
+    if task == "verify-portfolio":
+        return run_portfolio_verification(
+            output_dir=params["output_dir"],
+            quick=params["quick"],
         )
     if task == "train-pointnet":
         return run_train_pointnet(
@@ -723,6 +837,23 @@ def _format_text_result(result: TaskResult) -> str:
             "Parameters:",
             json.dumps(details["model_params"], indent=2, ensure_ascii=False),
         ]
+    elif task == "extract-primitives":
+        lines = [
+            "Sequential Primitive Extraction Result",
+            "--------------------------------------",
+            f"Models: {metrics['model_count']}",
+            f"Remaining Points: {metrics['remaining_points']}",
+            "",
+            "Extracted:",
+        ]
+        for primitive in details.get("primitives", []):
+            lines.append(
+                "- {model}: inlier ratio {ratio:.2%}, residual {residual:.6f}".format(
+                    model=primitive["model_type"],
+                    ratio=primitive["inlier_ratio"],
+                    residual=primitive["residual_mean"],
+                )
+            )
     elif task == "segment":
         lines = [
             "Segmentation Result",
@@ -745,6 +876,23 @@ def _format_text_result(result: TaskResult) -> str:
             "------------------------",
             f"Loss: {metrics.get('loss')}",
             f"Accuracy: {metrics.get('accuracy')}",
+        ]
+    elif task == "reconstruct":
+        lines = [
+            "Surface Reconstruction Result",
+            "-----------------------------",
+            f"Method: {metrics['method']}",
+            f"Vertices: {metrics['vertices']}",
+            f"Triangles: {metrics['triangles']}",
+        ]
+    elif task == "verify-portfolio":
+        lines = [
+            "Portfolio Verification Result",
+            "-----------------------------",
+            f"Passed Commands: {metrics['passed_commands']}",
+            f"Failed Commands: {metrics['failed_commands']}",
+            f"Generated Artifacts: {metrics['generated_artifacts']}",
+            f"Missing README Artifacts: {metrics['missing_readme_artifacts']}",
         ]
     elif task == "infer-pointnet":
         lines = [

@@ -1,0 +1,54 @@
+{
+  "benchmark": "kdtree",
+  "conclusion": "Custom KDTree demonstrates pruning logic; SciPy/sklearn are expected to win raw throughput at large N, while voxel hash is competitive for fixed-radius locality.",
+  "rows": [
+    {
+      "points": 1000,
+      "queries": 100,
+      "build_time": 0.003210699651390314,
+      "brute_time": 0.002124400343745947,
+      "kd_time": 0.028185799717903137,
+      "kd_radius_time": 0.002510800026357174,
+      "voxel_build_time": 0.0019364003092050552,
+      "voxel_radius_time": 0.002190799918025732,
+      "voxel_radius_correct": true,
+      "speedup": 0.07537129920058873,
+      "correct": true,
+      "open3d_time": 0.00040740007534623146,
+      "scipy_ckdtree_time": 0.00037060026079416275,
+      "sklearn_kdtree_time": 0.0005375002510845661
+    },
+    {
+      "points": 10000,
+      "queries": 100,
+      "build_time": 0.03427969990298152,
+      "brute_time": 0.01416740007698536,
+      "kd_time": 0.0409445003606379,
+      "kd_radius_time": 0.008733899798244238,
+      "voxel_build_time": 0.018813599832355976,
+      "voxel_radius_time": 0.008319799788296223,
+      "voxel_radius_correct": true,
+      "speedup": 0.3460147260852943,
+      "correct": true,
+      "open3d_time": 0.0025891996920108795,
+      "scipy_ckdtree_time": 0.0017897998914122581,
+      "sklearn_kdtree_time": 0.003129000309854746
+    },
+    {
+      "points": 100000,
+      "queries": 100,
+      "build_time": 0.4127050000242889,
+      "brute_time": 0.2456817002967,
+      "kd_time": 0.04651070013642311,
+      "kd_radius_time": 0.056367500219494104,
+      "voxel_build_time": 0.22914789989590645,
+      "voxel_radius_time": 0.08460270008072257,
+      "voxel_radius_correct": true,
+      "speedup": 5.282261922011008,
+      "correct": true,
+      "open3d_time": 0.028576199896633625,
+      "scipy_ckdtree_time": 0.024127299897372723,
+      "sklearn_kdtree_time": 0.04344190005213022
+    }
+  ]
+}

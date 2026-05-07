@@ -33,4 +33,3 @@ def point_to_line_distances(
     unit = direction / norm
     cross = np.cross(pts - anchor, unit)
     return np.linalg.norm(cross, axis=1)
-

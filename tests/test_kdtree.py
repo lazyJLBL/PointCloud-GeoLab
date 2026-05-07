@@ -88,4 +88,3 @@ def test_radius_zero_and_large_radius() -> None:
 
     assert tree.radius_search(points[1], radius=0.0) == [(1, 0.0)]
     assert [idx for idx, _ in tree.radius_search(points[1], radius=10.0)] == [1, 0, 2]
-

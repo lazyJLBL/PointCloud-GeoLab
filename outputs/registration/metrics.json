@@ -1,0 +1,107 @@
+{
+  "task": "register",
+  "success": true,
+  "metrics": {
+    "coarse_fitness": 1.0,
+    "coarse_inlier_rmse": 0.03797087122250323,
+    "refined_fitness": 1.0,
+    "refined_inlier_rmse": 7.143800746744364e-09,
+    "final_rmse": 7.143800741099759e-09,
+    "final_fitness": 1.0,
+    "source_downsampled": 104,
+    "target_downsampled": 107
+  },
+  "artifacts": {
+    "aligned_source": "D:\\PointCloud-GeoLab\\outputs\\registration\\aligned_source.ply",
+    "transform": "D:\\PointCloud-GeoLab\\outputs\\registration\\transform.txt",
+    "before_projection": "D:\\PointCloud-GeoLab\\outputs\\registration\\registration_before.png",
+    "coarse_projection": "D:\\PointCloud-GeoLab\\outputs\\registration\\registration_coarse.png",
+    "refined_projection": "D:\\PointCloud-GeoLab\\outputs\\registration\\registration_refined.png",
+    "html": "D:\\PointCloud-GeoLab\\outputs\\registration\\registration.html",
+    "metrics_json": "D:\\PointCloud-GeoLab\\outputs\\registration\\metrics.json"
+  },
+  "parameters": {
+    "source": "D:\\PointCloud-GeoLab\\outputs\\registration\\source_demo.ply",
+    "target": "D:\\PointCloud-GeoLab\\outputs\\registration\\target_demo.ply",
+    "output": "D:\\PointCloud-GeoLab\\outputs\\registration\\aligned_source.ply",
+    "save_transform": "D:\\PointCloud-GeoLab\\outputs\\registration\\transform.txt",
+    "output_dir": "D:\\PointCloud-GeoLab\\outputs\\registration",
+    "voxel_size": 0.08,
+    "method": "fpfh_ransac_icp",
+    "icp_method": "point_to_point",
+    "threshold": null,
+    "seed": 7,
+    "save_results": true,
+    "export_html": "D:\\PointCloud-GeoLab\\outputs\\registration\\registration.html",
+    "multiscale": false,
+    "voxel_sizes": null,
+    "robust_kernel": "none",
+    "trim_ratio": 1.0,
+    "save_diagnostics": null
+  },
+  "data": {
+    "initial_transform": [
+      [
+        0.9416534799926892,
+        0.3147461725540653,
+        0.11926261140955385,
+        -0.1543457632360038
+      ],
+      [
+        -0.33137613265214527,
+        0.9290237450614267,
+        0.16463517188180155,
+        0.11798873375906417
+      ],
+      [
+        -0.05897950767993154,
+        -0.19455006547058623,
+        0.9791178119609636,
+        -0.0680755987038095
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "refined_transform": [
+      [
+        0.9381987415610813,
+        0.3424692744222925,
+        0.04997916975974305,
+        -0.1439771901194859
+      ],
+      [
+        -0.3458718325272473,
+        0.932968842113005,
+        0.09970865113199823,
+        0.13190900466836977
+      ],
+      [
+        -0.012481858733715719,
+        -0.11083291804778597,
+        0.9937606691148355,
+        -0.05630793213040289
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "method": "fpfh_ransac_point_to_point",
+    "diagnostics": {
+      "coarse": {
+        "distance_threshold": 0.12
+      },
+      "refined": {
+        "iterations": 8,
+        "converged": true
+      }
+    }
+  },
+  "error": null
+}

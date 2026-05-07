@@ -65,4 +65,3 @@ def test_ransac_threshold_controls_inlier_count() -> None:
 
     assert len(loose.inliers) > len(tight.inliers)
     assert len(loose.inliers) == len(points)
-

@@ -1,0 +1,5 @@
+fitness,initial_angle_degrees,method,rmse,success
+1.0,5.0,icp,8.104172386656575e-16,True
+1.0,5.0,fpfh_ransac_icp,4.50762889742935e-16,True
+1.0,35.0,icp,0.0946912368318492,False
+1.0,35.0,fpfh_ransac_icp,1.343801842244053e-15,True

@@ -79,4 +79,3 @@ def _plane_from_three_points(points: np.ndarray) -> np.ndarray | None:
     if len(first_nonzero) > 0 and model[first_nonzero[0]] < 0:
         model *= -1.0
     return model
-

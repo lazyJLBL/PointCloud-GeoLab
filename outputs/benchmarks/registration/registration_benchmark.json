@@ -1,0 +1,34 @@
+{
+  "benchmark": "registration",
+  "conclusion": "Feature-based global registration expands ICP's basin of convergence by estimating a coarse pose first.",
+  "rows": [
+    {
+      "method": "icp",
+      "initial_angle_degrees": 5.0,
+      "success": true,
+      "rmse": 8.104172386656575e-16,
+      "fitness": 1.0
+    },
+    {
+      "method": "fpfh_ransac_icp",
+      "initial_angle_degrees": 5.0,
+      "success": true,
+      "rmse": 4.50762889742935e-16,
+      "fitness": 1.0
+    },
+    {
+      "method": "icp",
+      "initial_angle_degrees": 35.0,
+      "success": false,
+      "rmse": 0.0946912368318492,
+      "fitness": 1.0
+    },
+    {
+      "method": "fpfh_ransac_icp",
+      "initial_angle_degrees": 35.0,
+      "success": true,
+      "rmse": 1.343801842244053e-15,
+      "fitness": 1.0
+    }
+  ]
+}

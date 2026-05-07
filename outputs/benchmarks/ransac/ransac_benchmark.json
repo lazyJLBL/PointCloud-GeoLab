@@ -1,0 +1,27 @@
+{
+  "benchmark": "ransac",
+  "conclusion": "RANSAC remains stable with moderate outliers until clean minimal samples become unlikely.",
+  "rows": [
+    {
+      "outlier_ratio": 0.0,
+      "inliers": 160,
+      "precision": 1.0,
+      "recall": 1.0,
+      "residual_mean": 0.0023823835555810656
+    },
+    {
+      "outlier_ratio": 0.3,
+      "inliers": 161,
+      "precision": 0.9937888198757764,
+      "recall": 1.0,
+      "residual_mean": 0.0023543113616055745
+    },
+    {
+      "outlier_ratio": 0.6,
+      "inliers": 164,
+      "precision": 0.975609756097561,
+      "recall": 1.0,
+      "residual_mean": 0.0026612846158539775
+    }
+  ]
+}

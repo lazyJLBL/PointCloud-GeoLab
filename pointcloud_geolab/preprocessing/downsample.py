@@ -22,4 +22,3 @@ def voxel_downsample(points: np.ndarray, voxel_size: float) -> np.ndarray:
     counts = np.bincount(inverse)
     np.add.at(sums, inverse, pts)
     return sums / counts[:, None]
-

@@ -1,0 +1,206 @@
+{
+  "task": "benchmark:all",
+  "success": true,
+  "metrics": {
+    "benchmark": "all",
+    "cases": 16,
+    "quick": true,
+    "full": false,
+    "all_correct": true,
+    "conclusion": "Quick portfolio benchmark completed across geometry core suites."
+  },
+  "artifacts": {
+    "benchmark_csv": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.csv",
+    "benchmark_markdown": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.md",
+    "benchmark_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.json",
+    "benchmark_plot": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.png",
+    "benchmark_summary_markdown": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\benchmark_summary.md",
+    "benchmark_summary_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\benchmark_summary.json",
+    "metrics_json": "D:\\PointCloud-GeoLab\\outputs\\benchmarks\\metrics.json"
+  },
+  "parameters": {
+    "benchmark": "all",
+    "output_dir": "D:\\PointCloud-GeoLab\\outputs\\benchmarks",
+    "quick": true,
+    "full": false,
+    "save_json": null,
+    "save_md": null,
+    "seed": 42,
+    "queries": 100,
+    "points": null
+  },
+  "data": {
+    "rows": [
+      {
+        "suite": "kdtree",
+        "points": 1000,
+        "queries": 100,
+        "build_time": 0.003210699651390314,
+        "brute_time": 0.002124400343745947,
+        "kd_time": 0.028185799717903137,
+        "kd_radius_time": 0.002510800026357174,
+        "voxel_build_time": 0.0019364003092050552,
+        "voxel_radius_time": 0.002190799918025732,
+        "voxel_radius_correct": true,
+        "speedup": 0.07537129920058873,
+        "correct": true,
+        "open3d_time": 0.00040740007534623146,
+        "scipy_ckdtree_time": 0.00037060026079416275,
+        "sklearn_kdtree_time": 0.0005375002510845661
+      },
+      {
+        "suite": "kdtree",
+        "points": 10000,
+        "queries": 100,
+        "build_time": 0.03427969990298152,
+        "brute_time": 0.01416740007698536,
+        "kd_time": 0.0409445003606379,
+        "kd_radius_time": 0.008733899798244238,
+        "voxel_build_time": 0.018813599832355976,
+        "voxel_radius_time": 0.008319799788296223,
+        "voxel_radius_correct": true,
+        "speedup": 0.3460147260852943,
+        "correct": true,
+        "open3d_time": 0.0025891996920108795,
+        "scipy_ckdtree_time": 0.0017897998914122581,
+        "sklearn_kdtree_time": 0.003129000309854746
+      },
+      {
+        "suite": "kdtree",
+        "points": 100000,
+        "queries": 100,
+        "build_time": 0.4127050000242889,
+        "brute_time": 0.2456817002967,
+        "kd_time": 0.04651070013642311,
+        "kd_radius_time": 0.056367500219494104,
+        "voxel_build_time": 0.22914789989590645,
+        "voxel_radius_time": 0.08460270008072257,
+        "voxel_radius_correct": true,
+        "speedup": 5.282261922011008,
+        "correct": true,
+        "open3d_time": 0.028576199896633625,
+        "scipy_ckdtree_time": 0.024127299897372723,
+        "sklearn_kdtree_time": 0.04344190005213022
+      },
+      {
+        "suite": "icp",
+        "rotation_degrees": 5.0,
+        "translation": 0.1,
+        "noise": 0.0,
+        "converged": true,
+        "iterations": 3,
+        "final_rmse": 1.3692908058011096e-15,
+        "rotation_error_degrees": 0.0,
+        "translation_error": 1.7067422303575003e-16
+      },
+      {
+        "suite": "icp",
+        "rotation_degrees": 5.0,
+        "translation": 0.3,
+        "noise": 0.0,
+        "converged": true,
+        "iterations": 4,
+        "final_rmse": 1.8474433546759222e-15,
+        "rotation_error_degrees": 0.0,
+        "translation_error": 3.3537189618722464e-16
+      },
+      {
+        "suite": "icp",
+        "rotation_degrees": 15.0,
+        "translation": 0.1,
+        "noise": 0.0,
+        "converged": true,
+        "iterations": 5,
+        "final_rmse": 1.4384081074084901e-15,
+        "rotation_error_degrees": 0.0,
+        "translation_error": 9.15302969408735e-17
+      },
+      {
+        "suite": "icp",
+        "rotation_degrees": 15.0,
+        "translation": 0.3,
+        "noise": 0.0,
+        "converged": true,
+        "iterations": 6,
+        "final_rmse": 1.2655481109400234e-15,
+        "rotation_error_degrees": 0.0,
+        "translation_error": 9.614813431917819e-17
+      },
+      {
+        "suite": "ransac",
+        "outlier_ratio": 0.0,
+        "inliers": 160,
+        "precision": 1.0,
+        "recall": 1.0,
+        "residual_mean": 0.0023823835555810656
+      },
+      {
+        "suite": "ransac",
+        "outlier_ratio": 0.3,
+        "inliers": 161,
+        "precision": 0.9937888198757764,
+        "recall": 1.0,
+        "residual_mean": 0.0023543113616055745
+      },
+      {
+        "suite": "ransac",
+        "outlier_ratio": 0.6,
+        "inliers": 164,
+        "precision": 0.975609756097561,
+        "recall": 1.0,
+        "residual_mean": 0.0026612846158539775
+      },
+      {
+        "suite": "registration",
+        "method": "icp",
+        "initial_angle_degrees": 5.0,
+        "success": true,
+        "rmse": 8.104172386656575e-16,
+        "fitness": 1.0
+      },
+      {
+        "suite": "registration",
+        "method": "fpfh_ransac_icp",
+        "initial_angle_degrees": 5.0,
+        "success": true,
+        "rmse": 4.50762889742935e-16,
+        "fitness": 1.0
+      },
+      {
+        "suite": "registration",
+        "method": "icp",
+        "initial_angle_degrees": 35.0,
+        "success": false,
+        "rmse": 0.0946912368318492,
+        "fitness": 1.0
+      },
+      {
+        "suite": "registration",
+        "method": "fpfh_ransac_icp",
+        "initial_angle_degrees": 35.0,
+        "success": true,
+        "rmse": 1.343801842244053e-15,
+        "fitness": 1.0
+      },
+      {
+        "suite": "segmentation",
+        "points": 300,
+        "method": "euclidean",
+        "runtime": 0.14251949964091182,
+        "clusters": 3,
+        "noise_points": 0
+      },
+      {
+        "suite": "segmentation",
+        "points": 900,
+        "method": "euclidean",
+        "runtime": 1.1408281000331044,
+        "clusters": 3,
+        "noise_points": 0
+      }
+    ],
+    "markdown": "| brute_time | build_time | clusters | converged | correct | final_rmse | fitness | initial_angle_degrees | inliers | iterations | kd_radius_time | kd_time | method | noise | noise_points | open3d_time | outlier_ratio | points | precision | queries | recall | residual_mean | rmse | rotation_degrees | rotation_error_degrees | runtime | scipy_ckdtree_time | sklearn_kdtree_time | speedup | success | suite | translation | translation_error | voxel_build_time | voxel_radius_correct | voxel_radius_time |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| 0.002124 | 0.003211 |  |  | True |  |  |  |  |  | 0.002511 | 0.028186 |  |  |  | 0.000407 |  | 1000 |  | 100 |  |  |  |  |  |  | 0.000371 | 0.000538 | 0.075371 |  | kdtree |  |  | 0.001936 | True | 0.002191 |\n| 0.014167 | 0.034280 |  |  | True |  |  |  |  |  | 0.008734 | 0.040945 |  |  |  | 0.002589 |  | 10000 |  | 100 |  |  |  |  |  |  | 0.001790 | 0.003129 | 0.346015 |  | kdtree |  |  | 0.018814 | True | 0.008320 |\n| 0.245682 | 0.412705 |  |  | True |  |  |  |  |  | 0.056368 | 0.046511 |  |  |  | 0.028576 |  | 100000 |  | 100 |  |  |  |  |  |  | 0.024127 | 0.043442 | 5.282262 |  | kdtree |  |  | 0.229148 | True | 0.084603 |\n|  |  |  | True |  | 0.000000 |  |  |  | 3 |  |  |  | 0.000000 |  |  |  |  |  |  |  |  |  | 5.000000 | 0.000000 |  |  |  |  |  | icp | 0.100000 | 0.000000 |  |  |  |\n|  |  |  | True |  | 0.000000 |  |  |  | 4 |  |  |  | 0.000000 |  |  |  |  |  |  |  |  |  | 5.000000 | 0.000000 |  |  |  |  |  | icp | 0.300000 | 0.000000 |  |  |  |\n|  |  |  | True |  | 0.000000 |  |  |  | 5 |  |  |  | 0.000000 |  |  |  |  |  |  |  |  |  | 15.000000 | 0.000000 |  |  |  |  |  | icp | 0.100000 | 0.000000 |  |  |  |\n|  |  |  | True |  | 0.000000 |  |  |  | 6 |  |  |  | 0.000000 |  |  |  |  |  |  |  |  |  | 15.000000 | 0.000000 |  |  |  |  |  | icp | 0.300000 | 0.000000 |  |  |  |\n|  |  |  |  |  |  |  |  | 160 |  |  |  |  |  |  |  | 0.000000 |  | 1.000000 |  | 1.000000 | 0.002382 |  |  |  |  |  |  |  |  | ransac |  |  |  |  |  |\n|  |  |  |  |  |  |  |  | 161 |  |  |  |  |  |  |  | 0.300000 |  | 0.993789 |  | 1.000000 | 0.002354 |  |  |  |  |  |  |  |  | ransac |  |  |  |  |  |\n|  |  |  |  |  |  |  |  | 164 |  |  |  |  |  |  |  | 0.600000 |  | 0.975610 |  | 1.000000 | 0.002661 |  |  |  |  |  |  |  |  | ransac |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 5.000000 |  |  |  |  | icp |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 5.000000 |  |  |  |  | fpfh_ransac_icp |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 35.000000 |  |  |  |  | icp |  |  |  |  |  |  |  |  |  | 0.094691 |  |  |  |  |  |  | False | registration |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 35.000000 |  |  |  |  | fpfh_ransac_icp |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |\n|  |  | 3 |  |  |  |  |  |  |  |  |  | euclidean |  | 0 |  |  | 300 |  |  |  |  |  |  |  | 0.142519 |  |  |  |  | segmentation |  |  |  |  |  |\n|  |  | 3 |  |  |  |  |  |  |  |  |  | euclidean |  | 0 |  |  | 900 |  |  |  |  |  |  |  | 1.140828 |  |  |  |  | segmentation |  |  |  |  |  |",
+    "conclusion": "Quick portfolio benchmark completed across geometry core suites."
+  },
+  "error": null
+}
