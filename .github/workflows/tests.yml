@@ -33,7 +33,14 @@ jobs:
         run: python -m black --check .
 
       - name: Generate demo data
-        run: python examples/generate_demo_data.py
+        run: python examples/generate_demo_data.py --output "$RUNNER_TEMP/demo_data"
+
+      - name: Run portfolio pipeline smoke test
+        run: |
+          python -m pointcloud_geolab pipeline \
+            --input "$RUNNER_TEMP/demo_data" \
+            --output "$RUNNER_TEMP/portfolio_demo" \
+            --min-points 5
 
       - name: Run tests with coverage
         run: python -m pytest --cov=pointcloud_geolab

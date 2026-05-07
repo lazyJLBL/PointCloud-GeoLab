@@ -2,8 +2,7 @@
 
 ![Tests](https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml/badge.svg)
 
-Geometry-first point cloud lab for registration, spatial indexing, robust model
-fitting, segmentation, benchmarking, and visualization.
+PointCloud-GeoLab is a lightweight point-cloud processing and visualization lab for registration, preprocessing, segmentation, and portfolio-ready geometry experiments.
 
 This repository is designed as a 3D Vision / SLAM / Robotics / Geometry
 Processing portfolio project. It keeps the math visible, implements core
@@ -57,10 +56,71 @@ python -m pip install -e ".[all]"  # all optional groups
 ## Quick Start
 
 ```bash
-python examples/generate_demo_data.py
-python examples/gallery_demo.py
-python scripts/verify_portfolio.py --quick
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev,vis,bench]"
+
+python examples/generate_demo_data.py --output examples/demo_data
+python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
 ```
+
+Then open `outputs/portfolio_demo/report.md`. The report links to generated
+figures, metrics, the processed point cloud, and the ICP transformation JSON.
+
+For CI or Linux shells, use the same commands with the platform's virtualenv
+activation command.
+
+## Portfolio Demo
+
+The portfolio pipeline is the recommended first command for reviewers:
+
+```bash
+python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+```
+
+It writes a compact, inspectable result tree:
+
+```text
+outputs/portfolio_demo/
+├── report.md
+├── metrics.json
+├── figures/
+│   ├── raw_pointcloud.png
+│   ├── downsampled.png
+│   ├── registration_before_after.png
+│   ├── segmentation_result.png
+│   └── bounding_box_or_normals.png
+└── artifacts/
+    ├── processed_cloud.ply
+    └── transformation.json
+```
+
+Representative figures are generated locally:
+
+- `outputs/portfolio_demo/figures/raw_pointcloud.png`
+- `outputs/portfolio_demo/figures/downsampled.png`
+- `outputs/portfolio_demo/figures/registration_before_after.png`
+- `outputs/portfolio_demo/figures/segmentation_result.png`
+- `outputs/portfolio_demo/figures/bounding_box_or_normals.png`
+
+The pipeline computes real metrics from the current input: point counts and
+bounds, downsample ratio, local density/curvature proxy, ICP before/after RMSE,
+transformation matrix, cluster sizes, and noise ratio. If `examples/demo_data`
+does not exist, the command falls back to the tracked `data/` demo samples so a
+fresh clone still has a working path.
+
+## Feature Matrix
+
+| Area | Status | Notes |
+|---|---|---|
+| Preprocessing | Stable | Voxel downsampling, AABB crop, normalization, statistical/radius outlier filters, normal estimation. |
+| ICP registration | Stable | Point-to-point, point-to-plane, robust kernels, trimmed ICP, and multiscale ICP. |
+| Segmentation / clustering | Stable | DBSCAN, Euclidean clustering, region growing, ground removal, cluster reports. |
+| Visualization | Stable | Matplotlib PNG projections and optional Plotly HTML exports. |
+| Benchmark | Stable | KDTree, ICP, RANSAC, registration, and segmentation quick benchmark suites. |
+| CLI | Stable | `python -m pointcloud_geolab ...` plus legacy `python main.py --mode ...`. |
+| Tests / CI | Stable | Pytest, coverage, Ruff, Black, demo-data generation, and pipeline smoke test on Python 3.10/3.11/3.12. |
+| Open3D / ML paths | Experimental | Optional Open3D-backed reconstruction/registration and optional PointNet demo. |
 
 Core CLI examples:
 
@@ -171,6 +231,29 @@ No benchmark numbers are hard-coded in the README. Regenerate them locally.
 - Reproducible engineering: deterministic synthetic data, tests, benchmarks, gallery, CI.
 - Visualization and analysis: Plotly HTML, Matplotlib projections, benchmark reports.
 
+## Limitations
+
+- PointCloud-GeoLab is not an Open3D or PCL replacement; it is a compact lab for
+  readable geometry algorithms and portfolio-grade demonstrations.
+- Current demo data is intentionally small enough for CI and laptop inspection.
+  Very large LiDAR scenes need chunking, streaming IO, and stronger indexing.
+- ICP remains a local optimizer and needs a reasonable initialization unless
+  paired with feature/global registration.
+- DBSCAN uses a global density radius; uneven-density scenes may need
+  preprocessing or tuned parameters.
+- Stable: IO fallback readers/writers, KDTree, preprocessing, ICP, RANSAC,
+  clustering, CLI, tests, and CI.
+- Experimental: Open3D-heavy reconstruction/global registration paths and the
+  optional PointNet demo.
+
+## Resume Description
+
+Built PointCloud-GeoLab, a Python point-cloud processing lab with from-scratch
+KDTree neighborhoods, voxel preprocessing, ICP registration variants, RANSAC
+primitive fitting, segmentation/clustering, reproducible benchmarks, CI, and a
+single-command portfolio pipeline that generates metrics, visual diagnostics,
+and a Markdown report for reviewer inspection.
+
 ## Docs
 
 - [Algorithms](docs/algorithms.md)
@@ -188,6 +271,7 @@ python -m pytest --cov=pointcloud_geolab
 python -m ruff check .
 python -m black --check .
 python examples/generate_demo_data.py
+python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
 python examples/gallery_demo.py
 python scripts/verify_portfolio.py --quick
 python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks

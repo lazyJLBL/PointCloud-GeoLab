@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 import sys
 
@@ -67,10 +68,23 @@ def make_lidar_scene(rng: np.random.Generator) -> np.ndarray:
     return np.vstack([ground, *objects, outliers])
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Generate deterministic demo point clouds.")
+    parser.add_argument(
+        "--output",
+        "--output-dir",
+        dest="output_dir",
+        type=Path,
+        default=ROOT / "data",
+        help="directory for generated demo point clouds",
+    )
+    args = parser.parse_args(argv)
+
     rng = np.random.default_rng(42)
-    data_dir = ROOT / "data"
-    data_dir.mkdir(exist_ok=True)
+    data_dir = args.output_dir
+    if not data_dir.is_absolute():
+        data_dir = ROOT / data_dir
+    data_dir.mkdir(parents=True, exist_ok=True)
 
     target = make_object_points(rng)
     rotation = rotation_matrix_from_euler(0.08, -0.06, 0.12)

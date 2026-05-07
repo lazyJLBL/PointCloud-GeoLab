@@ -28,6 +28,7 @@ from pointcloud_geolab.api import (
     run_train_pointnet,
     run_visualization,
 )
+from pointcloud_geolab.pipeline import run_portfolio_pipeline
 
 DEFAULTS: dict[str, dict[str, Any]] = {
     "icp": {
@@ -169,6 +170,14 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "seed": 42,
         "queries": 100,
         "points": None,
+    },
+    "pipeline": {
+        "input": "examples/demo_data",
+        "output_dir": "outputs/portfolio_demo",
+        "voxel_size": None,
+        "eps": None,
+        "min_points": 10,
+        "seed": 42,
     },
 }
 
@@ -365,6 +374,22 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--queries", type=int)
     benchmark.add_argument("--points", nargs="*", type=int)
 
+    pipeline = subparsers.add_parser(
+        "pipeline",
+        help="run the portfolio demo pipeline",
+        description="run the portfolio demo pipeline",
+    )
+    _add_common_options(pipeline, include_save_flags=False)
+    pipeline.add_argument(
+        "--input",
+        type=Path,
+        help="input point cloud file or directory; examples/demo_data falls back to data/",
+    )
+    pipeline.add_argument("--output", dest="output_dir", type=Path, help="portfolio output dir")
+    pipeline.add_argument("--voxel-size", type=float)
+    pipeline.add_argument("--eps", type=float, help="DBSCAN radius; defaults to an auto value")
+    pipeline.add_argument("--min-points", type=int, help="DBSCAN min_points")
+
     return parser
 
 
@@ -481,7 +506,8 @@ def _run_batch(args: argparse.Namespace) -> int:
                     error=(
                         "batch job task must be one of: icp, plane, geometry, preprocess, "
                         "register, fit-primitive, extract-primitives, segment, visualize, "
-                        "reconstruct, verify-portfolio, train-pointnet, infer-pointnet, benchmark"
+                        "reconstruct, verify-portfolio, train-pointnet, infer-pointnet, "
+                        "benchmark, pipeline"
                     ),
                     parameters=job,
                 )
@@ -681,6 +707,15 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             seed=params["seed"],
             queries=params["queries"],
             points=params["points"],
+        )
+    if task == "pipeline":
+        return run_portfolio_pipeline(
+            input_path=params["input"],
+            output_dir=params["output_dir"],
+            voxel_size=params["voxel_size"],
+            eps=params["eps"],
+            min_points=params["min_points"],
+            seed=params["seed"],
         )
     return TaskResult(
         task=task,
@@ -900,6 +935,17 @@ def _format_text_result(result: TaskResult) -> str:
             "-------------------------",
             f"Class: {metrics.get('class')}",
             f"Confidence: {metrics.get('confidence')}",
+        ]
+    elif task == "pipeline":
+        lines = [
+            "Portfolio Pipeline Result",
+            "-------------------------",
+            f"Input Points: {metrics['input']['num_points']}",
+            f"Processed Points: {metrics['preprocessing']['num_points_after']}",
+            f"ICP RMSE: {metrics['registration']['rmse_before']:.6f} -> "
+            f"{metrics['registration']['rmse_after']:.6f}",
+            f"Clusters: {metrics['segmentation']['num_clusters']}",
+            f"Noise Ratio: {metrics['segmentation']['noise_ratio']:.2%}",
         ]
     else:
         lines = [json.dumps(data, indent=2, ensure_ascii=False)]
