@@ -32,6 +32,10 @@ Robust ICP supports:
 Multi-scale ICP runs from coarse to fine voxel sizes and reports per-level
 diagnostics.
 
+Generalized ICP estimates local source and target covariance matrices with the
+custom KDTree and weights each correspondence by the Mahalanobis residual
+`e^T (C_q + R C_p R^T)^-1 e`. See [GICP](GICP.md).
+
 Run:
 
 ```bash
@@ -84,6 +88,7 @@ Gallery evidence:
 
 ```bash
 python examples/gallery_demo.py
+python examples/gicp_demo.py
 ```
 
 Generated assets include `multiscale_icp_curve.png` and

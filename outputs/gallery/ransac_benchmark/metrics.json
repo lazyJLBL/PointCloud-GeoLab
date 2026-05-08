@@ -31,27 +31,51 @@
     "rows": [
       {
         "outlier_ratio": 0.0,
-        "inliers": 160,
-        "precision": 1.0,
-        "recall": 1.0,
-        "residual_mean": 0.0023823835555810656
+        "custom_ransac_inliers": 160,
+        "custom_precision": 1.0,
+        "custom_recall": 1.0,
+        "custom_residual_mean": 0.0023823835555810656,
+        "numpy_pca_inliers": 160,
+        "numpy_pca_precision": 1.0,
+        "numpy_pca_recall": 1.0,
+        "numpy_pca_residual_mean": 0.0023823835555810656,
+        "open3d_plane_status": "ok",
+        "open3d_plane_inliers": 160,
+        "open3d_plane_precision": 1.0,
+        "open3d_plane_recall": 1.0
       },
       {
         "outlier_ratio": 0.3,
-        "inliers": 161,
-        "precision": 0.9937888198757764,
-        "recall": 1.0,
-        "residual_mean": 0.0023543113616055745
+        "custom_ransac_inliers": 161,
+        "custom_precision": 0.9937888198757764,
+        "custom_recall": 1.0,
+        "custom_residual_mean": 0.0023543113616055745,
+        "numpy_pca_inliers": 32,
+        "numpy_pca_precision": 0.9375,
+        "numpy_pca_recall": 0.1875,
+        "numpy_pca_residual_mean": 0.009921374921091625,
+        "open3d_plane_status": "ok",
+        "open3d_plane_inliers": 161,
+        "open3d_plane_precision": 0.9937888198757764,
+        "open3d_plane_recall": 1.0
       },
       {
         "outlier_ratio": 0.6,
-        "inliers": 164,
-        "precision": 0.975609756097561,
-        "recall": 1.0,
-        "residual_mean": 0.0026612846158539775
+        "custom_ransac_inliers": 164,
+        "custom_precision": 0.975609756097561,
+        "custom_recall": 1.0,
+        "custom_residual_mean": 0.0026612846158539775,
+        "numpy_pca_inliers": 4,
+        "numpy_pca_precision": 0.0,
+        "numpy_pca_recall": 0.0,
+        "numpy_pca_residual_mean": 0.008918420786682032,
+        "open3d_plane_status": "ok",
+        "open3d_plane_inliers": 165,
+        "open3d_plane_precision": 0.9696969696969697,
+        "open3d_plane_recall": 1.0
       }
     ],
-    "markdown": "| inliers | outlier_ratio | precision | recall | residual_mean |\n| --- | --- | --- | --- | --- |\n| 160 | 0.000000 | 1.000000 | 1.000000 | 0.002382 |\n| 161 | 0.300000 | 0.993789 | 1.000000 | 0.002354 |\n| 164 | 0.600000 | 0.975610 | 1.000000 | 0.002661 |",
+    "markdown": "| custom_precision | custom_ransac_inliers | custom_recall | custom_residual_mean | numpy_pca_inliers | numpy_pca_precision | numpy_pca_recall | numpy_pca_residual_mean | open3d_plane_inliers | open3d_plane_precision | open3d_plane_recall | open3d_plane_status | outlier_ratio |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| 1.000000 | 160 | 1.000000 | 0.002382 | 160 | 1.000000 | 1.000000 | 0.002382 | 160 | 1.000000 | 1.000000 | ok | 0.000000 |\n| 0.993789 | 161 | 1.000000 | 0.002354 | 32 | 0.937500 | 0.187500 | 0.009921 | 161 | 0.993789 | 1.000000 | ok | 0.300000 |\n| 0.975610 | 164 | 1.000000 | 0.002661 | 4 | 0.000000 | 0.000000 | 0.008918 | 165 | 0.969697 | 1.000000 | ok | 0.600000 |",
     "conclusion": "RANSAC remains stable with moderate outliers until clean minimal samples become unlikely."
   },
   "error": null

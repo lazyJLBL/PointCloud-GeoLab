@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -58,6 +59,7 @@ def run_portfolio_pipeline(
         "seed": seed,
     }
     try:
+        start_time = time.perf_counter()
         if min_points <= 0:
             raise ValueError("min_points must be positive")
 
@@ -202,6 +204,7 @@ def run_portfolio_pipeline(
             json.dumps(transformation_payload, indent=2) + "\n",
             encoding="utf-8",
         )
+        runtime_seconds = time.perf_counter() - start_time
 
         metrics = {
             "input": input_metrics
@@ -215,6 +218,7 @@ def run_portfolio_pipeline(
             "features": feature_metrics,
             "registration": registration_metrics,
             "segmentation": segmentation_metrics,
+            "runtime": {"total_seconds": runtime_seconds},
         }
         metrics_path.write_text(json.dumps(_json_ready(metrics), indent=2) + "\n", encoding="utf-8")
         report_path.write_text(
@@ -602,6 +606,7 @@ def _format_pipeline_report(
     registration = metrics["registration"]
     segmentation = metrics["segmentation"]
     features = metrics["features"]
+    runtime = metrics["runtime"]
     lines = [
         "# PointCloud-GeoLab Portfolio Demo",
         "",
@@ -619,6 +624,10 @@ def _format_pipeline_report(
         "4. Run point-to-point ICP and export the transformation matrix.",
         "5. Run DBSCAN clustering and summarize cluster sizes and noise.",
         "6. Save static figures and machine-readable metrics.",
+        "",
+        "## Runtime",
+        "",
+        f"- Total runtime: {runtime['total_seconds']:.3f} seconds",
         "",
         "## Input Point Cloud",
         "",
@@ -651,6 +660,12 @@ def _format_pipeline_report(
         f"- Transformation JSON: `{_relative_artifact(transformation_path)}`",
         f"- Note: {registration['note']}",
         "",
+        "Transformation matrix:",
+        "",
+        "```text",
+        _format_matrix(registration["transformation"]),
+        "```",
+        "",
         "## Segmentation Results",
         "",
         f"- Clusters: {segmentation['num_clusters']}",
@@ -664,6 +679,23 @@ def _format_pipeline_report(
         lines.append(f"- {label}: [{path.name}]({_relative_artifact(path)})")
     lines.extend(
         [
+            "",
+            "## Generated File Index",
+            "",
+            "| File | Purpose |",
+            "|---|---|",
+            "| `report.md` | Human-readable portfolio report. |",
+            (
+                "| `metrics.json` | Machine-readable input, preprocessing, registration, "
+                "segmentation, and runtime metrics. |"
+            ),
+            "| `figures/raw_pointcloud.png` | Raw input cloud projection. |",
+            "| `figures/downsampled.png` | Downsampled and filtered cloud projection. |",
+            "| `figures/registration_before_after.png` | ICP before/after comparison. |",
+            "| `figures/segmentation_result.png` | DBSCAN cluster labels. |",
+            "| `figures/bounding_box_or_normals.png` | AABB and local normal visualization. |",
+            "| `artifacts/processed_cloud.ply` | Processed output cloud. |",
+            "| `artifacts/transformation.json` | ICP transformation and RMSE summary. |",
             "",
             "## Artifacts",
             "",
@@ -689,6 +721,12 @@ def _format_pipeline_report(
         ]
     )
     return "\n".join(lines)
+
+
+def _format_matrix(matrix: list[list[float]]) -> str:
+    return "\n".join(
+        "[" + " ".join(f"{float(value): .6f}" for value in row) + "]" for row in matrix
+    )
 
 
 def _relative_artifact(path: Path) -> str:

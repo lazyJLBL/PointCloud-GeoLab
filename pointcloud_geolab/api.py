@@ -16,7 +16,11 @@ import numpy as np
 from pointcloud_geolab.datasets import make_sphere
 from pointcloud_geolab.features import compute_local_geometric_descriptors, detect_iss_keypoints
 from pointcloud_geolab.geometry import compute_aabb, compute_obb, pca_analysis
-from pointcloud_geolab.geometry.primitive_fitting import extract_primitives, ransac_fit_primitive
+from pointcloud_geolab.geometry.primitive_fitting import (
+    PlaneModel,
+    extract_primitives,
+    ransac_fit_primitive,
+)
 from pointcloud_geolab.io.pointcloud_io import load_point_cloud, save_point_cloud
 from pointcloud_geolab.io.visualization import (
     save_error_curve,
@@ -37,6 +41,7 @@ from pointcloud_geolab.preprocessing import (
 from pointcloud_geolab.reconstruction import reconstruct_surface
 from pointcloud_geolab.registration import (
     evaluate_registration,
+    generalized_icp,
     multiscale_icp,
     point_to_point_icp,
     robust_icp,
@@ -559,13 +564,16 @@ def run_benchmark(
         elif benchmark == "registration":
             rows = _benchmark_registration(seed=seed, quick=quick)
             markdown = _format_generic_table(rows)
+        elif benchmark == "gicp":
+            rows = _benchmark_gicp(seed=seed, quick=quick)
+            markdown = _format_generic_table(rows)
         elif benchmark == "segmentation":
             rows = _benchmark_segmentation(seed=seed, quick=quick)
             markdown = _format_generic_table(rows)
         elif benchmark == "all":
             rows = []
             suite_summaries = []
-            for suite in ["kdtree", "icp", "ransac", "registration", "segmentation"]:
+            for suite in ["kdtree", "icp", "ransac", "registration", "gicp", "segmentation"]:
                 suite_result = run_benchmark(
                     suite,
                     output_dir=Path(output_dir) / suite,
@@ -590,7 +598,8 @@ def run_benchmark(
             conclusion = "Quick portfolio benchmark completed across geometry core suites."
         else:
             raise ValueError(
-                "benchmark must be one of: kdtree, icp, ransac, registration, segmentation, all"
+                "benchmark must be one of: kdtree, icp, ransac, registration, gicp, "
+                "segmentation, all"
             )
 
         artifacts: dict[str, str] = {}
@@ -1519,38 +1528,91 @@ def _benchmark_kdtree(seed: int, queries: int, point_counts: list[int]) -> list[
 def _optional_open3d_kdtree_time(points: np.ndarray, queries: np.ndarray) -> float | None:
     try:
         import open3d as o3d  # type: ignore
-    except ImportError:
+    except Exception:
         return None
 
-    point_cloud = o3d.geometry.PointCloud()
-    point_cloud.points = o3d.utility.Vector3dVector(points)
-    start = time.perf_counter()
-    tree = o3d.geometry.KDTreeFlann(point_cloud)
-    for query in queries:
-        tree.search_knn_vector_3d(query, 1)
-    return time.perf_counter() - start
+    try:
+        point_cloud = o3d.geometry.PointCloud()
+        point_cloud.points = o3d.utility.Vector3dVector(points)
+        start = time.perf_counter()
+        tree = o3d.geometry.KDTreeFlann(point_cloud)
+        for query in queries:
+            tree.search_knn_vector_3d(query, 1)
+        return time.perf_counter() - start
+    except Exception:
+        return None
 
 
 def _optional_scipy_ckdtree_time(points: np.ndarray, queries: np.ndarray) -> float | None:
     try:
         from scipy.spatial import cKDTree  # type: ignore
-    except ImportError:
+    except Exception:
         return None
-    start = time.perf_counter()
-    tree = cKDTree(points)
-    tree.query(queries, k=1)
-    return time.perf_counter() - start
+    try:
+        start = time.perf_counter()
+        tree = cKDTree(points)
+        tree.query(queries, k=1)
+        return time.perf_counter() - start
+    except Exception:
+        return None
 
 
 def _optional_sklearn_kdtree_time(points: np.ndarray, queries: np.ndarray) -> float | None:
     try:
         from sklearn.neighbors import KDTree as SklearnKDTree  # type: ignore
-    except ImportError:
+    except Exception:
         return None
-    start = time.perf_counter()
-    tree = SklearnKDTree(points)
-    tree.query(queries, k=1)
-    return time.perf_counter() - start
+    try:
+        start = time.perf_counter()
+        tree = SklearnKDTree(points)
+        tree.query(queries, k=1)
+        return time.perf_counter() - start
+    except Exception:
+        return None
+
+
+def _optional_open3d_icp_metrics(
+    source: np.ndarray,
+    target: np.ndarray,
+    threshold: float,
+) -> dict[str, Any]:
+    try:
+        import open3d as o3d  # type: ignore
+    except Exception as exc:
+        return {
+            "open3d_icp_status": f"unavailable: {exc}",
+            "open3d_icp_rmse": None,
+            "open3d_icp_fitness": None,
+            "open3d_icp_time": None,
+        }
+
+    try:
+        source_cloud = o3d.geometry.PointCloud()
+        target_cloud = o3d.geometry.PointCloud()
+        source_cloud.points = o3d.utility.Vector3dVector(source)
+        target_cloud.points = o3d.utility.Vector3dVector(target)
+        start = time.perf_counter()
+        result = o3d.pipelines.registration.registration_icp(
+            source_cloud,
+            target_cloud,
+            threshold,
+            np.eye(4),
+            o3d.pipelines.registration.TransformationEstimationPointToPoint(),
+        )
+        runtime = time.perf_counter() - start
+        return {
+            "open3d_icp_status": "ok",
+            "open3d_icp_rmse": float(result.inlier_rmse),
+            "open3d_icp_fitness": float(result.fitness),
+            "open3d_icp_time": runtime,
+        }
+    except Exception as exc:
+        return {
+            "open3d_icp_status": f"error: {exc}",
+            "open3d_icp_rmse": None,
+            "open3d_icp_fitness": None,
+            "open3d_icp_time": None,
+        }
 
 
 def _benchmark_icp(seed: int, full: bool, quick: bool) -> list[dict[str, Any]]:
@@ -1608,19 +1670,59 @@ def _benchmark_icp_case(
     if noise > 0:
         source = source + rng.normal(scale=noise, size=source.shape)
 
+    start = time.perf_counter()
     result = point_to_point_icp(source, target, max_iterations=80, tolerance=1e-7)
+    custom_time = time.perf_counter() - start
+
+    outlier_count = max(1, len(source) // 8)
+    outliers = rng.uniform(-3.0, 3.0, size=(outlier_count, 3))
+    source_with_outliers = np.vstack([source, outliers])
+    outlier_threshold = max(0.6, translation_magnitude * 2.0)
+    plain_outlier = point_to_point_icp(
+        source_with_outliers,
+        target,
+        max_iterations=60,
+        tolerance=1e-7,
+        max_correspondence_distance=outlier_threshold,
+    )
+    huber_outlier = robust_icp(
+        source_with_outliers,
+        target,
+        robust_kernel="huber",
+        trim_ratio=0.9,
+        max_iterations=60,
+        tolerance=1e-7,
+        max_correspondence_distance=outlier_threshold,
+    )
+    trimmed_outlier = robust_icp(
+        source_with_outliers,
+        target,
+        robust_kernel="none",
+        trim_ratio=0.85,
+        max_iterations=60,
+        tolerance=1e-7,
+        max_correspondence_distance=outlier_threshold,
+    )
+    open3d_metrics = _optional_open3d_icp_metrics(source, target, threshold=outlier_threshold)
     expected_rotation = rotation.T
     expected_translation = -rotation.T @ translation
-    return {
+    row = {
         "rotation_degrees": rotation_degrees,
         "translation": translation_magnitude,
         "noise": noise,
         "converged": result.converged,
         "iterations": result.iterations,
         "final_rmse": result.final_rmse,
+        "custom_icp_time": custom_time,
+        "plain_outlier_rmse": plain_outlier.final_rmse,
+        "huber_outlier_rmse": huber_outlier.final_rmse,
+        "trimmed_outlier_rmse": trimmed_outlier.final_rmse,
+        "outlier_ratio": outlier_count / len(source_with_outliers),
         "rotation_error_degrees": _rotation_error_degrees(result.rotation, expected_rotation),
         "translation_error": float(np.linalg.norm(result.translation - expected_translation)),
     }
+    row.update(open3d_metrics)
+    return row
 
 
 def _benchmark_ransac(seed: int, quick: bool) -> list[dict[str, Any]]:
@@ -1649,16 +1751,94 @@ def _benchmark_ransac(seed: int, quick: bool) -> list[dict[str, Any]]:
         true_positive = int(np.sum(predicted & truth_mask))
         precision = true_positive / max(int(np.sum(predicted)), 1)
         recall = true_positive / max(int(np.sum(truth_mask)), 1)
+        numpy_baseline = _numpy_plane_baseline(points, truth_mask, threshold=0.02)
+        open3d_baseline = _optional_open3d_plane_baseline(
+            points,
+            truth_mask,
+            threshold=0.02,
+            seed=seed + i,
+        )
         rows.append(
             {
                 "outlier_ratio": ratio,
-                "inliers": len(result.inlier_indices),
-                "precision": precision,
-                "recall": recall,
-                "residual_mean": result.residual_mean,
+                "custom_ransac_inliers": len(result.inlier_indices),
+                "custom_precision": precision,
+                "custom_recall": recall,
+                "custom_residual_mean": result.residual_mean,
+                **numpy_baseline,
+                **open3d_baseline,
             }
         )
     return rows
+
+
+def _numpy_plane_baseline(
+    points: np.ndarray,
+    truth_mask: np.ndarray,
+    threshold: float,
+) -> dict[str, Any]:
+    model = PlaneModel.fit(points)
+    predicted = model.residuals(points) <= threshold
+    true_positive = int(np.sum(predicted & truth_mask))
+    precision = true_positive / max(int(np.sum(predicted)), 1)
+    recall = true_positive / max(int(np.sum(truth_mask)), 1)
+    residuals = model.residuals(points)
+    return {
+        "numpy_pca_inliers": int(np.sum(predicted)),
+        "numpy_pca_precision": precision,
+        "numpy_pca_recall": recall,
+        "numpy_pca_residual_mean": (
+            float(residuals[predicted].mean()) if np.any(predicted) else None
+        ),
+    }
+
+
+def _optional_open3d_plane_baseline(
+    points: np.ndarray,
+    truth_mask: np.ndarray,
+    threshold: float,
+    seed: int,
+) -> dict[str, Any]:
+    try:
+        import open3d as o3d  # type: ignore
+    except Exception as exc:
+        return {
+            "open3d_plane_status": f"unavailable: {exc}",
+            "open3d_plane_inliers": None,
+            "open3d_plane_precision": None,
+            "open3d_plane_recall": None,
+        }
+
+    try:
+        try:
+            o3d.utility.random.seed(int(seed))
+        except AttributeError:
+            pass
+        point_cloud = o3d.geometry.PointCloud()
+        point_cloud.points = o3d.utility.Vector3dVector(points)
+        _, inliers = point_cloud.segment_plane(
+            distance_threshold=threshold,
+            ransac_n=3,
+            num_iterations=800,
+        )
+        predicted = np.zeros(len(points), dtype=bool)
+        predicted[np.asarray(inliers, dtype=int)] = True
+        true_positive = int(np.sum(predicted & truth_mask))
+        precision = true_positive / max(int(np.sum(predicted)), 1)
+        recall = true_positive / max(int(np.sum(truth_mask)), 1)
+        return {
+            "open3d_plane_status": "ok",
+            "open3d_plane_inliers": int(np.sum(predicted)),
+            "open3d_plane_precision": precision,
+            "open3d_plane_recall": recall,
+        }
+    except Exception as exc:
+        return {
+            "open3d_plane_status": f"error: {exc}",
+            "open3d_plane_inliers": None,
+            "open3d_plane_precision": None,
+            "open3d_plane_recall": None,
+        }
 
 
 def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
@@ -1716,6 +1896,68 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
     return rows
 
 
+def _benchmark_gicp(seed: int, quick: bool) -> list[dict[str, Any]]:
+    rng = np.random.default_rng(seed)
+    point_count = 240 if quick else 500
+    xy = rng.uniform(-1.0, 1.0, size=(point_count, 2))
+    z = 0.12 * np.sin(2.5 * xy[:, 0]) + 0.08 * np.cos(3.0 * xy[:, 1])
+    target = np.column_stack([xy, z])
+    cases = [4.0, 10.0] if quick else [4.0, 10.0, 18.0]
+    rows = []
+    for angle in cases:
+        rotation = rotation_matrix_from_euler(
+            np.radians(angle) * 0.35,
+            -np.radians(angle) * 0.25,
+            np.radians(angle) * 0.45,
+        )
+        translation = np.asarray([0.05, -0.03, 0.02]) * (1.0 + angle / 20.0)
+        source = apply_transform(target, rotation, translation)
+
+        start = time.perf_counter()
+        icp = point_to_point_icp(
+            source,
+            target,
+            max_iterations=60,
+            tolerance=1e-7,
+            max_correspondence_distance=0.35,
+        )
+        icp_time = time.perf_counter() - start
+        rows.append(
+            {
+                "method": "point_to_point_icp",
+                "initial_angle_degrees": angle,
+                "points": point_count,
+                "runtime": icp_time,
+                "initial_rmse": icp.initial_rmse,
+                "final_rmse": icp.final_rmse,
+                "iterations": icp.iterations,
+            }
+        )
+
+        start = time.perf_counter()
+        gicp = generalized_icp(
+            source,
+            target,
+            max_iterations=60,
+            tolerance=1e-7,
+            max_correspondence_distance=0.35,
+            k_neighbors=16,
+        )
+        gicp_time = time.perf_counter() - start
+        rows.append(
+            {
+                "method": "generalized_icp",
+                "initial_angle_degrees": angle,
+                "points": point_count,
+                "runtime": gicp_time,
+                "initial_rmse": gicp.initial_rmse,
+                "final_rmse": gicp.final_rmse,
+                "iterations": gicp.iterations,
+            }
+        )
+    return rows
+
+
 def _benchmark_segmentation(seed: int, quick: bool) -> list[dict[str, Any]]:
     counts = [300, 900] if quick else [300, 900, 1800]
     rows = []
@@ -1761,6 +2003,11 @@ def _benchmark_conclusion(benchmark: str) -> str:
         "registration": (
             "Feature-based global registration expands ICP's basin of convergence "
             "by estimating a coarse pose first."
+        ),
+        "gicp": (
+            "GICP uses local covariance structure to weight correspondences; it is "
+            "more expensive per iteration than point-to-point ICP but exposes "
+            "surface-aware residuals."
         ),
         "segmentation": (
             "Euclidean clustering runtime scales with radius-neighborhood queries "
@@ -1841,23 +2088,32 @@ def _format_optional_time(row: dict[str, Any], key: str) -> str:
     return "" if value is None else f"{value:.4f}"
 
 
+def _format_optional_float(value: Any) -> str:
+    return "" if value is None else f"{float(value):.6f}"
+
+
 def _format_icp_table(rows: list[dict[str, Any]]) -> str:
     lines = [
         "| Rotation (deg) | Translation | Noise | Converged | Iterations | "
-        "Final RMSE | Rotation Error (deg) | Translation Error |",
-        "|---:|---:|---:|:---:|---:|---:|---:|---:|",
+        "Final RMSE | Huber Outlier RMSE | Trimmed Outlier RMSE | Open3D RMSE | "
+        "Rotation Error (deg) | Translation Error |",
+        "|---:|---:|---:|:---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
             "| {rotation_degrees:.0f} | {translation:.2f} | {noise:.2f} | {converged} | "
-            "{iterations} | {final_rmse:.6f} | {rotation_error_degrees:.4f} | "
-            "{translation_error:.6f} |".format(
+            "{iterations} | {final_rmse:.6f} | {huber_outlier_rmse:.6f} | "
+            "{trimmed_outlier_rmse:.6f} | {open3d_icp_rmse} | "
+            "{rotation_error_degrees:.4f} | {translation_error:.6f} |".format(
                 rotation_degrees=row["rotation_degrees"],
                 translation=row["translation"],
                 noise=row["noise"],
                 converged="yes" if row["converged"] else "no",
                 iterations=row["iterations"],
                 final_rmse=row["final_rmse"],
+                huber_outlier_rmse=row.get("huber_outlier_rmse", float("nan")),
+                trimmed_outlier_rmse=row.get("trimmed_outlier_rmse", float("nan")),
+                open3d_icp_rmse=_format_optional_float(row.get("open3d_icp_rmse")),
                 rotation_error_degrees=row["rotation_error_degrees"],
                 translation_error=row["translation_error"],
             )
@@ -1937,8 +2193,14 @@ def _save_benchmark_plot(path: Path, benchmark: str, rows: list[dict[str, Any]])
         ax.set_ylabel("Final RMSE")
     elif benchmark == "ransac":
         xs = [row["outlier_ratio"] for row in rows]
-        ax.plot(xs, [row["precision"] for row in rows], marker="o", label="precision")
-        ax.plot(xs, [row["recall"] for row in rows], marker="o", label="recall")
+        ax.plot(xs, [row["custom_precision"] for row in rows], marker="o", label="custom precision")
+        ax.plot(xs, [row["custom_recall"] for row in rows], marker="o", label="custom recall")
+        ax.plot(
+            xs,
+            [row["numpy_pca_precision"] for row in rows],
+            marker="o",
+            label="NumPy PCA precision",
+        )
         ax.set_xlabel("Outlier Ratio")
         ax.set_ylabel("Score")
     elif benchmark == "registration":
@@ -1952,6 +2214,17 @@ def _save_benchmark_plot(path: Path, benchmark: str, rows: list[dict[str, Any]])
             )
         ax.set_xlabel("Initial Rotation (deg)")
         ax.set_ylabel("RMSE")
+    elif benchmark == "gicp":
+        for method in sorted({row["method"] for row in rows}):
+            subset = [row for row in rows if row["method"] == method]
+            ax.plot(
+                [row["initial_angle_degrees"] for row in subset],
+                [row["final_rmse"] for row in subset],
+                marker="o",
+                label=method,
+            )
+        ax.set_xlabel("Initial Rotation (deg)")
+        ax.set_ylabel("Final RMSE")
     elif benchmark == "segmentation":
         xs = [row["points"] for row in rows]
         ax.plot(xs, [row["runtime"] for row in rows], marker="o", label="euclidean")

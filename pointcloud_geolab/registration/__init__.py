@@ -5,6 +5,7 @@ from .feature_registration import (
     estimate_rigid_transform_ransac,
     register_iss_descriptor_ransac_icp,
 )
+from .gicp import CovarianceEstimationResult, estimate_local_covariances, generalized_icp
 from .global_registration import (
     GlobalRegistrationResult,
     RegistrationStage,
@@ -28,12 +29,15 @@ __all__ = [
     "GlobalRegistrationResult",
     "ICPResult",
     "MultiScaleICPResult",
+    "CovarianceEstimationResult",
     "RansacTransformResult",
     "RegistrationStage",
     "estimate_rigid_transform",
     "estimate_rigid_transform_ransac",
+    "estimate_local_covariances",
     "evaluate_registration",
     "execute_global_registration",
+    "generalized_icp",
     "multiscale_icp",
     "point_to_plane_icp",
     "point_to_point_icp",

@@ -359,12 +359,12 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument(
         "benchmark_name",
         nargs="?",
-        choices=["kdtree", "icp", "ransac", "registration", "segmentation", "all"],
+        choices=["kdtree", "icp", "ransac", "registration", "gicp", "segmentation", "all"],
         help="benchmark suite",
     )
     benchmark.add_argument(
         "--suite",
-        choices=["kdtree", "icp", "ransac", "registration", "segmentation", "all"],
+        choices=["kdtree", "icp", "ransac", "registration", "gicp", "segmentation", "all"],
     )
     benchmark.add_argument("--output", dest="output_dir", type=Path)
     benchmark.add_argument("--quick", action=argparse.BooleanOptionalAction, default=None)

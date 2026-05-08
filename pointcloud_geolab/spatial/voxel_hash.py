@@ -72,6 +72,78 @@ class VoxelHashGrid:
         result.sort(key=lambda item: (item[1], item[0]))
         return result
 
+    def nearest_neighbor(
+        self,
+        query_point: np.ndarray,
+        max_radius: float | None = None,
+    ) -> tuple[int, float]:
+        """Return the nearest indexed point to ``query_point``.
+
+        The search expands voxel shells around the query cell until the current
+        best distance is smaller than the next shell boundary. ``max_radius`` is
+        useful when the grid is used as a bounded local correspondence index.
+        """
+
+        if len(self.points) == 0:
+            raise ValueError("cannot query an empty VoxelHashGrid")
+        query = self._validate_point(query_point)
+        if max_radius is not None and max_radius < 0:
+            raise ValueError("max_radius must be non-negative")
+
+        best_index = -1
+        best_distance_sq = float("inf")
+        radius_sq = None if max_radius is None else max_radius * max_radius
+        ordered_buckets = sorted(
+            self.buckets,
+            key=lambda key: self._bucket_min_distance_sq(key, query),
+        )
+        for key in ordered_buckets:
+            bucket_min = self._bucket_min_distance_sq(key, query)
+            if bucket_min > best_distance_sq:
+                break
+            if radius_sq is not None and bucket_min > radius_sq:
+                break
+            for index in self.buckets[key]:
+                distance_sq = float(np.sum((self.points[index] - query) ** 2))
+                if radius_sq is not None and distance_sq > radius_sq:
+                    continue
+                if distance_sq < best_distance_sq or (
+                    np.isclose(distance_sq, best_distance_sq)
+                    and (best_index < 0 or index < best_index)
+                ):
+                    best_index = index
+                    best_distance_sq = distance_sq
+
+        if best_index < 0:
+            raise ValueError("no point found within max_radius")
+        return best_index, float(np.sqrt(best_distance_sq))
+
+    def knn_search(self, query_point: np.ndarray, k: int) -> list[tuple[int, float]]:
+        """Return the ``k`` nearest indexed points sorted by distance."""
+
+        if k <= 0:
+            raise ValueError("k must be positive")
+        if len(self.points) == 0:
+            return []
+        query = self._validate_point(query_point)
+        target_count = min(k, len(self.points))
+        candidates: dict[int, float] = {}
+        ordered_buckets = sorted(
+            self.buckets,
+            key=lambda key: self._bucket_min_distance_sq(key, query),
+        )
+        kth_distance = float("inf")
+        for key in ordered_buckets:
+            bucket_min = float(np.sqrt(self._bucket_min_distance_sq(key, query)))
+            if len(candidates) >= target_count and bucket_min > kth_distance:
+                break
+            for index in self.buckets[key]:
+                candidates[index] = float(np.linalg.norm(self.points[index] - query))
+            if len(candidates) >= target_count:
+                ordered = sorted(candidates.items(), key=lambda item: (item[1], item[0]))
+                kth_distance = ordered[target_count - 1][1]
+        return sorted(candidates.items(), key=lambda item: (item[1], item[0]))[:target_count]
+
     def box_query(self, min_bound: np.ndarray, max_bound: np.ndarray) -> list[int]:
         """Return point indices inside an axis-aligned box."""
 
@@ -110,3 +182,28 @@ class VoxelHashGrid:
         if query.shape[0] != self.dim:
             raise ValueError(f"point must have shape ({self.dim},)")
         return query
+
+    def _max_search_span(self, max_radius: float | None) -> int:
+        if max_radius is not None:
+            return int(np.ceil(max_radius / self.voxel_size))
+        if len(self.buckets) == 0:
+            return 0
+        keys = np.asarray(list(self.buckets), dtype=int)
+        extent = keys.max(axis=0) - keys.min(axis=0)
+        return int(np.max(extent)) + 1
+
+    def _shell_keys(self, center_key: np.ndarray, span: int) -> list[tuple[int, ...]]:
+        if span == 0:
+            return [tuple(center_key.tolist())]
+        keys = []
+        for offset in np.ndindex(*([2 * span + 1] * self.dim)):
+            delta = np.asarray(offset, dtype=int) - span
+            if np.max(np.abs(delta)) == span:
+                keys.append(tuple((center_key + delta).tolist()))
+        return keys
+
+    def _bucket_min_distance_sq(self, key: tuple[int, ...], query: np.ndarray) -> float:
+        lower = np.asarray(key, dtype=float) * self.voxel_size
+        upper = lower + self.voxel_size
+        delta = np.maximum(0.0, np.maximum(lower - query, query - upper))
+        return float(delta @ delta)

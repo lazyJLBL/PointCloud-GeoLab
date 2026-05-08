@@ -1,5 +1,47 @@
 # Interview Notes
 
+## 中文速答
+
+### 为什么不用纯 Open3D？
+
+这个项目的定位不是替代 Open3D，而是展示我能把核心几何算法讲清楚并工程化。
+KDTree、ICP、RANSAC、PCA/OBB、segmentation、ISS 和局部描述子都保留自研实现；
+Open3D 只作为 FPFH、reconstruction、IO/visualization 或工业 baseline。这样既能
+证明算法理解，也能证明我知道生产工具链应该怎样对照验证。
+
+### KDTree 的剪枝原理是什么？
+
+查询时先访问与 query 同侧的近分支，并维护当前最优距离 `best`。如果 query 到
+分裂超平面的距离已经大于 `best`，远分支里所有点都不可能更近，可以剪掉。低维
+空间效果好，高维或大半径查询会退化。
+
+### ICP 如何求解刚体变换？
+
+每轮先用 KDTree 建立最近邻对应，再对对应点求 SVD 刚体配准：中心化点集，构造
+协方差 `H`，分解 `H = U S V^T`，令 `R = V U^T`，修正反射后计算
+`t = q_bar - R p_bar`。
+
+### RANSAC 迭代次数怎么估计？
+
+如果内点比例是 `w`，最小样本大小是 `s`，希望成功概率是 `P`，则：
+
+```text
+N >= log(1 - P) / log(1 - w^s)
+```
+
+内点比例下降或模型需要更多样本时，迭代次数会快速增加。
+
+### 点云分割有哪些失败场景？
+
+固定半径聚类容易受密度变化影响；地面拟合会在斜坡、台阶、墙面主导场景中失败；
+相邻物体接触会被连成一个 cluster；小物体可能被 `min_points` 过滤掉。
+
+### 数据量扩大 100 倍怎么优化？
+
+优先做分块/流式 IO、体素降采样、空间索引复用、批量 KDTree 查询、VoxelHashGrid
+固定半径搜索、并行 RANSAC/ICP correspondence search，并把 benchmark 拆成 quick
+和 full profile。需要生产部署时再引入 C++/CUDA/PCL/Open3D 后端做热点替换。
+
 ## 1. Why is KDTree faster than brute force? When is it not?
 
 Brute force computes all `N` distances per query: `O(ND)`. KDTree recursively

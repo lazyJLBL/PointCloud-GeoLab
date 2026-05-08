@@ -4,24 +4,48 @@
   "rows": [
     {
       "outlier_ratio": 0.0,
-      "inliers": 160,
-      "precision": 1.0,
-      "recall": 1.0,
-      "residual_mean": 0.0023823835555810656
+      "custom_ransac_inliers": 160,
+      "custom_precision": 1.0,
+      "custom_recall": 1.0,
+      "custom_residual_mean": 0.0023823835555810656,
+      "numpy_pca_inliers": 160,
+      "numpy_pca_precision": 1.0,
+      "numpy_pca_recall": 1.0,
+      "numpy_pca_residual_mean": 0.0023823835555810656,
+      "open3d_plane_status": "ok",
+      "open3d_plane_inliers": 160,
+      "open3d_plane_precision": 1.0,
+      "open3d_plane_recall": 1.0
     },
     {
       "outlier_ratio": 0.3,
-      "inliers": 161,
-      "precision": 0.9937888198757764,
-      "recall": 1.0,
-      "residual_mean": 0.0023543113616055745
+      "custom_ransac_inliers": 161,
+      "custom_precision": 0.9937888198757764,
+      "custom_recall": 1.0,
+      "custom_residual_mean": 0.0023543113616055745,
+      "numpy_pca_inliers": 32,
+      "numpy_pca_precision": 0.9375,
+      "numpy_pca_recall": 0.1875,
+      "numpy_pca_residual_mean": 0.009921374921091625,
+      "open3d_plane_status": "ok",
+      "open3d_plane_inliers": 161,
+      "open3d_plane_precision": 0.9937888198757764,
+      "open3d_plane_recall": 1.0
     },
     {
       "outlier_ratio": 0.6,
-      "inliers": 164,
-      "precision": 0.975609756097561,
-      "recall": 1.0,
-      "residual_mean": 0.0026612846158539775
+      "custom_ransac_inliers": 164,
+      "custom_precision": 0.975609756097561,
+      "custom_recall": 1.0,
+      "custom_residual_mean": 0.0026612846158539775,
+      "numpy_pca_inliers": 4,
+      "numpy_pca_precision": 0.0,
+      "numpy_pca_recall": 0.0,
+      "numpy_pca_residual_mean": 0.008918420786682032,
+      "open3d_plane_status": "ok",
+      "open3d_plane_inliers": 165,
+      "open3d_plane_precision": 0.9696969696969697,
+      "open3d_plane_recall": 1.0
     }
   ]
 }

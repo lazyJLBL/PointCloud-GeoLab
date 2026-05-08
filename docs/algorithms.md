@@ -29,20 +29,23 @@ queries with a very large radius reduce pruning effectiveness.
 
 ## Voxel Hash Grid
 
-Problem: efficient fixed-radius and box queries for point clouds.
+Problem: efficient fixed-radius, nearest-neighbor, kNN, and box queries for
+point clouds.
 
 Core idea: hash `floor(point / voxel_size)` to a bucket. Radius search only
 checks buckets within `ceil(radius / voxel_size)` cells from the query voxel.
 
 Complexity: build is `O(N)`. Query time depends on local density and voxel size.
-It is often faster than a tree for fixed-radius locality, but less flexible for
-arbitrary kNN.
+It is often faster than a tree for fixed-radius locality. The implementation
+also supports bounded nearest-neighbor and kNN queries by ordering non-empty
+voxel buckets by their minimum possible distance to the query point.
 
 Implementation: `pointcloud_geolab/spatial/voxel_hash.py`.
 
 Demo:
 
 ```bash
+python examples/voxel_hash_grid_demo.py
 python examples/gallery_demo.py
 ```
 
@@ -92,12 +95,24 @@ Robust ICP adds:
 Multi-scale ICP downsamples with coarse voxels first, then refines with smaller
 voxels.
 
-Implementation: `pointcloud_geolab/registration/icp.py`.
+Generalized ICP estimates local source/target covariance matrices and weights
+each correspondence by the Mahalanobis residual:
+
+```text
+e_i^T (C_qi + R C_pi R^T)^-1 e_i
+```
+
+This project solves a compact GICP-style loop with custom KDTree
+correspondences and weighted SVD updates.
+
+Implementation: `pointcloud_geolab/registration/icp.py` and
+`pointcloud_geolab/registration/gicp.py`.
 
 Demo:
 
 ```bash
 python examples/gallery_demo.py
+python examples/gicp_demo.py
 python -m pointcloud_geolab register --source data/bunny_source.ply --target data/bunny_target.ply --multiscale --voxel-sizes 0.2 0.1 0.05
 ```
 

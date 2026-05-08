@@ -5,14 +5,14 @@
     {
       "points": 300,
       "method": "euclidean",
-      "runtime": 0.14251949964091182,
+      "runtime": 0.21030610000161687,
       "clusters": 3,
       "noise_points": 0
     },
     {
       "points": 900,
       "method": "euclidean",
-      "runtime": 1.1408281000331044,
+      "runtime": 1.8508978000027128,
       "clusters": 3,
       "noise_points": 0
     }

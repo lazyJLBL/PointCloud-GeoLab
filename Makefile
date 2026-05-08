@@ -1,23 +1,33 @@
+PYTHON ?= python
+
+.PHONY: install install-dev data pipeline test lint format-check benchmark verify cpp-demo
+
 install:
-	python -m pip install -r requirements.txt
+	$(PYTHON) -m pip install -e .
 
 install-dev:
-	python -m pip install -e .[dev]
+	$(PYTHON) -m pip install -e ".[dev,vis,bench]"
 
 data:
-	python examples/generate_demo_data.py
+	$(PYTHON) examples/generate_demo_data.py --output examples/demo_data
+
+pipeline: data
+	$(PYTHON) -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
 
 test:
-	python -m pytest
+	$(PYTHON) -m pytest --cov=pointcloud_geolab
 
-demo:
-	python examples/demo_kdtree.py
-	python examples/demo_icp.py
-	python examples/demo_ransac_plane.py
-	python examples/demo_bounding_box.py
-	python examples/demo_preprocessing.py
+lint:
+	$(PYTHON) -m ruff check .
+
+format-check:
+	$(PYTHON) -m black --check .
 
 benchmark:
-	python benchmarks/benchmark_kdtree.py --save results/kdtree_benchmark.md
-	python benchmarks/benchmark_icp.py --quick --save results/icp_benchmark.md
+	$(PYTHON) -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
 
+verify: lint format-check data pipeline test
+
+cpp-demo:
+	cmake -S cpp -B cpp/build
+	cmake --build cpp/build --config Release

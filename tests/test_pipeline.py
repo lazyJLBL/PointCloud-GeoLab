@@ -113,7 +113,7 @@ def test_metrics_schema(tmp_path: Path) -> None:
 
     assert result.success, result.error
     metrics = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
-    for section in ["input", "preprocessing", "registration", "segmentation"]:
+    for section in ["input", "preprocessing", "registration", "segmentation", "runtime"]:
         assert section in metrics
     assert {"num_points", "bounds"} <= set(metrics["input"])
     assert {"num_points_before", "num_points_after", "downsample_ratio"} <= set(
@@ -121,6 +121,7 @@ def test_metrics_schema(tmp_path: Path) -> None:
     )
     assert {"rmse_before", "rmse_after", "transformation"} <= set(metrics["registration"])
     assert {"num_clusters", "cluster_sizes", "noise_ratio"} <= set(metrics["segmentation"])
+    assert metrics["runtime"]["total_seconds"] >= 0
     assert metrics["registration"]["rmse_after"] <= metrics["registration"]["rmse_before"]
 
 

@@ -4,7 +4,7 @@
   "metrics": {
     "passed_commands": 10,
     "failed_commands": 0,
-    "generated_artifacts": 94,
+    "generated_artifacts": 114,
     "missing_readme_artifacts": 0
   },
   "artifacts": {
@@ -26,7 +26,7 @@
       {
         "command": "D:\\anaconda-\\python.exe examples/global_registration_demo.py",
         "returncode": 0,
-        "stdout": "{'coarse_fitness': 1.0, 'coarse_inlier_rmse': 0.03797087122250323, 'refined_fitness': 1.0, 'refined_inlier_rmse': 7.143800746744364e-09, 'final_rmse': 7.143800741099759e-09, 'final_fitness': 1.0, 'source_downsampled': 104, 'target_downsampled': 107}\n",
+        "stdout": "{'coarse_fitness': 1.0, 'coarse_inlier_rmse': 0.035021028617807724, 'refined_fitness': 1.0, 'refined_inlier_rmse': 7.143800762951827e-09, 'final_rmse': 7.1438007657602874e-09, 'final_fitness': 1.0, 'source_downsampled': 104, 'target_downsampled': 107}\n",
         "stderr": ""
       },
       {
@@ -44,7 +44,7 @@
       {
         "command": "D:\\anaconda-\\python.exe examples/benchmark_demo.py",
         "returncode": 0,
-        "stdout": "{'benchmark': 'all', 'cases': 15, 'quick': True, 'full': False, 'all_correct': True, 'conclusion': 'Quick portfolio benchmark completed across geometry core suites.'}\n",
+        "stdout": "{'benchmark': 'all', 'cases': 19, 'quick': True, 'full': False, 'all_correct': True, 'conclusion': 'Quick portfolio benchmark completed across geometry core suites.'}\n",
         "stderr": ""
       },
       {
@@ -62,13 +62,13 @@
       {
         "command": "D:\\anaconda-\\python.exe -m pointcloud_geolab benchmark --suite all --quick --output D:\\PointCloud-GeoLab\\outputs\\benchmarks",
         "returncode": 0,
-        "stdout": " |  |  |  |  | icp | 0.300000 | 0.000000 |  |  |  |\n|  |  |  |  |  |  |  |  | 160 |  |  |  |  |  |  |  | 0.000000 |  | 1.000000 |  | 1.000000 | 0.002382 |  |  |  |  |  |  |  |  | ransac |  |  |  |  |  |\n|  |  |  |  |  |  |  |  | 161 |  |  |  |  |  |  |  | 0.300000 |  | 0.993789 |  | 1.000000 | 0.002354 |  |  |  |  |  |  |  |  | ransac |  |  |  |  |  |\n|  |  |  |  |  |  |  |  | 164 |  |  |  |  |  |  |  | 0.600000 |  | 0.975610 |  | 1.000000 | 0.002661 |  |  |  |  |  |  |  |  | ransac |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 5.000000 |  |  |  |  | icp |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 5.000000 |  |  |  |  | fpfh_ransac_icp |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 35.000000 |  |  |  |  | icp |  |  |  |  |  |  |  |  |  | 0.094691 |  |  |  |  |  |  | False | registration |  |  |  |  |  |\n|  |  |  |  |  |  | 1.000000 | 35.000000 |  |  |  |  | fpfh_ransac_icp |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |\n|  |  | 3 |  |  |  |  |  |  |  |  |  | euclidean |  | 0 |  |  | 300 |  |  |  |  |  |  |  | 0.142519 |  |  |  |  | segmentation |  |  |  |  |  |\n|  |  | 3 |  |  |  |  |  |  |  |  |  | euclidean |  | 0 |  |  | 900 |  |  |  |  |  |  |  | 1.140828 |  |  |  |  | segmentation |  |  |  |  |  |\n\nArtifacts:\n- benchmark_csv: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.csv\n- benchmark_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.json\n- benchmark_markdown: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.md\n- benchmark_plot: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.png\n- benchmark_summary_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\benchmark_summary.json\n- benchmark_summary_markdown: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\benchmark_summary.md\n- metrics_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\metrics.json\n",
+        "stdout": "| 35.000000 |  |  |  |  | fpfh_ransac_icp |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 0.000000 |  |  |  |  |  |  | True | registration |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  | 0.000000 |  |  | 4.000000 | 0.064763 | 5 |  |  | point_to_point_icp |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 240 |  |  |  |  | 0.340253 |  |  |  |  | gicp |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  | 0.000000 |  |  | 4.000000 | 0.064763 | 5 |  |  | generalized_icp |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 240 |  |  |  |  | 1.048238 |  |  |  |  | gicp |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  | 0.000000 |  |  | 10.000000 | 0.080982 | 8 |  |  | point_to_point_icp |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 240 |  |  |  |  | 0.937131 |  |  |  |  | gicp |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  | 0.000000 |  |  | 10.000000 | 0.080982 | 9 |  |  | generalized_icp |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 240 |  |  |  |  | 1.577343 |  |  |  |  | gicp |  |  |  |  |  |  |\n|  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | euclidean |  | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 300 |  |  |  |  | 0.210306 |  |  |  |  | segmentation |  |  |  |  |  |  |\n|  |  | 3 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | euclidean |  | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 900 |  |  |  |  | 1.850898 |  |  |  |  | segmentation |  |  |  |  |  |  |\n\nArtifacts:\n- benchmark_csv: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.csv\n- benchmark_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.json\n- benchmark_markdown: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.md\n- benchmark_plot: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\all_benchmark.png\n- benchmark_summary_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\benchmark_summary.json\n- benchmark_summary_markdown: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\benchmark_summary.md\n- metrics_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\metrics.json\n",
         "stderr": ""
       },
       {
         "command": "D:\\anaconda-\\python.exe -m pointcloud_geolab benchmark --suite kdtree --quick --output D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke",
         "returncode": 0,
-        "stdout": "Benchmark Result: kdtree\n-----------------\n| Points | Queries | Build Time (s) | Brute Force (s) | KD-Tree (s) | KD Radius (s) | Voxel Radius (s) | Open3D (s) | SciPy cKDTree (s) | sklearn KDTree (s) | Speedup | Correct |\n| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |\n| 1,000 | 100 | 0.0032 | 0.0020 | 0.0279 | 0.0025 | 0.0036 | 0.0004 | 0.0006 | 0.0005 | 0.07x | yes |\n| 10,000 | 100 | 0.0351 | 0.0138 | 0.0401 | 0.0082 | 0.0086 | 0.0029 | 0.0022 | 0.0030 | 0.34x | yes |\n| 100,000 | 100 | 0.4140 | 0.2426 | 0.0477 | 0.0564 | 0.0834 | 0.0287 | 0.0233 | 0.0446 | 5.09x | yes |\n\nArtifacts:\n- benchmark_csv: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.csv\n- benchmark_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.json\n- benchmark_markdown: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.md\n- benchmark_plot: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.png\n- metrics_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\metrics.json\n",
+        "stdout": "Benchmark Result: kdtree\n-----------------\n| Points | Queries | Build Time (s) | Brute Force (s) | KD-Tree (s) | KD Radius (s) | Voxel Radius (s) | Open3D (s) | SciPy cKDTree (s) | sklearn KDTree (s) | Speedup | Correct |\n| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |\n| 1,000 | 100 | 0.0037 | 0.0022 | 0.0285 | 0.0023 | 0.0023 | 0.0004 | 0.0004 | 0.0005 | 0.08x | yes |\n| 10,000 | 100 | 0.0359 | 0.0142 | 0.0386 | 0.0080 | 0.0078 | 0.0024 | 0.0018 | 0.0034 | 0.37x | yes |\n| 100,000 | 100 | 0.4035 | 0.2247 | 0.0452 | 0.0560 | 0.0869 | 0.0278 | 0.0221 | 0.0430 | 4.97x | yes |\n\nArtifacts:\n- benchmark_csv: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.csv\n- benchmark_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.json\n- benchmark_markdown: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.md\n- benchmark_plot: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\kdtree_benchmark.png\n- metrics_json: D:\\PointCloud-GeoLab\\outputs\\benchmarks\\kdtree_smoke\\metrics.json\n",
         "stderr": ""
       },
       {
@@ -86,6 +86,11 @@
       "outputs\\benchmarks\\all_benchmark.png",
       "outputs\\benchmarks\\benchmark_summary.json",
       "outputs\\benchmarks\\benchmark_summary.md",
+      "outputs\\benchmarks\\gicp\\gicp_benchmark.csv",
+      "outputs\\benchmarks\\gicp\\gicp_benchmark.json",
+      "outputs\\benchmarks\\gicp\\gicp_benchmark.md",
+      "outputs\\benchmarks\\gicp\\gicp_benchmark.png",
+      "outputs\\benchmarks\\gicp\\metrics.json",
       "outputs\\benchmarks\\icp\\icp_benchmark.csv",
       "outputs\\benchmarks\\icp\\icp_benchmark.json",
       "outputs\\benchmarks\\icp\\icp_benchmark.md",
@@ -117,6 +122,11 @@
       "outputs\\benchmarks\\segmentation\\segmentation_benchmark.json",
       "outputs\\benchmarks\\segmentation\\segmentation_benchmark.md",
       "outputs\\benchmarks\\segmentation\\segmentation_benchmark.png",
+      "outputs\\benchmarks_smoke\\kdtree_benchmark.csv",
+      "outputs\\benchmarks_smoke\\kdtree_benchmark.json",
+      "outputs\\benchmarks_smoke\\kdtree_benchmark.md",
+      "outputs\\benchmarks_smoke\\kdtree_benchmark.png",
+      "outputs\\benchmarks_smoke\\metrics.json",
       "outputs\\gallery\\README_gallery.md",
       "outputs\\gallery\\cluster_report.md",
       "outputs\\gallery\\ground_segmentation\\metrics.json",
@@ -143,8 +153,18 @@
       "outputs\\gallery\\segmentation_ground_objects.html",
       "outputs\\gallery\\segmentation_ground_objects.ply",
       "outputs\\gallery\\segmentation_ground_objects_colored.ply",
+      "outputs\\gicp_demo\\gicp_before_after.png",
       "outputs\\metrics.json",
       "outputs\\portfolio_check_report.md",
+      "outputs\\portfolio_demo\\artifacts\\processed_cloud.ply",
+      "outputs\\portfolio_demo\\artifacts\\transformation.json",
+      "outputs\\portfolio_demo\\figures\\bounding_box_or_normals.png",
+      "outputs\\portfolio_demo\\figures\\downsampled.png",
+      "outputs\\portfolio_demo\\figures\\raw_pointcloud.png",
+      "outputs\\portfolio_demo\\figures\\registration_before_after.png",
+      "outputs\\portfolio_demo\\figures\\segmentation_result.png",
+      "outputs\\portfolio_demo\\metrics.json",
+      "outputs\\portfolio_demo\\report.md",
       "outputs\\primitives\\metrics.json",
       "outputs\\primitives\\primitive_models.json",
       "outputs\\primitives\\scene_primitives.html",

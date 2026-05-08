@@ -36,8 +36,17 @@
         "converged": true,
         "iterations": 3,
         "final_rmse": 1.3692908058011096e-15,
+        "custom_icp_time": 0.2354953000030946,
+        "plain_outlier_rmse": 0.30788184884400227,
+        "huber_outlier_rmse": 0.026649197225870405,
+        "trimmed_outlier_rmse": 6.696575760674404e-16,
+        "outlier_ratio": 0.1103202846975089,
         "rotation_error_degrees": 0.0,
-        "translation_error": 1.7067422303575003e-16
+        "translation_error": 1.7067422303575003e-16,
+        "open3d_icp_status": "ok",
+        "open3d_icp_rmse": 5.79291646405808e-16,
+        "open3d_icp_fitness": 1.0,
+        "open3d_icp_time": 0.004919799997878727
       },
       {
         "rotation_degrees": 5.0,
@@ -46,8 +55,17 @@
         "converged": true,
         "iterations": 4,
         "final_rmse": 1.8474433546759222e-15,
+        "custom_icp_time": 0.33500050000293413,
+        "plain_outlier_rmse": 0.29784665072021493,
+        "huber_outlier_rmse": 0.025464474694955885,
+        "trimmed_outlier_rmse": 1.336291983755083e-15,
+        "outlier_ratio": 0.1103202846975089,
         "rotation_error_degrees": 0.0,
-        "translation_error": 3.3537189618722464e-16
+        "translation_error": 3.3537189618722464e-16,
+        "open3d_icp_status": "ok",
+        "open3d_icp_rmse": 2.618868325977304e-15,
+        "open3d_icp_fitness": 1.0,
+        "open3d_icp_time": 0.0006552000049850903
       },
       {
         "rotation_degrees": 15.0,
@@ -56,8 +74,17 @@
         "converged": true,
         "iterations": 5,
         "final_rmse": 1.4384081074084901e-15,
+        "custom_icp_time": 0.5269932000010158,
+        "plain_outlier_rmse": 0.31443436363895305,
+        "huber_outlier_rmse": 0.02842935620753225,
+        "trimmed_outlier_rmse": 1.6265173241582984e-15,
+        "outlier_ratio": 0.1103202846975089,
         "rotation_error_degrees": 0.0,
-        "translation_error": 9.15302969408735e-17
+        "translation_error": 9.15302969408735e-17,
+        "open3d_icp_status": "ok",
+        "open3d_icp_rmse": 2.5227629081370737e-15,
+        "open3d_icp_fitness": 1.0,
+        "open3d_icp_time": 0.0005983000010019168
       },
       {
         "rotation_degrees": 15.0,
@@ -66,11 +93,20 @@
         "converged": true,
         "iterations": 6,
         "final_rmse": 1.2655481109400234e-15,
+        "custom_icp_time": 0.9738207999980659,
+        "plain_outlier_rmse": 0.31721227729498425,
+        "huber_outlier_rmse": 0.025299766574525467,
+        "trimmed_outlier_rmse": 1.4292385777882194e-15,
+        "outlier_ratio": 0.1103202846975089,
         "rotation_error_degrees": 0.0,
-        "translation_error": 9.614813431917819e-17
+        "translation_error": 9.614813431917819e-17,
+        "open3d_icp_status": "ok",
+        "open3d_icp_rmse": 1.2281372966739208e-15,
+        "open3d_icp_fitness": 1.0,
+        "open3d_icp_time": 0.0006381999992299825
       }
     ],
-    "markdown": "| Rotation (deg) | Translation | Noise | Converged | Iterations | Final RMSE | Rotation Error (deg) | Translation Error |\n|---:|---:|---:|:---:|---:|---:|---:|---:|\n| 5 | 0.10 | 0.00 | yes | 3 | 0.000000 | 0.0000 | 0.000000 |\n| 5 | 0.30 | 0.00 | yes | 4 | 0.000000 | 0.0000 | 0.000000 |\n| 15 | 0.10 | 0.00 | yes | 5 | 0.000000 | 0.0000 | 0.000000 |\n| 15 | 0.30 | 0.00 | yes | 6 | 0.000000 | 0.0000 | 0.000000 |",
+    "markdown": "| Rotation (deg) | Translation | Noise | Converged | Iterations | Final RMSE | Huber Outlier RMSE | Trimmed Outlier RMSE | Open3D RMSE | Rotation Error (deg) | Translation Error |\n|---:|---:|---:|:---:|---:|---:|---:|---:|---:|---:|\n| 5 | 0.10 | 0.00 | yes | 3 | 0.000000 | 0.026649 | 0.000000 | 0.000000 | 0.0000 | 0.000000 |\n| 5 | 0.30 | 0.00 | yes | 4 | 0.000000 | 0.025464 | 0.000000 | 0.000000 | 0.0000 | 0.000000 |\n| 15 | 0.10 | 0.00 | yes | 5 | 0.000000 | 0.028429 | 0.000000 | 0.000000 | 0.0000 | 0.000000 |\n| 15 | 0.30 | 0.00 | yes | 6 | 0.000000 | 0.025300 | 0.000000 | 0.000000 | 0.0000 | 0.000000 |",
     "conclusion": "Point-to-point ICP is accurate near the solution but remains sensitive to initialization, noise, and outliers."
   },
   "error": null

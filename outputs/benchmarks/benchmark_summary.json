@@ -21,6 +21,11 @@
       "conclusion": "Feature-based global registration expands ICP's basin of convergence by estimating a coarse pose first."
     },
     {
+      "suite": "gicp",
+      "cases": 4,
+      "conclusion": "GICP uses local covariance structure to weight correspondences; it is more expensive per iteration than point-to-point ICP but exposes surface-aware residuals."
+    },
+    {
       "suite": "segmentation",
       "cases": 2,
       "conclusion": "Euclidean clustering runtime scales with radius-neighborhood queries and benefits directly from spatial indexing."

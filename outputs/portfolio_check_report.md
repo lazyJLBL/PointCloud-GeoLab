@@ -25,6 +25,11 @@
 - `outputs\benchmarks\all_benchmark.png`
 - `outputs\benchmarks\benchmark_summary.json`
 - `outputs\benchmarks\benchmark_summary.md`
+- `outputs\benchmarks\gicp\gicp_benchmark.csv`
+- `outputs\benchmarks\gicp\gicp_benchmark.json`
+- `outputs\benchmarks\gicp\gicp_benchmark.md`
+- `outputs\benchmarks\gicp\gicp_benchmark.png`
+- `outputs\benchmarks\gicp\metrics.json`
 - `outputs\benchmarks\icp\icp_benchmark.csv`
 - `outputs\benchmarks\icp\icp_benchmark.json`
 - `outputs\benchmarks\icp\icp_benchmark.md`
@@ -56,6 +61,11 @@
 - `outputs\benchmarks\segmentation\segmentation_benchmark.json`
 - `outputs\benchmarks\segmentation\segmentation_benchmark.md`
 - `outputs\benchmarks\segmentation\segmentation_benchmark.png`
+- `outputs\benchmarks_smoke\kdtree_benchmark.csv`
+- `outputs\benchmarks_smoke\kdtree_benchmark.json`
+- `outputs\benchmarks_smoke\kdtree_benchmark.md`
+- `outputs\benchmarks_smoke\kdtree_benchmark.png`
+- `outputs\benchmarks_smoke\metrics.json`
 - `outputs\gallery\README_gallery.md`
 - `outputs\gallery\cluster_report.md`
 - `outputs\gallery\ground_segmentation\metrics.json`
@@ -82,24 +92,14 @@
 - `outputs\gallery\segmentation_ground_objects.html`
 - `outputs\gallery\segmentation_ground_objects.ply`
 - `outputs\gallery\segmentation_ground_objects_colored.ply`
+- `outputs\gicp_demo\gicp_before_after.png`
 - `outputs\metrics.json`
 - `outputs\portfolio_check_report.md`
-- `outputs\primitives\metrics.json`
-- `outputs\primitives\primitive_models.json`
-- `outputs\primitives\scene_primitives.html`
-- `outputs\primitives\scene_primitives.ply`
-- `outputs\primitives\sphere_fit.html`
-- `outputs\primitives\sphere_inliers.ply`
-- `outputs\primitives\sphere_ransac.png`
-- `outputs\primitives\sphere_scene.ply`
-- `outputs\primitives\verify_primitives.ply`
-- `outputs\reconstruction\metrics.json`
-- `outputs\reconstruction\object_mesh.ply`
-- `outputs\registration\aligned_source.ply`
-- `outputs\registration\iss_aligned.ply`
-- `outputs\registration\metrics.json`
-- `outputs\registration\registration.html`
-- ... 14 more
+- `outputs\portfolio_demo\artifacts\processed_cloud.ply`
+- `outputs\portfolio_demo\artifacts\transformation.json`
+- `outputs\portfolio_demo\figures\bounding_box_or_normals.png`
+- `outputs\portfolio_demo\figures\downsampled.png`
+- ... 34 more
 
 ## Missing README Artifacts
 
