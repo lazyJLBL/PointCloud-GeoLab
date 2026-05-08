@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "black>=24.0", "ruff>=0.5"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "black==26.3.1", "ruff>=0.5"]
 open3d = ["open3d>=0.18"]
 vis = ["plotly>=5.20"]
 io = ["laspy>=2.5"]
@@ -26,7 +26,7 @@ ml = ["torch>=2.2"]
 all = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
-    "black>=24.0",
+    "black==26.3.1",
     "ruff>=0.5",
     "open3d>=0.18",
     "plotly>=5.20",
@@ -48,6 +48,7 @@ include = ["pointcloud_geolab*"]
 
 [tool.black]
 line-length = 100
+target-version = ["py310"]
 
 [tool.ruff]
 line-length = 100
