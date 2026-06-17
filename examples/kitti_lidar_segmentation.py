@@ -11,9 +11,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import matplotlib
+import numpy as np
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
 from pointcloud_geolab.datasets import load_velodyne_frame
 from pointcloud_geolab.segmentation import ground_object_segmentation, write_cluster_report
-from pointcloud_geolab.visualization import save_colored_point_cloud
+from pointcloud_geolab.visualization import label_colors, save_colored_point_cloud
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,6 +62,13 @@ def main(argv: list[str] | None = None) -> int:
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
     save_colored_point_cloud(output_dir / "kitti_clusters.ply", points, result.labels)
+    save_bev_plot(output_dir / "kitti_bev.png", points, None, "KITTI LiDAR BEV")
+    save_bev_plot(
+        output_dir / "kitti_clusters.png",
+        points,
+        result.labels,
+        "KITTI Ground Removal and Object Clustering",
+    )
     write_cluster_report(result, output_dir / "cluster_report.md")
     (output_dir / "metrics.json").write_text(
         json.dumps(
@@ -77,6 +90,28 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Object clusters: {len(result.clusters)}")
     print(f"Artifacts: {output_dir}")
     return 0
+
+
+def save_bev_plot(
+    output_path: Path,
+    points: np.ndarray,
+    labels: np.ndarray | None,
+    title: str,
+) -> None:
+    fig, ax = plt.subplots(figsize=(7, 5))
+    if labels is None:
+        scatter = ax.scatter(points[:, 0], points[:, 1], s=0.5, c=points[:, 2], cmap="viridis")
+        fig.colorbar(scatter, ax=ax, label="z")
+    else:
+        ax.scatter(points[:, 0], points[:, 1], s=0.7, c=label_colors(labels))
+    ax.set_title(title)
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_aspect("equal", adjustable="box")
+    ax.grid(True, alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=160)
+    plt.close(fig)
 
 
 if __name__ == "__main__":

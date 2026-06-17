@@ -26,7 +26,7 @@ separate implemented work from planned work.
   robust Huber/Tukey/trimmed ICP, multiscale ICP, and compact custom GICP.
 - Feature registration: ISS keypoints, local covariance-spectrum descriptors,
   descriptor matching, RANSAC transform estimation, and ICP refinement.
-- Open3D FPFH/RANSAC/ICP path as an optional industrial baseline.
+- Open3D FPFH/RANSAC/ICP path as an optional comparison baseline.
 - RANSAC primitive fitting for plane, sphere, cylinder, and sequential primitive
   extraction.
 - Geometry: PCA, AABB, OBB, distances, and primitive residuals.
@@ -34,6 +34,9 @@ separate implemented work from planned work.
   object cluster summaries, and Markdown cluster reports.
 - Benchmarks that emit CSV, JSON, Markdown, and PNG for KDTree, ICP, RANSAC,
   registration, GICP, and segmentation.
+- Benchmark JSON/Markdown metadata for parameters, data scale, seed, Python,
+  platform, and optional baseline package versions.
+- Verification scripts for benchmark artifacts and portfolio demo artifacts.
 - Real-data preparation docs and examples for Stanford Bunny/Armadillo, KITTI
   Velodyne, and ModelNet small samples.
 - Interview-oriented docs for algorithms, registration case study, and common
@@ -46,8 +49,6 @@ separate implemented work from planned work.
 
 - Add memory profiling to benchmark JSON.
 - Add repeat-count statistics with mean/std instead of single-run timing.
-- Store benchmark environment metadata: CPU, OS, Python, NumPy, SciPy,
-  scikit-learn, and Open3D versions.
 
 ### v0.3.2 Real Data Coverage
 

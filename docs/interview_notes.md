@@ -6,7 +6,7 @@
 
 这个项目的定位不是替代 Open3D，而是展示我能把核心几何算法讲清楚并工程化。
 KDTree、ICP、RANSAC、PCA/OBB、segmentation、ISS 和局部描述子都保留自研实现；
-Open3D 只作为 FPFH、reconstruction、IO/visualization 或工业 baseline。这样既能
+Open3D 只作为 FPFH、reconstruction、IO/visualization 或可选对照 baseline。这样既能
 证明算法理解，也能证明我知道生产工具链应该怎样对照验证。
 
 ### KDTree 的剪枝原理是什么？
@@ -174,4 +174,4 @@ Open3D-backed parts:
 - optional visualization/backend I/O when installed.
 
 This split is intentional: custom code proves algorithm understanding, while
-Open3D baselines show awareness of production-grade tooling.
+Open3D baselines show awareness of established tooling.

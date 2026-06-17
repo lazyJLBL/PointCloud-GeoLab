@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import platform
 import subprocess
 import sys
 import time
 from csv import DictWriter
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from importlib import metadata as importlib_metadata
 from pathlib import Path
 from typing import Any
 
@@ -609,16 +612,22 @@ def run_benchmark(
         md_default_path = out_dir / f"{benchmark}_benchmark.md"
         json_default_path = out_dir / f"{benchmark}_benchmark.json"
         png_path = out_dir / f"{benchmark}_benchmark.png"
-        _write_csv(csv_path, rows)
-        md_default_path.write_text(markdown + f"\n\nConclusion: {conclusion}\n", encoding="utf-8")
-        json_default_path.write_text(
-            json.dumps(
-                {"benchmark": benchmark, "conclusion": conclusion, "rows": _json_ready(rows)},
-                indent=2,
-            )
-            + "\n",
-            encoding="utf-8",
+        metadata = _benchmark_metadata(benchmark, parameters, rows)
+        markdown_payload = (
+            markdown
+            + "\n\n"
+            + _format_benchmark_metadata(metadata)
+            + f"\n\nConclusion: {conclusion}\n"
         )
+        json_payload = {
+            "benchmark": benchmark,
+            "metadata": metadata,
+            "conclusion": conclusion,
+            "rows": _json_ready(rows),
+        }
+        _write_csv(csv_path, rows)
+        md_default_path.write_text(markdown_payload, encoding="utf-8")
+        json_default_path.write_text(json.dumps(json_payload, indent=2) + "\n", encoding="utf-8")
         _save_benchmark_plot(png_path, benchmark, rows)
         artifacts.update(
             {
@@ -631,12 +640,12 @@ def run_benchmark(
         if save_json:
             json_path = Path(save_json)
             json_path.parent.mkdir(parents=True, exist_ok=True)
-            json_path.write_text(json.dumps(_json_ready(rows), indent=2) + "\n", encoding="utf-8")
+            json_path.write_text(json.dumps(json_payload, indent=2) + "\n", encoding="utf-8")
             artifacts["benchmark_json_custom"] = str(json_path)
         if save_md:
             md_path = Path(save_md)
             md_path.parent.mkdir(parents=True, exist_ok=True)
-            md_path.write_text(markdown + f"\n\nConclusion: {conclusion}\n", encoding="utf-8")
+            md_path.write_text(markdown_payload, encoding="utf-8")
             artifacts["benchmark_markdown_custom"] = str(md_path)
         if benchmark == "all":
             summary_rows = suite_summaries if "suite_summaries" in locals() else []
@@ -645,7 +654,7 @@ def run_benchmark(
             summary_md_path = out_dir / "benchmark_summary.md"
             summary_md_path.write_text(summary_md + "\n", encoding="utf-8")
             summary_json.write_text(
-                json.dumps({"suites": summary_rows}, indent=2) + "\n",
+                json.dumps({"metadata": metadata, "suites": summary_rows}, indent=2) + "\n",
                 encoding="utf-8",
             )
             artifacts["benchmark_summary_markdown"] = str(summary_md_path)
@@ -1263,6 +1272,16 @@ def run_portfolio_verification(
         [sys.executable, "examples/benchmark_demo.py"],
         [sys.executable, "examples/visualization_demo.py"],
         [sys.executable, "examples/gallery_demo.py"],
+        [
+            sys.executable,
+            "-m",
+            "pointcloud_geolab",
+            "pipeline",
+            "--input",
+            "examples/demo_data",
+            "--output",
+            str(out_dir / "portfolio_demo"),
+        ],
         [
             sys.executable,
             "-m",
@@ -2015,6 +2034,79 @@ def _benchmark_conclusion(benchmark: str) -> str:
         ),
     }
     return conclusions.get(benchmark, "Benchmark completed.")
+
+
+def _benchmark_metadata(
+    benchmark: str,
+    parameters: dict[str, Any],
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    packages = {
+        package: _package_version(package)
+        for package in ["numpy", "scipy", "scikit-learn", "open3d", "matplotlib"]
+    }
+    return {
+        "benchmark": benchmark,
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "python": sys.version.split()[0],
+        "platform": platform.platform(),
+        "processor": platform.processor() or "unknown",
+        "packages": packages,
+        "parameters": _json_ready(parameters),
+        "data_scale": _benchmark_data_scale(rows),
+    }
+
+
+def _package_version(package: str) -> str | None:
+    try:
+        return importlib_metadata.version(package)
+    except importlib_metadata.PackageNotFoundError:
+        return None
+
+
+def _benchmark_data_scale(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    scale_keys = [
+        "points",
+        "queries",
+        "rotation_degrees",
+        "initial_angle_degrees",
+        "translation",
+        "noise",
+        "outlier_ratio",
+        "method",
+    ]
+    scale: dict[str, Any] = {}
+    for key in scale_keys:
+        values = [row[key] for row in rows if key in row and row[key] not in {"", None}]
+        if values:
+            try:
+                scale[key] = sorted(set(values))
+            except TypeError:
+                scale[key] = sorted({str(value) for value in values})
+    return _json_ready(scale)
+
+
+def _format_benchmark_metadata(metadata: dict[str, Any]) -> str:
+    parameters = metadata["parameters"]
+    data_scale = metadata["data_scale"]
+    packages = metadata["packages"]
+    package_summary = ", ".join(
+        f"{name}={version or 'not installed'}" for name, version in packages.items()
+    )
+    return "\n".join(
+        [
+            "## Run Metadata",
+            "",
+            f"- Benchmark: `{metadata['benchmark']}`",
+            f"- Generated UTC: `{metadata['generated_at_utc']}`",
+            f"- Python: `{metadata['python']}`",
+            f"- Platform: `{metadata['platform']}`",
+            f"- Seed: `{parameters.get('seed')}`",
+            f"- Parameters: `{json.dumps(parameters, sort_keys=True)}`",
+            f"- Data scale: `{json.dumps(data_scale, sort_keys=True)}`",
+            f"- Packages: `{package_summary}`",
+        ]
+    )
 
 
 def _format_benchmark_summary(rows: list[dict[str, Any]]) -> str:

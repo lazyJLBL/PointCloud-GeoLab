@@ -214,9 +214,11 @@ variable point density, and small objects below `min_points`.
 ## Benchmark Methodology
 
 Benchmarks use deterministic synthetic data and quick modes for CI. Each suite
-emits CSV, Markdown, JSON, and PNG artifacts. The benchmark goal is not to hide
-that optimized libraries are faster; it is to prove correctness, expose
-trade-offs, and show where custom implementations are educational.
+emits CSV, Markdown, JSON, and PNG artifacts. JSON and Markdown include run
+metadata such as parameters, data scale, random seed, Python/platform, and
+optional package versions. The benchmark goal is not to hide that optimized
+libraries are faster; it is to prove correctness, expose trade-offs, and show
+where custom implementations are educational.
 
 Implementation: `pointcloud_geolab/api.py` benchmark helpers.
 

@@ -3,6 +3,38 @@
 This case study explains the registration path used by the portfolio demo and
 the feature-registration examples.
 
+## Stanford Bunny Workflow
+
+Large Stanford scans are not committed. Prepare a local pair with:
+
+```bash
+python scripts/prepare_datasets.py make-bunny-pair \
+  --input data/external/stanford/bunny/bunny.ply \
+  --output-dir data/external/stanford/bunny_pair
+```
+
+Run:
+
+```bash
+python examples/real_bunny_registration.py \
+  --data-dir data/external/stanford/bunny_pair \
+  --method iss_descriptor_ransac_icp \
+  --output-dir outputs/real_bunny
+```
+
+The script emits:
+
+- `outputs/real_bunny/bunny_before.png`
+- `outputs/real_bunny/bunny_after.png`
+- `outputs/real_bunny/bunny_registration.png`
+- `outputs/real_bunny/aligned_bunny.ply`
+- `outputs/real_bunny/metrics.json`
+- `outputs/real_bunny/transform.txt` for feature-registration methods
+
+`metrics.json` records RMSE before/after, fitness, and the final transform
+matrix. If the expected data is missing, the script exits with a preparation
+hint instead of a traceback.
+
 ## Why ICP Needs a Good Initial Pose
 
 ICP alternates nearest-neighbor matching and rigid least squares. The nearest

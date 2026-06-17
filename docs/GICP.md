@@ -38,7 +38,7 @@ The implementation is intentionally compact:
 5. Compose transforms until RMSE convergence.
 
 This is not a wrapper around Open3D. Open3D is only used as an optional
-industrial baseline in benchmarks.
+comparison baseline in benchmarks.
 
 ## Trade-Offs
 

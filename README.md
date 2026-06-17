@@ -26,9 +26,10 @@ or visualization/reconstruction backends.
 - DBSCAN, Euclidean clustering, region growing, ground removal, and object
   cluster reports.
 - Benchmarks generate CSV, JSON, Markdown, and PNG artifacts with optional
-  industrial baselines.
-- Real-data workflows for Stanford Bunny/Armadillo, KITTI Velodyne `.bin`, and
-  ModelNet small samples without committing large datasets.
+  comparison baselines.
+- Real-data workflows for Stanford Bunny, KITTI Velodyne `.bin`, and ModelNet
+  small samples without committing large datasets; Armadillo is documented as an
+  optional Stanford dataset source.
 
 ## One Command Demo
 
@@ -261,6 +262,9 @@ python examples/modelnet_primitive_demo.py --input data/external/modelnet_small/
 - Open3D, PyTorch, Plotly, and laspy paths are optional and isolated from the
   core tests.
 
+See [Limitations](docs/limitations.md) and [Coverage](docs/coverage.md) for a
+more detailed reviewer-oriented view.
+
 ## Resume Description
 
 English:
@@ -293,10 +297,14 @@ the Python test suite.
 - [GICP](docs/GICP.md)
 - [Registration](docs/registration.md)
 - [Registration Case Study](docs/case_study_registration.md)
+- [KITTI Case Study](docs/case_study_kitti.md)
 - [Datasets](docs/datasets.md)
 - [Interview Notes](docs/interview_notes.md)
 - [API](docs/api.md)
 - [Benchmarking](docs/benchmark.md)
+- [Limitations](docs/limitations.md)
+- [Coverage](docs/coverage.md)
+- [Portfolio Report Template](docs/portfolio_report_template.md)
 - [Roadmap](docs/ROADMAP.md)
 
 ## Verification
@@ -309,6 +317,9 @@ python -m black --check .
 python -m pytest --cov=pointcloud_geolab
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
+python scripts/verify_portfolio.py --quick
 ```
 
 Optional:

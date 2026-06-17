@@ -21,7 +21,15 @@ Run all quick suites:
 python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
 ```
 
-Each run writes CSV, Markdown, JSON, PNG, and `metrics.json`.
+Each run writes CSV, Markdown, JSON, PNG, and `metrics.json`. JSON and Markdown
+include run metadata: parameters, data scale, random seed, Python/platform, and
+optional package versions.
+
+Verify generated artifacts:
+
+```bash
+python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
+```
 
 Interpretation examples:
 

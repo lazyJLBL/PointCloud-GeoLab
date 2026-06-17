@@ -5,8 +5,8 @@ PointCloud-GeoLab has two registration tracks:
 - Open3D FPFH + RANSAC + project ICP baseline.
 - Self-implemented ISS keypoints + local descriptor + matching + RANSAC + ICP.
 
-The first is an industrial baseline. The second exists to make the underlying
-geometry explicit.
+The first is an optional comparison baseline. The second exists to make the
+underlying geometry explicit.
 
 ## ICP Variants
 
@@ -91,7 +91,7 @@ python examples/gallery_demo.py
 python examples/gicp_demo.py
 ```
 
-Generated assets include `multiscale_icp_curve.png` and
+Generated assets include `icp_convergence_curve.png`, `multiscale_icp_curve.png`, and
 `robust_icp_outlier_comparison.png`.
 
 ## Failure Cases

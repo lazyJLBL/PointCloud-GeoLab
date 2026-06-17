@@ -75,6 +75,13 @@ def _registration_gallery(gallery: Path, rng: np.random.Generator) -> None:
         title="Registration Before/After",
     )
     _plot_curve(
+        gallery / "icp_convergence_curve.png",
+        plain.rmse_history,
+        "ICP RMSE Convergence",
+        "Iteration",
+        "RMSE",
+    )
+    _plot_curve(
         gallery / "multiscale_icp_curve.png",
         [item["rmse"] for item in multi.diagnostics],
         "Multi-scale ICP RMSE by Level",
@@ -109,7 +116,7 @@ def _primitive_gallery(gallery: Path) -> None:
     _write_html_or_fallback(
         scene,
         labels,
-        gallery / "primitive_extraction_scene.html",
+        gallery / "primitive_extraction.html",
         "Sequential Primitive Extraction",
     )
 
@@ -134,6 +141,13 @@ def _segmentation_gallery(gallery: Path, rng: np.random.Generator) -> None:
         export_report=gallery / "cluster_report.md",
     )
     labels = np.asarray(result.to_dict()["data"]["labels"], dtype=int)
+    groups, group_labels = _segmentation_projection_groups(scene, labels)
+    save_point_cloud_projection(
+        gallery / "segmentation_result.png",
+        groups,
+        labels=group_labels,
+        title="Ground Removal and Object Clustering",
+    )
     _write_html_or_fallback(
         scene,
         labels,
@@ -157,9 +171,11 @@ def _write_readme_gallery(gallery: Path) -> None:
 | Asset | Purpose |
 |---|---|
 | registration_before_after.png | ICP alignment before/after evidence |
+| icp_convergence_curve.png | ICP convergence diagnostics |
 | multiscale_icp_curve.png | Coarse-to-fine ICP diagnostics |
 | robust_icp_outlier_comparison.png | Robust ICP under outliers |
-| primitive_extraction_scene.html | Sequential primitive extraction |
+| primitive_extraction.html | Sequential primitive extraction |
+| segmentation_result.png | Ground removal and clustering projection |
 | segmentation_ground_objects.html | Ground removal and object clustering |
 | kdtree_benchmark.png | Spatial index benchmark |
 | ransac_outlier_benchmark.png | RANSAC robustness benchmark |
@@ -195,6 +211,25 @@ def _write_html_or_fallback(points: np.ndarray, labels: np.ndarray, path: Path, 
         export_point_cloud_html(points, label_colors(labels), path, title=title)
     except ImportError:
         path.write_text(f"<html><body><h1>{title}</h1><p>Plotly not installed.</p></body></html>")
+
+
+def _segmentation_projection_groups(
+    points: np.ndarray,
+    labels: np.ndarray,
+) -> tuple[list[np.ndarray], list[str]]:
+    groups = []
+    names = []
+    for label, name in [(-2, "ground"), (-1, "noise")]:
+        subset = points[labels == label]
+        if len(subset):
+            groups.append(subset)
+            names.append(name)
+    for label in sorted(int(value) for value in np.unique(labels) if value >= 0):
+        subset = points[labels == label]
+        if len(subset):
+            groups.append(subset)
+            names.append(f"cluster {label}")
+    return groups, names
 
 
 def _copy_artifact(source: str, target: Path) -> None:
