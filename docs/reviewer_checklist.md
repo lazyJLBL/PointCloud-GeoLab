@@ -44,7 +44,9 @@ Equivalent commands:
 
 ```bash
 python examples/generate_demo_data.py --output examples/demo_data
-python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python -m pointcloud_geolab pipeline \
+  --input examples/demo_data \
+  --output outputs/portfolio_demo
 python scripts/verify_portfolio.py --quick --output-dir outputs
 ```
 
@@ -71,7 +73,10 @@ make verify-benchmarks
 Equivalent commands:
 
 ```bash
-python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+python -m pointcloud_geolab benchmark \
+  --suite all \
+  --quick \
+  --output outputs/benchmarks
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
@@ -97,7 +102,9 @@ Review especially:
 
 ```bash
 git status --short --untracked-files=all
-git ls-files outputs results benchmark_results examples/demo_data generated_demo_artifacts portfolio_demo
+git ls-files \
+  outputs results benchmark_results examples/demo_data \
+  generated_demo_artifacts portfolio_demo
 ```
 
 Expected result: no tracked generated outputs.

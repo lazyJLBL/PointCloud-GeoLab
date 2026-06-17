@@ -1,9 +1,9 @@
 # PointCloud-GeoLab
 
-![Tests](https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Coverage threshold](https://img.shields.io/badge/coverage%20threshold-65%25-informational)
+[![Tests][tests-badge]][tests-workflow]
+![Python][python-badge]
+![License][license-badge]
+![Coverage threshold][coverage-badge]
 
 PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
@@ -18,7 +18,9 @@ LiDAR segmentation understandable, runnable, and testable.
 ```bash
 python -m pip install -e ".[dev,vis,bench]"
 python examples/generate_demo_data.py --output examples/demo_data
-python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python -m pointcloud_geolab pipeline \
+  --input examples/demo_data \
+  --output outputs/portfolio_demo
 ```
 
 Open `outputs/portfolio_demo/report.md`.
@@ -48,21 +50,47 @@ Representative portfolio-pipeline figures:
 
 ## Implementation Status
 
-| Area | Status | Evidence and boundary |
-|---|---|---|
-| KDTree | Core-tested | Nearest, kNN, radius, batch, high-dimensional, duplicate, empty, and boundary tests. |
-| VoxelHashGrid | Core-tested | Radius, nearest, kNN, box query, voxel downsampling, empty input, and brute-force consistency tests. |
-| Preprocessing | Core-tested | Voxel downsampling, cropping, normalization, sampling, outlier filtering, and local PCA normals. |
-| ICP variants | Core-tested | SVD, point-to-point ICP, point-to-plane ICP, robust ICP, and multi-scale ICP tests. |
-| GICP-style covariance-weighted ICP | Experimental | Uses covariance-derived scalar weights and weighted SVD. This is not a full nonlinear GICP optimizer. |
-| RANSAC primitives | Core-tested | Plane, sphere, cylinder, and sequential extraction with fixed-seed outlier tests. |
-| PCA / OBB | Core-tested | Principal axes, degenerate geometry, and rotation-stability tests. |
-| Segmentation | Core-tested | DBSCAN, Euclidean clustering, region growing, ground removal, and object reports. |
-| Feature registration | Experimental | ISS keypoints, local descriptors, transform RANSAC, and ICP refinement. Fallback diagnostics do not mean descriptor registration succeeded. |
-| Portfolio pipeline | Demo-ready | One command creates Markdown report, metrics, figures, PLY artifacts, and transform JSON. |
-| Benchmarks | Demo-ready | CLI emits CSV, JSON, Markdown, PNG, parameters, seed, platform, and dependency metadata. |
-| Real data workflows | Documented workflow | Stanford Bunny, KITTI, and ModelNet instructions expect local files under `data/external/`. |
-| Open3D / ML / reconstruction | Optional | Open3D and PointNet paths are isolated from core tests and skip or report cleanly when unavailable. |
+### Core-tested
+
+- **KDTree**: nearest, kNN, radius, batch, high-dimensional, duplicate, empty,
+  and boundary tests.
+- **VoxelHashGrid**: radius, nearest, kNN, box query, voxel downsampling, empty
+  input, and brute-force consistency tests.
+- **Preprocessing**: voxel downsampling, cropping, normalization, sampling,
+  outlier filtering, and local PCA normals.
+- **ICP variants**: SVD, point-to-point ICP, point-to-plane ICP, robust ICP, and
+  multi-scale ICP tests.
+- **RANSAC primitives**: plane, sphere, cylinder, and sequential extraction
+  with fixed-seed outlier tests.
+- **PCA / OBB**: principal axes, degenerate geometry, and rotation-stability
+  tests.
+- **Segmentation**: DBSCAN, Euclidean clustering, region growing, ground
+  removal, and object reports.
+
+### Demo-ready
+
+- **Portfolio pipeline**: one command creates a Markdown report, metrics,
+  figures, PLY artifacts, and transform JSON.
+- **Benchmarks**: CLI emits CSV, JSON, Markdown, PNG, parameters, seed,
+  platform, and dependency metadata.
+
+### Experimental
+
+- **GICP-style covariance-weighted ICP**: uses covariance-derived scalar weights
+  and weighted SVD. This is not a full nonlinear GICP optimizer.
+- **Feature registration**: ISS keypoints, local descriptors, transform RANSAC,
+  and ICP refinement. Fallback diagnostics do not mean descriptor registration
+  succeeded.
+
+### Optional
+
+- **Open3D / ML / reconstruction**: Open3D and PointNet paths are isolated from
+  core tests and skip or report cleanly when unavailable.
+
+### Documented workflow
+
+- **Real data workflows**: Stanford Bunny, KITTI, and ModelNet instructions
+  expect local files under `data/external/`.
 
 See [AUDIT.md](AUDIT.md) for the detailed truthfulness audit.
 
@@ -72,14 +100,19 @@ Run the portfolio pipeline:
 
 ```bash
 python examples/generate_demo_data.py --output examples/demo_data
-python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python -m pointcloud_geolab pipeline \
+  --input examples/demo_data \
+  --output outputs/portfolio_demo
 python scripts/verify_portfolio.py --quick
 ```
 
 Run benchmarks and verify the output bundle:
 
 ```bash
-python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+python -m pointcloud_geolab benchmark \
+  --suite all \
+  --quick \
+  --output outputs/benchmarks
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
@@ -104,7 +137,10 @@ results.
 The benchmark entry point is:
 
 ```bash
-python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+python -m pointcloud_geolab benchmark \
+  --suite all \
+  --quick \
+  --output outputs/benchmarks
 ```
 
 Each suite writes CSV, JSON, Markdown, PNG, and `metrics.json`. JSON reports
@@ -114,10 +150,13 @@ results are not committed as claims.
 
 Baseline coverage:
 
-- KDTree: brute force, optional SciPy `cKDTree`, optional sklearn `KDTree`, optional Open3D KDTree.
+- KDTree: brute force, optional SciPy `cKDTree`, optional sklearn `KDTree`, and
+  optional Open3D KDTree.
 - ICP: custom variants and optional Open3D ICP.
-- RANSAC: custom primitive RANSAC, NumPy PCA plane baseline, optional Open3D plane segmentation.
-- GICP-style covariance-weighted ICP: compared with point-to-point ICP; not a full nonlinear GICP optimizer.
+- RANSAC: custom primitive RANSAC, NumPy PCA plane baseline, and optional
+  Open3D plane segmentation.
+- GICP-style covariance-weighted ICP: compared with point-to-point ICP; not a
+  full nonlinear GICP optimizer.
 
 ## Verification
 
@@ -130,9 +169,14 @@ python -m ruff check .
 python -m black --check .
 python -m pytest --cov=pointcloud_geolab
 python examples/generate_demo_data.py --output examples/demo_data
-python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python -m pointcloud_geolab pipeline \
+  --input examples/demo_data \
+  --output outputs/portfolio_demo
 python scripts/verify_portfolio.py --quick
-python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+python -m pointcloud_geolab benchmark \
+  --suite all \
+  --quick \
+  --output outputs/benchmarks
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
@@ -149,17 +193,23 @@ CI runs `verify-core` and `verify-portfolio`.
 
 ## Limitations
 
-- ICP, robust ICP, multi-scale ICP, and the GICP-style implementation are local optimizers.
-- GICP-style covariance-weighted ICP uses scalar covariance-derived weights; this is not a full nonlinear GICP optimizer.
-- Feature registration is educational and benchmarkable, but not a replacement for mature descriptors in Open3D/PCL.
-- Fallback output is diagnostic only. It must not be described as descriptor registration success.
-- DBSCAN and Euclidean clustering use global radius thresholds and are sensitive to LiDAR density changes.
+- ICP, robust ICP, multi-scale ICP, and the GICP-style implementation are local
+  optimizers.
+- GICP-style covariance-weighted ICP uses scalar covariance-derived weights;
+  this is not a full nonlinear GICP optimizer.
+- Feature registration is educational and benchmarkable, but not a replacement
+  for mature descriptors in Open3D/PCL.
+- Fallback output is diagnostic only. It must not be described as descriptor
+  registration success.
+- DBSCAN and Euclidean clustering use global radius thresholds and are sensitive
+  to LiDAR density changes.
 - Large LiDAR scenes need streaming/chunking and more careful memory profiling.
 
 ## Documentation
 
 - [Algorithms](docs/algorithms.md)
 - [Public API](docs/api.md)
+- [Demo Walkthrough](docs/demo_walkthrough.md)
 - [Limitations](docs/limitations.md)
 - [Benchmarking](docs/benchmark.md)
 - [Datasets](docs/datasets.md)
@@ -175,17 +225,14 @@ CI runs `verify-core` and `verify-portfolio`.
 
 ## Resume Description
 
-English:
-
 Built PointCloud-GeoLab, a point-cloud geometry portfolio project with custom
 KDTree and VoxelHashGrid spatial indexes, ICP and GICP-style registration
 variants, RANSAC primitive fitting, PCA/OBB geometry analysis, LiDAR
 segmentation, fixed-seed tests, reproducible benchmarks, and documented
 real-data workflows.
 
-Chinese:
-
-实现 PointCloud-GeoLab 点云几何作品集项目：包含自研 KDTree 和 VoxelHashGrid
-空间索引、ICP 与 GICP-style covariance-weighted ICP 配准、RANSAC 平面/球/圆柱拟合、
-PCA/OBB 几何分析、LiDAR 地面分割与聚类、固定 seed 测试、可复现实验基准，以及
-Stanford Bunny 和 KITTI 数据工作流说明。
+[tests-badge]: https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml/badge.svg
+[tests-workflow]: https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml
+[python-badge]: https://img.shields.io/badge/python-3.10%2B-blue
+[license-badge]: https://img.shields.io/badge/license-MIT-green
+[coverage-badge]: https://img.shields.io/badge/coverage%20threshold-65%25-informational
