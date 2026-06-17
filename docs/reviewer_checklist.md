@@ -6,6 +6,8 @@ without trusting committed generated artifacts.
 ## 1. Install
 
 ```bash
+git clone https://github.com/lazyJLBL/PointCloud-GeoLab.git
+cd PointCloud-GeoLab
 python -m pip install -e ".[dev,vis,bench]"
 ```
 
@@ -52,6 +54,12 @@ Inspect:
 outputs/portfolio_demo/report.md
 outputs/portfolio_demo/metrics.json
 outputs/portfolio_demo/artifacts/transformation.json
+```
+
+The main reviewer-facing report is:
+
+```text
+outputs/portfolio_demo/report.md
 ```
 
 ## 4. Run Benchmark Verification
