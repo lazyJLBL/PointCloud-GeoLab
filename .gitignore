@@ -11,6 +11,16 @@ build/
 dist/
 *.egg-info/
 
+# Local/generated datasets. Keep committed tiny demo fixtures, but do not commit
+# downloaded Stanford/KITTI/ModelNet data or temporary generated data.
+data/external/
+data/generated/
+data/tmp/
+data/*_smoke/
+
+# Generated reports, figures, benchmarks, smoke-test outputs, and portfolio
+# artifacts. Some historical files under outputs/ are already tracked; this
+# rule prevents new generated files from being added accidentally.
 outputs/
 benchmark_results/
 examples/demo_data/
