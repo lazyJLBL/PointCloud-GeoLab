@@ -3,8 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 
-from pointcloud_geolab.io import load_kitti_bin, load_point_cloud, save_point_cloud
+from pointcloud_geolab.io import load_kitti_bin, load_point_cloud, pointcloud_io, save_point_cloud
 from pointcloud_geolab.preprocessing import (
     crop_by_aabb,
     estimate_normals,
@@ -25,6 +26,28 @@ def test_txt_point_cloud_io(tmp_path: Path) -> None:
     assert np.allclose(loaded, points)
 
 
+def test_ascii_ply_roundtrip_with_colors(tmp_path: Path) -> None:
+    points = np.asarray([[0.0, 0.0, 0.0], [1.0, 2.0, 3.0]])
+    colors = np.asarray([[1.0, 0.0, 0.0], [0.0, 0.5, 1.0]])
+    path = tmp_path / "points.ply"
+
+    save_point_cloud(path, points, colors=colors)
+    loaded = load_point_cloud(path)
+
+    assert np.allclose(loaded, points)
+    assert "property uchar red" in path.read_text(encoding="utf-8")
+
+
+def test_ascii_pcd_roundtrip(tmp_path: Path) -> None:
+    points = np.asarray([[0.0, 0.0, 0.0], [1.0, -2.0, 3.5]])
+    path = tmp_path / "points.pcd"
+
+    save_point_cloud(path, points)
+    loaded = load_point_cloud(path)
+
+    assert np.allclose(loaded, points)
+
+
 def test_kitti_bin_reader_supports_intensity(tmp_path: Path) -> None:
     path = tmp_path / "frame.bin"
     raw = np.asarray([[1.0, 2.0, 3.0, 0.5], [4.0, 5.0, 6.0, 0.7]], dtype=np.float32)
@@ -35,6 +58,45 @@ def test_kitti_bin_reader_supports_intensity(tmp_path: Path) -> None:
 
     assert xyz.shape == (2, 3)
     assert xyzi.shape == (2, 4)
+
+
+def test_kitti_bin_rejects_incomplete_frame(tmp_path: Path) -> None:
+    path = tmp_path / "bad.bin"
+    np.asarray([1.0, 2.0, 3.0], dtype=np.float32).tofile(path)
+
+    with pytest.raises(ValueError, match="divisible by 4"):
+        load_kitti_bin(path)
+
+
+def test_point_cloud_io_error_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValueError, match="unsupported point cloud format"):
+        save_point_cloud(tmp_path / "cloud.bad", np.zeros((2, 3)))
+
+    with pytest.raises(ValueError, match="colors must have shape"):
+        save_point_cloud(tmp_path / "cloud.ply", np.zeros((2, 3)), colors=np.zeros((1, 3)))
+
+    bad_ply = tmp_path / "bad.ply"
+    bad_ply.write_text("not-ply\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="not a PLY file"):
+        load_point_cloud(bad_ply)
+
+    monkeypatch.setattr(pointcloud_io, "_optional_open3d", lambda: None)
+    with pytest.raises(ImportError, match="Open3D is required"):
+        pointcloud_io.to_open3d_point_cloud(np.zeros((3, 3)))
+
+
+def test_stack_point_clouds_handles_empty_and_multiple_sets() -> None:
+    assert pointcloud_io.stack_point_clouds([]).shape == (0, 3)
+
+    stacked = pointcloud_io.stack_point_clouds(
+        [
+            np.asarray([[0.0, 0.0, 0.0]]),
+            np.asarray([[1.0, 2.0, 3.0, 4.0]]),
+        ]
+    )
+
+    assert stacked.shape == (2, 3)
+    assert np.allclose(stacked[1], [1.0, 2.0, 3.0])
 
 
 def test_preprocessing_filters_shapes() -> None:

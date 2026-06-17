@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
+from pointcloud_geolab.api import TaskResult
+from pointcloud_geolab.cli import _format_text_result, _load_yaml, _run_batch
 from pointcloud_geolab.io.pointcloud_io import save_point_cloud
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -298,3 +302,134 @@ def test_cli_missing_file_returns_error_and_metrics(tmp_path: Path) -> None:
     assert "Error:" in completed.stdout
     payload = json.loads((results_dir / "metrics.json").read_text(encoding="utf-8"))
     assert payload["success"] is False
+
+
+def test_load_yaml_rejects_scalar_document(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad.yaml"
+    config_path.write_text("42\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="must contain a YAML mapping or list"):
+        _load_yaml(config_path)
+
+
+def test_batch_manifest_rejects_non_job_manifest(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    manifest_path = tmp_path / "bad_batch.yaml"
+    manifest_path.write_text("name: not-a-jobs-list\n", encoding="utf-8")
+
+    code = _run_batch(
+        argparse.Namespace(
+            batch=manifest_path,
+            output_dir=None,
+            format="text",
+            save_results=None,
+            visualize=None,
+            seed=None,
+        )
+    )
+
+    assert code == 1
+    assert "top-level jobs list" in capsys.readouterr().err
+
+
+def test_batch_manifest_reports_invalid_jobs(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    manifest_path = tmp_path / "invalid_jobs.yaml"
+    manifest_path.write_text(
+        "\n".join(
+            [
+                "jobs:",
+                "  - not-a-mapping",
+                "  - task: not-real",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    code = _run_batch(
+        argparse.Namespace(
+            batch=manifest_path,
+            output_dir=tmp_path / "batch",
+            format="text",
+            save_results=None,
+            visualize=None,
+            seed=None,
+        )
+    )
+
+    output = capsys.readouterr().out
+    assert code == 1
+    assert "Batch Summary" in output
+    assert "batch job must be a mapping" in output
+    assert "batch job task must be one of" in output
+
+
+def test_cli_text_formatters_cover_reviewer_outputs() -> None:
+    preprocess = _format_text_result(
+        TaskResult(
+            task="preprocess",
+            success=True,
+            metrics={
+                "original_points": 10,
+                "after_voxel_downsample": 8,
+                "after_statistical_filter": 7,
+                "after_radius_filter": 6,
+                "kept_statistical_inliers": 7,
+                "estimated_normals": True,
+            },
+        )
+    )
+    benchmark = _format_text_result(
+        TaskResult(
+            task="benchmark:kdtree",
+            success=True,
+            metrics={"benchmark": "kdtree"},
+            data={"markdown": "## Run Metadata"},
+        )
+    )
+    register = _format_text_result(
+        TaskResult(
+            task="register",
+            success=True,
+            metrics={
+                "coarse_fitness": 0.9,
+                "coarse_inlier_rmse": 0.2,
+                "refined_fitness": 0.95,
+                "final_rmse": 0.1,
+            },
+            data={"refined_transform": _identity()},
+            artifacts={"transform": "transform.json"},
+        )
+    )
+    pipeline = _format_text_result(
+        TaskResult(
+            task="pipeline",
+            success=True,
+            metrics={
+                "input": {"num_points": 100},
+                "preprocessing": {"num_points_after": 80},
+                "registration": {"rmse_before": 0.4, "rmse_after": 0.1},
+                "segmentation": {"num_clusters": 2, "noise_ratio": 0.05},
+            },
+        )
+    )
+
+    assert "Estimated normals: true" in preprocess
+    assert "Benchmark Result: kdtree" in benchmark
+    assert "Refined Transformation" in register
+    assert "- transform: transform.json" in register
+    assert "Portfolio Pipeline Result" in pipeline
+
+
+def _identity() -> list[list[float]]:
+    return [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]

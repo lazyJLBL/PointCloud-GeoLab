@@ -137,14 +137,14 @@ What to say clearly:
 - "This is not a full nonlinear GICP optimizer."
 - "The diagnostics explicitly include `full_nonlinear_gicp: false`."
 
-If asked why I did not call it full GICP:
+If asked why I did not call it a full nonlinear GICP optimizer:
 
-- Full GICP normally optimizes a nonlinear objective that uses source and target
-  covariance structure in the residual model.
+- A complete nonlinear GICP optimizer normally uses source and target
+  covariance structure inside the residual objective.
 - This project uses covariance information to derive scalar weights and then
   solves weighted SVD updates.
 - That is useful educational evidence, but it should be described as
-  GICP-style covariance-weighted ICP, not full GICP.
+  GICP-style covariance-weighted ICP, not a full nonlinear GICP optimizer.
 
 ## RANSAC
 
@@ -238,7 +238,7 @@ them locally.
 I would split optional dependency coverage into its own report, run broader
 real-data registration and segmentation case studies, and profile memory and
 runtime for larger LiDAR scenes. I would not market the current project as a
-production SLAM or full GICP system.
+production SLAM backend or complete nonlinear GICP system.
 
 ## Good Reviewer Questions
 
@@ -246,5 +246,5 @@ production SLAM or full GICP system.
 - "What happens when optional Open3D or PyTorch is not installed?"
 - "How do you know KDTree or VoxelHashGrid is correct?"
 - "Why does ICP fail with poor initialization?"
-- "Why is the GICP implementation not full GICP?"
+- "Why is the GICP implementation not a full nonlinear GICP optimizer?"
 - "How would you scale this to a full KITTI sequence?"

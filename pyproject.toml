@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pointcloud-geolab"
 version = "0.1.0"
-description = "Point cloud registration and 3D geometry processing system with custom KD-Tree, ICP, RANSAC, PCA, AABB/OBB and Open3D visualization."
+description = "Point cloud geometry portfolio with KDTree, ICP, RANSAC, PCA/OBB, and Open3D demos."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

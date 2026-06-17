@@ -209,6 +209,9 @@ CI runs `verify-core` and `verify-portfolio`.
 
 - [Algorithms](docs/algorithms.md)
 - [Public API](docs/api.md)
+- [Project Boundary](docs/project_boundary.md)
+- [Architecture](docs/architecture.md)
+- [Testing Strategy](docs/testing_strategy.md)
 - [Demo Walkthrough](docs/demo_walkthrough.md)
 - [Limitations](docs/limitations.md)
 - [Benchmarking](docs/benchmark.md)

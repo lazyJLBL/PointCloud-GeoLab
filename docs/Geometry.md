@@ -13,11 +13,14 @@ extent = max_bound - min_bound
 center = (min_bound + max_bound) / 2
 ```
 
-An AABB is fast to compute and aligned with the world coordinate axes. It is useful for rough spatial range checks, broad-phase collision detection, and quick scene statistics.
+An AABB is fast to compute and aligned with the world coordinate axes. It is
+useful for rough spatial range checks, broad-phase collision detection, and
+quick scene statistics.
 
 ## OBB
 
-An Oriented Bounding Box can rotate with the object. It is usually tighter than an AABB for objects that are not axis-aligned.
+An Oriented Bounding Box can rotate with the object. It is usually tighter than
+an AABB for objects that are not axis-aligned.
 
 PointCloud-GeoLab computes OBBs with PCA:
 
@@ -36,7 +39,8 @@ PointCloud-GeoLab computes OBBs with PCA:
 
 ## PCA Interpretation
 
-PCA eigenvectors are the principal directions of the point distribution. Eigenvalues measure variance along those directions.
+PCA eigenvectors are the principal directions of the point distribution.
+Eigenvalues measure variance along those directions.
 
 - One dominant eigenvalue: line-like point cloud.
 - Two dominant eigenvalues: plane-like point cloud.
@@ -66,4 +70,3 @@ where `a` is a point on the line and `u` is a unit line direction.
 - Object dimension estimation in 3D detection.
 - Principal direction estimation for grasping and pose analysis.
 - Plane and line distances for segmentation, fitting, and geometric validation.
-

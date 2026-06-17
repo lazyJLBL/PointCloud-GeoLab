@@ -26,20 +26,31 @@ Use `result.to_dict()` for JSON-friendly output.
 
 ## Stable Task Functions
 
-| Function | Status | Purpose |
-|---|---|---|
-| `run_icp` | Core-tested | Point-to-point ICP from two point-cloud files. |
-| `run_robust_icp` | Core-tested | Huber, Tukey, or trimmed ICP wrapper. |
-| `run_multiscale_icp` | Core-tested | Coarse-to-fine ICP over voxel scales. |
-| `run_plane_segmentation` | Core-tested | Dominant-plane RANSAC segmentation. |
-| `run_geometry_analysis` | Core-tested | AABB, OBB, and PCA metrics. |
-| `run_preprocessing` | Core-tested | Crop, downsample, sampling, outlier removal, normalization, normals. |
-| `run_primitive_fitting` | Core-tested | RANSAC plane, sphere, or cylinder fitting. |
-| `run_extract_primitives` | Core-tested | Sequential primitive extraction. |
-| `run_segmentation` | Core-tested | DBSCAN, Euclidean clustering, region growing, optional ground removal. |
-| `run_ground_object_segmentation` | Core-tested | Ground removal plus object cluster reporting. |
-| `run_benchmark` | Demo-ready | Built-in quick/full benchmark suites with CSV/JSON/Markdown/PNG outputs. |
-| `run_portfolio_verification` | Documented workflow | Portfolio smoke-check report used by `scripts/verify_portfolio.py`. |
+Core-tested:
+
+- `run_icp`: point-to-point ICP from two point-cloud files.
+- `run_robust_icp`: Huber, Tukey, or trimmed ICP wrapper.
+- `run_multiscale_icp`: coarse-to-fine ICP over voxel scales.
+- `run_plane_segmentation`: dominant-plane RANSAC segmentation.
+- `run_geometry_analysis`: AABB, OBB, and PCA metrics.
+- `run_preprocessing`: crop, downsample, sampling, outlier removal,
+  normalization, and normals.
+- `run_primitive_fitting`: RANSAC plane, sphere, or cylinder fitting.
+- `run_extract_primitives`: sequential primitive extraction.
+- `run_segmentation`: DBSCAN, Euclidean clustering, region growing, and
+  optional ground removal.
+- `run_ground_object_segmentation`: ground removal plus object cluster
+  reporting.
+
+Demo-ready:
+
+- `run_benchmark`: built-in quick/full benchmark suites with CSV, JSON,
+  Markdown, and PNG outputs.
+
+Documented workflow:
+
+- `run_portfolio_verification`: portfolio smoke-check report used by
+  `scripts/verify_portfolio.py`.
 
 Example:
 
@@ -66,5 +77,7 @@ These are useful, but intentionally not exported from `pointcloud_geolab.__all__
 The CLI remains the preferred reviewer interface:
 
 ```bash
-python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python -m pointcloud_geolab pipeline \
+  --input examples/demo_data \
+  --output outputs/portfolio_demo
 ```

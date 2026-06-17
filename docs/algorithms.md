@@ -114,7 +114,11 @@ Demo:
 ```bash
 python examples/gallery_demo.py
 python examples/gicp_demo.py
-python -m pointcloud_geolab register --source data/bunny_source.ply --target data/bunny_target.ply --multiscale --voxel-sizes 0.2 0.1 0.05
+python -m pointcloud_geolab register \
+  --source data/bunny_source.ply \
+  --target data/bunny_target.ply \
+  --multiscale \
+  --voxel-sizes 0.2 0.1 0.05
 ```
 
 Failure cases: symmetric geometry, too-large initial pose error, insufficient
@@ -143,7 +147,11 @@ Implementation:
 Demo:
 
 ```bash
-python -m pointcloud_geolab register --source data/bunny_source.ply --target data/bunny_target.ply --method iss_descriptor_ransac_icp --threshold 0.15
+python -m pointcloud_geolab register \
+  --source data/bunny_source.ply \
+  --target data/bunny_target.ply \
+  --method iss_descriptor_ransac_icp \
+  --threshold 0.15
 ```
 
 Failure cases: repetitive local geometry, too few salient points, descriptors
@@ -169,7 +177,11 @@ Implementation: `pointcloud_geolab/geometry/primitive_fitting.py`.
 Demo:
 
 ```bash
-python -m pointcloud_geolab extract-primitives --input data/synthetic_scene.ply --models plane sphere cylinder --threshold 0.04 --max-models 3
+python -m pointcloud_geolab extract-primitives \
+  --input data/synthetic_scene.ply \
+  --models plane sphere cylinder \
+  --threshold 0.04 \
+  --max-models 3
 ```
 
 Failure cases: overlapping primitives, wrong thresholds, degenerate samples, and
@@ -207,7 +219,13 @@ Implementation:
 Demo:
 
 ```bash
-python -m pointcloud_geolab segment --input data/lidar_scene.ply --method euclidean --remove-ground --eps 0.18 --min-points 20 --export-report outputs/segmentation/cluster_report.md
+python -m pointcloud_geolab segment \
+  --input data/lidar_scene.ply \
+  --method euclidean \
+  --remove-ground \
+  --eps 0.18 \
+  --min-points 20 \
+  --export-report outputs/segmentation/cluster_report.md
 ```
 
 Failure cases: sloped roads without adjusted axis thresholds, touching objects,

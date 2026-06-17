@@ -6,11 +6,35 @@ small synthetic demo data for CI, while real data should live under
 
 ## Supported Sources
 
-| Dataset | Official Source | Local Use | Notes |
-|---|---|---|---|
-| Stanford Bunny / Armadillo | [Stanford 3D Scanning Repository](https://graphics.stanford.edu/data/3Dscanrep/) | registration, reconstruction, OBB/PCA | Bunny range data and reconstruction are small enough for laptop demos; Armadillo is larger. |
-| KITTI Velodyne | [KITTI Raw Data](https://www.cvlibs.net/datasets/kitti/raw_data.php) | LiDAR ground removal and clustering | KITTI stores Velodyne frames as repeated float32 `x y z intensity` tuples in `.bin`. |
-| ModelNet10/40 | [Princeton ModelNet download page](https://modelnet.cs.princeton.edu/download.html) | primitive/PCA demos and optional ML | ModelNet meshes are OFF files; convert a few samples to point clouds before running examples. |
+### Stanford Bunny / Armadillo
+
+Official source:
+[Stanford 3D Scanning Repository](https://graphics.stanford.edu/data/3Dscanrep/).
+
+Local use: registration, reconstruction, OBB, and PCA demos.
+
+Notes: Bunny range data and reconstruction are small enough for laptop demos.
+Armadillo is larger.
+
+### KITTI Velodyne
+
+Official source:
+[KITTI Raw Data](https://www.cvlibs.net/datasets/kitti/raw_data.php).
+
+Local use: LiDAR ground removal and clustering.
+
+Notes: KITTI stores Velodyne frames as repeated float32 `x y z intensity`
+tuples in `.bin`.
+
+### ModelNet10/40
+
+Official source:
+[Princeton ModelNet download page](https://modelnet.cs.princeton.edu/download.html).
+
+Local use: primitive/PCA demos and optional ML.
+
+Notes: ModelNet meshes are OFF files; convert a few samples to point clouds
+before running examples.
 
 ## Recommended Layout
 

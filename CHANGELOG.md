@@ -2,6 +2,21 @@
 
 All notable changes for PointCloud-GeoLab are recorded here.
 
+## Unreleased
+
+### Added
+
+- Repository hygiene checks for tracked generated paths, README links,
+  overclaim wording, text-file shape, and release metadata consistency.
+- Project boundary, architecture, and testing strategy documentation for
+  reviewer orientation.
+
+### Changed
+
+- Markdown and TOML formatting cleanup for easier review.
+- `verify-core` now includes the repository hygiene check.
+- Coverage improved with additional CLI and point-cloud I/O error-path tests.
+
 ## v0.1.0 Portfolio Release - 2026-06-17
 
 ### Added

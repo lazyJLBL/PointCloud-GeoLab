@@ -4,7 +4,8 @@ The KD-Tree module is a custom implementation used for nearest-neighbor search i
 
 ## What It Is
 
-A KD-Tree is a binary spatial partitioning tree. In 3D, each node splits points along one coordinate axis: `x`, `y`, or `z`.
+A KD-Tree is a binary spatial partitioning tree. In 3D, each node splits points
+along one coordinate axis: `x`, `y`, or `z`.
 
 ## Node Structure
 
@@ -18,7 +19,8 @@ left
 right
 ```
 
-The `index` is the original row index in the input point array, so query results can be mapped back to the source data.
+The `index` is the original row index in the input point array, so query results
+can be mapped back to the source data.
 
 ## Build Flow
 
@@ -42,13 +44,16 @@ Backtracking is required because the nearest point may lie on the other side of 
 
 ## KNN Query
 
-KNN search keeps a bounded max-heap of the best `k` candidates. The heap stores the current worst accepted neighbor at the root, so a better point can replace it quickly.
+KNN search keeps a bounded max-heap of the best `k` candidates. The heap stores
+the current worst accepted neighbor at the root, so a better point can replace
+it quickly.
 
 The implementation returns sorted `(index, distance)` pairs after traversal.
 
 ## Radius Search
 
-Radius search visits a node when it may contain points within the query radius. The opposite subtree is pruned when:
+Radius search visits a node when it may contain points within the query radius.
+The opposite subtree is pruned when:
 
 ```text
 (query_axis - split_axis_value)^2 > radius^2
@@ -72,11 +77,14 @@ Brute-force nearest-neighbor search is:
 O(N)
 ```
 
-per query. KD-Tree search is therefore useful when many queries are performed against the same target cloud, as in ICP.
+per query. KD-Tree search is therefore useful when many queries are performed
+against the same target cloud, as in ICP.
 
 ## Role in ICP
 
-ICP repeatedly searches target nearest neighbors for every source point. Building a KD-Tree once per target cloud reduces the correspondence-search cost across all iterations.
+ICP repeatedly searches target nearest neighbors for every source point.
+Building a KD-Tree once per target cloud reduces the correspondence-search cost
+across all iterations.
 
 ## Queries
 
@@ -85,4 +93,3 @@ ICP repeatedly searches target nearest neighbors for every source point. Buildin
 - `radius_search(query_point, radius)` returns all neighbors inside the radius.
 
 The tests compare all query types against brute-force NumPy search.
-

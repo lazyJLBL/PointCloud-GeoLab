@@ -8,8 +8,8 @@ correspondence residual with the same isotropic metric:
 min_R,t sum ||R p_i + t - q_i||^2
 ```
 
-Full GICP estimates a local covariance around each source point and target
-point. For correspondence `(p_i, q_i)`, the residual is:
+A complete nonlinear GICP optimizer estimates a local covariance around each
+source point and target point. For correspondence `(p_i, q_i)`, the residual is:
 
 ```text
 e_i = R p_i + t - q_i
@@ -42,7 +42,8 @@ optimizer. Open3D is only used as an optional comparison baseline in benchmarks.
 
 ## Trade-Offs
 
-This GICP-style loop costs more per iteration than point-to-point ICP because every
+This GICP-style loop costs more per iteration than point-to-point ICP because
+every
 correspondence evaluates a covariance system. It can be more stable on smooth
 surface data, but it is still local: it needs overlap and a reasonable initial
 pose. Bad normals/covariances, thin structures, repeated geometry, and very poor

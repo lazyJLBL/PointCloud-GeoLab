@@ -4,7 +4,10 @@ RANSAC plane fitting extracts a dominant plane from noisy point clouds with outl
 
 ## What Problem It Solves
 
-Real point clouds often contain sensor noise, moving objects, clutter, and mixed surfaces. A least-squares plane fit can be strongly affected by outliers. RANSAC is robust because it repeatedly proposes candidate models from minimal samples and chooses the model supported by the largest inlier set.
+Real point clouds often contain sensor noise, moving objects, clutter, and mixed
+surfaces. A least-squares plane fit can be strongly affected by outliers.
+RANSAC is robust because it repeatedly proposes candidate models from minimal
+samples and chooses the model supported by the largest inlier set.
 
 ## Algorithm
 
@@ -22,7 +25,8 @@ Real point clouds often contain sensor noise, moving objects, clutter, and mixed
 ax + by + cz + d = 0
 ```
 
-Three non-collinear points define a plane because two independent vectors on the plane can be crossed to produce the plane normal.
+Three non-collinear points define a plane because two independent vectors on
+the plane can be crossed to produce the plane normal.
 
 ## Point-to-Plane Distance
 
@@ -30,7 +34,8 @@ Three non-collinear points define a plane because two independent vectors on the
 distance = |ax + by + cz + d| / sqrt(a^2 + b^2 + c^2)
 ```
 
-The implementation normalizes the plane normal, but the full formula is still used to make the distance computation robust.
+The implementation normalizes the plane normal, but the full formula is still
+used to make the distance computation robust.
 
 ## Threshold
 
@@ -43,11 +48,16 @@ The right value depends on sensor noise, scene scale, and preprocessing.
 
 ## Max Iterations
 
-More iterations increase the probability of sampling an all-inlier triplet, especially when the inlier ratio is low. They also increase runtime because every candidate plane is scored against all points.
+More iterations increase the probability of sampling an all-inlier triplet,
+especially when the inlier ratio is low. They also increase runtime because
+every candidate plane is scored against all points.
 
 ## RANSAC vs Least Squares
 
-Least squares uses all points and minimizes aggregate residual, so outliers can pull the plane away from the true surface. RANSAC first identifies a robust inlier set, then can optionally be followed by least-squares refinement on those inliers.
+Least squares uses all points and minimizes aggregate residual, so outliers can
+pull the plane away from the true surface. RANSAC first identifies a robust
+inlier set, then can optionally be followed by least-squares refinement on those
+inliers.
 
 ## Point Cloud Applications
 
@@ -64,4 +74,3 @@ RANSAC plane fitting is commonly used for:
 - `inliers`: indices of points on the plane.
 - `outliers`: indices of remaining points.
 - `inlier_ratio`: fraction of points supporting the plane.
-

@@ -69,11 +69,12 @@ Least squares is sensitive to large residuals. A small number of outliers can
 pull the SVD update away from the real overlap. PointCloud-GeoLab implements
 three robust variants:
 
-| Variant | Idea | Good Use Case |
-|---|---|---|
-| Huber ICP | Quadratic near zero, linear for large residuals | Moderate noise and some outliers |
-| Tukey ICP | Gives very large residuals near-zero weight | Strong outliers when overlap is still clear |
-| Trimmed ICP | Keeps only the closest correspondence ratio | Partial overlap and source-only outliers |
+- Huber ICP: quadratic near zero, linear for large residuals. This is useful
+  for moderate noise and some outliers.
+- Tukey ICP: gives very large residuals near-zero weight. This is useful for
+  strong outliers when overlap is still clear.
+- Trimmed ICP: keeps only the closest correspondence ratio. This is useful for
+  partial overlap and source-only outliers.
 
 The benchmark suite reports plain ICP, Huber, trimmed ICP, and optional Open3D
 ICP baseline metrics.
@@ -93,7 +94,8 @@ segmentation and downsampling.
 
 - Large initial rotation with symmetric geometry can lead to wrong local minima.
 - Low overlap makes nearest-neighbor correspondences ambiguous.
-- Bad normal estimates hurt point-to-plane ICP and the GICP-style covariance-weighted loop.
+- Bad normal estimates hurt point-to-plane ICP and the GICP-style
+  covariance-weighted loop.
 - Repetitive geometry can produce plausible but wrong feature matches.
 - Very high outlier ratios require more RANSAC iterations or stronger priors.
 
@@ -101,8 +103,19 @@ segmentation and downsampling.
 
 ```bash
 python examples/generate_demo_data.py --output examples/demo_data
-python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
-python -m pointcloud_geolab benchmark --suite registration --quick --output outputs/benchmarks
-python -m pointcloud_geolab benchmark --suite icp --quick --output outputs/benchmarks
-python -m pointcloud_geolab benchmark --suite gicp --quick --output outputs/benchmarks
+python -m pointcloud_geolab pipeline \
+  --input examples/demo_data \
+  --output outputs/portfolio_demo
+python -m pointcloud_geolab benchmark \
+  --suite registration \
+  --quick \
+  --output outputs/benchmarks
+python -m pointcloud_geolab benchmark \
+  --suite icp \
+  --quick \
+  --output outputs/benchmarks
+python -m pointcloud_geolab benchmark \
+  --suite gicp \
+  --quick \
+  --output outputs/benchmarks
 ```

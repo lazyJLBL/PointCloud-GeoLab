@@ -1,6 +1,8 @@
 PYTHON ?= python
 
-.PHONY: install install-dev compile data pipeline test lint format-check benchmark verify-core verify-portfolio verify-benchmarks verify-full verify cpp-demo
+.PHONY: install install-dev compile data pipeline test lint format-check
+.PHONY: check-hygiene benchmark verify-core verify-portfolio verify-benchmarks
+.PHONY: verify-full verify cpp-demo
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -26,10 +28,13 @@ lint:
 format-check:
 	$(PYTHON) -m black --check .
 
+check-hygiene:
+	$(PYTHON) scripts/check_repo_hygiene.py
+
 benchmark:
 	$(PYTHON) -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
 
-verify-core: compile lint format-check test
+verify-core: compile lint format-check test check-hygiene
 
 verify-portfolio: data pipeline
 	$(PYTHON) scripts/verify_portfolio.py --quick --output-dir outputs
