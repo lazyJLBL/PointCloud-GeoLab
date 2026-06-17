@@ -95,15 +95,16 @@ Robust ICP adds:
 Multi-scale ICP downsamples with coarse voxels first, then refines with smaller
 voxels.
 
-Generalized ICP estimates local source/target covariance matrices and weights
-each correspondence by the Mahalanobis residual:
+GICP-style covariance-weighted ICP estimates local source/target covariance
+matrices and weights each correspondence by the Mahalanobis residual:
 
 ```text
 e_i^T (C_qi + R C_pi R^T)^-1 e_i
 ```
 
-This project solves a compact GICP-style loop with custom KDTree
-correspondences and weighted SVD updates.
+This project solves a compact GICP-style covariance-weighted ICP loop with
+custom KDTree correspondences and weighted SVD updates. This is not a full
+nonlinear GICP optimizer.
 
 Implementation: `pointcloud_geolab/registration/icp.py` and
 `pointcloud_geolab/registration/gicp.py`.
@@ -146,7 +147,8 @@ python -m pointcloud_geolab register --source data/bunny_source.ply --target dat
 ```
 
 Failure cases: repetitive local geometry, too few salient points, descriptors
-without enough distinctiveness, or very low overlap.
+without enough distinctiveness, or very low overlap. Any geometry fallback is a
+diagnostic fallback, not descriptor registration success.
 
 ## RANSAC Primitive Fitting
 

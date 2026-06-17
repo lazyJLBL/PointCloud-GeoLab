@@ -72,3 +72,7 @@ ignore = []
 
 [tool.coverage.run]
 source = ["pointcloud_geolab"]
+
+[tool.coverage.report]
+fail_under = 65
+show_missing = true

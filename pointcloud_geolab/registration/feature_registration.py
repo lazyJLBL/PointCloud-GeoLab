@@ -115,6 +115,7 @@ def register_iss_descriptor_ransac_icp(
     seed: int | None = 7,
     icp_method: str = "point_to_point",
     max_ransac_iterations: int = 1000,
+    allow_geometry_fallback: bool = False,
 ) -> GlobalRegistrationResult:
     """Run ISS + local descriptor + RANSAC coarse registration and ICP refinement."""
 
@@ -144,8 +145,21 @@ def register_iss_descriptor_ransac_icp(
     source_descriptors = compute_local_geometric_descriptors(src, source_keys, descriptor_radius)
     target_descriptors = compute_local_geometric_descriptors(tgt, target_keys, descriptor_radius)
     descriptor_matches = match_descriptors(source_descriptors, target_descriptors, ratio=ratio)
+    descriptor_match_count = len(descriptor_matches)
+    geometry_fallback_used = False
+    fallback_reason = ""
     if len(descriptor_matches) < 3:
+        fallback_reason = (
+            f"descriptor matching produced {len(descriptor_matches)} correspondences; "
+            "at least 3 are required"
+        )
+        if not allow_geometry_fallback:
+            raise ValueError(
+                f"{fallback_reason}. Geometry fallback is disabled by default because "
+                "fallback is not descriptor registration success."
+            )
         descriptor_matches = _nearest_geometry_fallback(src, tgt, source_keys, target_keys)
+        geometry_fallback_used = True
     correspondences = np.column_stack(
         [source_keys[descriptor_matches[:, 0]], target_keys[descriptor_matches[:, 1]]]
     )
@@ -187,8 +201,12 @@ def register_iss_descriptor_ransac_icp(
             **coarse_ransac.metadata,
             "source_keypoints": len(source_keys),
             "target_keypoints": len(target_keys),
+            "descriptor_matches": descriptor_match_count,
             "matches": len(descriptor_matches),
             "inlier_correspondences": len(coarse_ransac.inlier_indices),
+            "geometry_fallback_used": geometry_fallback_used,
+            "fallback_reason": fallback_reason if geometry_fallback_used else None,
+            "fallback_not_descriptor_success": geometry_fallback_used,
         },
     )
     refined_stage = RegistrationStage(

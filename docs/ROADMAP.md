@@ -11,7 +11,7 @@ separate implemented work from planned work.
 - Single GitHub Actions workflow, `tests.yml`, covering Python 3.10, 3.11, and
   3.12 with install, Ruff, Black check, demo-data generation, portfolio
   pipeline smoke test, and pytest coverage.
-- Stable CLI through `python -m pointcloud_geolab ...` plus legacy
+- Reviewer-facing CLI through `python -m pointcloud_geolab ...` plus legacy
   `python main.py --mode ...` compatibility.
 - Portfolio pipeline that generates `report.md`, `metrics.json`, five figures,
   `processed_cloud.ply`, and `transformation.json`.
@@ -23,7 +23,7 @@ separate implemented work from planned work.
 - Preprocessing: voxel downsampling, AABB crop, normalization, random/farthest
   sampling, statistical and radius outlier removal, and local PCA normals.
 - Registration: SVD rigid transform, point-to-point ICP, point-to-plane ICP,
-  robust Huber/Tukey/trimmed ICP, multiscale ICP, and compact custom GICP.
+  robust Huber/Tukey/trimmed ICP, multiscale ICP, and GICP-style covariance-weighted ICP.
 - Feature registration: ISS keypoints, local covariance-spectrum descriptors,
   descriptor matching, RANSAC transform estimation, and ICP refinement.
 - Open3D FPFH/RANSAC/ICP path as an optional comparison baseline.
@@ -33,7 +33,7 @@ separate implemented work from planned work.
 - Segmentation: DBSCAN, Euclidean clustering, region growing, ground removal,
   object cluster summaries, and Markdown cluster reports.
 - Benchmarks that emit CSV, JSON, Markdown, and PNG for KDTree, ICP, RANSAC,
-  registration, GICP, and segmentation.
+  registration, GICP-style ICP, and segmentation.
 - Benchmark JSON/Markdown metadata for parameters, data scale, seed, Python,
   platform, and optional baseline package versions.
 - Verification scripts for benchmark artifacts and portfolio demo artifacts.
@@ -59,7 +59,7 @@ separate implemented work from planned work.
 
 ### v0.4 Algorithm Depth
 
-- Improve GICP from scalar Mahalanobis weighting to a fuller nonlinear
+- Improve GICP-style covariance weighting from scalar Mahalanobis weights to a fuller nonlinear
   covariance objective.
 - Add Octree as a second spatial index for hierarchical range queries.
 - Add SHOT-like descriptor experiments and compare against Open3D FPFH.

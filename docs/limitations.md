@@ -5,12 +5,12 @@ review. It is not a replacement for Open3D, PCL, or a production autonomy stack.
 
 ## Algorithmic Limits
 
-- ICP, robust ICP, multi-scale ICP, and GICP are local optimizers. They need
-  enough overlap and a reasonable initial pose.
+- ICP, robust ICP, multi-scale ICP, and GICP-style covariance-weighted ICP are
+  local optimizers. They need enough overlap and a reasonable initial pose.
 - Point-to-plane ICP depends on stable target normals and can become
   ill-conditioned on perfectly planar or otherwise degenerate geometry.
-- GICP uses covariance-informed scalar weights with weighted SVD updates. It is
-  a compact educational implementation, not a full nonlinear GICP optimizer.
+- GICP-style covariance-weighted ICP uses covariance-informed scalar weights
+  with weighted SVD updates. This is not a full nonlinear GICP optimizer.
 - RANSAC success drops quickly as the inlier ratio falls, especially for models
   with larger minimal samples such as cylinders.
 - PCA/OBB axes are unstable when eigenvalues are close, for example near-sphere

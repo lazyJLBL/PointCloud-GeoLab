@@ -93,7 +93,7 @@ segmentation and downsampling.
 
 - Large initial rotation with symmetric geometry can lead to wrong local minima.
 - Low overlap makes nearest-neighbor correspondences ambiguous.
-- Bad normal estimates hurt point-to-plane ICP and GICP.
+- Bad normal estimates hurt point-to-plane ICP and the GICP-style covariance-weighted loop.
 - Repetitive geometry can produce plausible but wrong feature matches.
 - Very high outlier ratios require more RANSAC iterations or stronger priors.
 

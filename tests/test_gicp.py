@@ -38,4 +38,5 @@ def test_generalized_icp_recovers_small_transform() -> None:
     assert result.final_rmse < result.initial_rmse
     assert result.final_rmse < 0.025
     assert result.diagnostics["method"] == "generalized_icp"
+    assert result.diagnostics["full_nonlinear_gicp"] is False
     assert len(result.diagnostics["mahalanobis_rmse_history"]) >= 1

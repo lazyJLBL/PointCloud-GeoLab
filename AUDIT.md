@@ -2,89 +2,67 @@
 
 Audit date: 2026-06-17
 
-Repository checked from GitHub HEAD `597d04c19d180234448dc76f1cb2387f131cf394`.
+Scope checked: `README.md`, `docs/`, `pyproject.toml`, `pointcloud_geolab/`,
+`tests/`, `examples/`, `benchmarks/`, `scripts/`, `Makefile`, and CI.
 
-## Verification Commands Run
+## Verification Commands
+
+The intended verification set is:
 
 ```bash
+python -m pip install -e ".[dev,vis,bench]"
+python -m compileall -q main.py pointcloud_geolab tests examples scripts benchmarks
 python -m ruff check .
 python -m black --check .
-python -m compileall -q main.py pointcloud_geolab tests examples scripts benchmarks
 python -m pytest --cov=pointcloud_geolab
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline --input examples/demo_data --output outputs/portfolio_demo
+python scripts/verify_portfolio.py --quick
 python -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
+python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
-## Verified Features
+CI runs `make verify-core` and `make verify-portfolio`.
 
-These features have implementation, tests, and either CLI/example/benchmark
-support:
+## Status Summary
 
-| Feature | Evidence |
-|---|---|
-| KDTree nearest, kNN, radius, batch, high-dimensional queries | `pointcloud_geolab/kdtree/kdtree.py`, `tests/test_kdtree.py`, `tests/test_kdtree_advanced.py`, KDTree benchmark. |
-| VoxelHashGrid radius, nearest, kNN, box query, downsampling | `pointcloud_geolab/spatial/voxel_hash.py`, `tests/test_spatial_index.py`, benchmark integration. |
-| SVD rigid transform and point-to-point ICP | `pointcloud_geolab/registration/svd_solver.py`, `registration/icp.py`, `tests/test_registration.py`, `tests/test_algorithm_edge_cases.py`. |
-| Point-to-plane, robust, trimmed, and multi-scale ICP | `registration/icp.py`, `tests/test_icp_variants.py`, `tests/test_algorithm_edge_cases.py`, gallery demo. |
-| Compact covariance-weighted GICP | `registration/gicp.py`, `tests/test_gicp.py`, `tests/test_algorithm_edge_cases.py`, GICP benchmark. |
-| RANSAC plane/sphere/cylinder and sequential extraction | `geometry/primitive_fitting.py`, `tests/test_ransac_plane.py`, `tests/test_primitive_fitting.py`, `tests/test_extract_primitives.py`. |
-| PCA, AABB, OBB, distance helpers | `geometry/*.py`, `tests/test_geometry.py`, `tests/test_algorithm_edge_cases.py`. |
-| DBSCAN, Euclidean clustering, region growing, ground removal | `segmentation/*.py`, `tests/test_segmentation.py`, `tests/test_ground_segmentation.py`, segmentation CLI. |
-| Preprocessing and IO | `preprocessing/*.py`, `io/pointcloud_io.py`, `tests/test_io_preprocessing.py`, pipeline smoke test. |
-| Feature registration with ISS/custom descriptors | `features/*.py`, `registration/feature_registration.py`, `tests/test_features.py`, `tests/test_feature_registration.py`. |
-| Portfolio pipeline | `pipeline.py`, `tests/test_pipeline.py`, generated `outputs/portfolio_demo/report.md`. |
-| Benchmarks with CSV/JSON/Markdown/PNG | `pointcloud_geolab/api.py`, `benchmarks/*.py`, `tests/test_visualization_benchmark.py`, `scripts/verify_benchmarks.py`. |
-
-## Partially Implemented Features
-
-| Area | Current State | Honest Positioning |
+| Area | Status | Evidence and boundary |
 |---|---|---|
-| GICP | Uses local covariances to compute scalar Mahalanobis weights and solves updates with weighted SVD. | Useful educational GICP-style loop, not a full nonlinear optimizer. |
-| Open3D baselines | Optional FPFH/RANSAC/ICP/reconstruction paths run when Open3D is installed. | Comparison baseline only; core package should still work without Open3D. |
-| Real Stanford/KITTI workflows | Scripts and preparation docs exist; large data is not committed. | Reproducible workflow, not a bundled real-data benchmark. |
-| PointNet demo | Optional PyTorch demo with smoke tests. | ML add-on, not core project evidence. |
-| C++ KDTree demo | Standalone CMake example. | Systems-flavored demonstration; not wired into Python acceleration. |
-
-## Experimental Features
-
-- Optional reconstruction through Open3D.
-- Optional PointNet training/inference.
-- Custom local covariance-spectrum descriptors.
-- Sequential mixed primitive extraction on complex scenes.
-- HTML visualization exports through Plotly.
-
-## Documentation Inconsistencies Found
-
-- Root `ROADMAP.md` is absent; the active roadmap is `docs/ROADMAP.md`.
-- Several docs used the phrase "industrial baseline"; this was downgraded to
-  "optional comparison baseline" to avoid overstating scope.
-- README verification did not mention the new explicit benchmark/portfolio
-  verification scripts.
-- Gallery artifact names did not exactly match the requested portfolio names
-  (`icp_convergence_curve.png`, `segmentation_result.png`,
-  `primitive_extraction.html`).
+| KDTree and VoxelHashGrid | Core-tested | Unit tests cover nearest, kNN, radius, batch, empty, duplicate, high-dimensional, and brute-force consistency cases. |
+| Preprocessing, PCA/AABB/OBB, primitive RANSAC, segmentation | Core-tested | Deterministic tests cover geometry outputs, outlier cases, ground/object reports, and fixed-seed primitive fitting. |
+| ICP variants | Core-tested | Point-to-point, point-to-plane, robust, trimmed, and multi-scale ICP have convergence and failure-mode tests. Diagnostics include initial/final RMSE, fitness, correspondence count, residual history, and step norms. |
+| GICP-style covariance-weighted ICP | Experimental | Uses local covariances to compute scalar Mahalanobis weights and solves weighted SVD updates. This is not a full nonlinear GICP optimizer. |
+| Feature registration | Experimental | ISS keypoints, local descriptors, RANSAC transform estimation, and ICP refinement exist. Geometry fallback is diagnostic only and does not mean descriptor registration succeeded. |
+| Portfolio pipeline | Demo-ready | Generates report, metrics, figures, processed cloud, and transform JSON from deterministic demo data. |
+| Benchmarks | Demo-ready | Benchmark outputs include CSV, JSON, Markdown, PNG, parameters, seed, platform, and dependency metadata. |
+| Real data workflows | Documented workflow | Stanford Bunny, KITTI, and ModelNet workflows require local data under `data/external/`; large datasets are not committed. |
+| Open3D, reconstruction, PointNet, Plotly HTML | Optional | Useful demos or baselines, but not required for core geometry correctness. |
 
 ## Fixes Applied
 
-- Added benchmark metadata to JSON/Markdown outputs: parameters, data scale,
-  seed, Python/platform, and optional package versions.
-- Added `scripts/verify_benchmarks.py` to check benchmark output completeness.
-- Upgraded `scripts/verify_portfolio.py` to check key generated gallery and
-  pipeline artifacts.
-- Added algorithm edge-case tests for ICP/GICP, RANSAC, and PCA/OBB.
-- Added `docs/limitations.md`, `docs/coverage.md`, and
-  `docs/portfolio_report_template.md`.
-- Added `.pre-commit-config.yaml` and `pre-commit` to dev dependencies.
-- Updated README/docs wording to stay honest about scope.
+- Stopped tracking generated `outputs/` artifacts upstream and added ignore
+  rules for generated outputs, benchmark results, external data, coverage
+  artifacts, logs, and local demo data.
+- Added benchmark artifact verification that parses CSV/JSON/Markdown and
+  validates PNG structure.
+- Added portfolio verification for report sections, metrics schema, key PNGs,
+  and transform JSON.
+- Added coverage threshold configuration with `fail_under = 65`.
+- Added explicit public API exports and `tests/test_public_api.py`.
+- Updated README and API docs to avoid overstating experimental or optional work.
+- Added ICP/GICP diagnostics and explicit `full_nonlinear_gicp: false`.
+- Made descriptor geometry fallback opt-in and diagnostic rather than silent.
+- Unified local and CI validation around `verify-core`, `verify-portfolio`,
+  `verify-benchmarks`, and `verify-full`.
 
-## Remaining Recommendations
+## Remaining Risks
 
-- Add repeat-count benchmark statistics with mean/std and optional memory
-  profiling.
-- Add tiny checksum-verified real-data fixtures that are safe to keep in git.
-- Split optional Open3D/PyTorch coverage from core geometry coverage in CI.
-- Consider an HTML portfolio report mode after the Markdown report stabilizes.
-- If performance becomes a goal, move hot loops to NumPy vectorization, Numba,
-  Cython, pybind11, or a dedicated Open3D/PCL backend rather than expanding pure
-  Python loops indefinitely.
+- Benchmark timing remains machine-dependent and should be regenerated locally.
+- Feature registration needs broader real-data and perturbation tests before it
+  can be described as robust.
+- The GICP-style implementation is useful for explaining covariance weighting,
+  but it is still not a full nonlinear optimizer.
+- Optional dependency behavior can vary by Open3D, PyTorch, SciPy, sklearn, and
+  Plotly versions.
+- KITTI-scale processing still needs streaming, range-aware clustering, and
+  memory profiling before it should be presented as production LiDAR tooling.

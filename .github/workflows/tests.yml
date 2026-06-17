@@ -26,21 +26,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev,vis,bench]"
 
-      - name: Run Ruff
-        run: python -m ruff check .
+      - name: Verify core
+        run: make verify-core
 
-      - name: Run Black check
-        run: python -m black --check .
-
-      - name: Generate demo data
-        run: python examples/generate_demo_data.py --output "$RUNNER_TEMP/demo_data"
-
-      - name: Run portfolio pipeline smoke test
-        run: |
-          python -m pointcloud_geolab pipeline \
-            --input "$RUNNER_TEMP/demo_data" \
-            --output "$RUNNER_TEMP/portfolio_demo" \
-            --min-points 5
-
-      - name: Run tests with coverage
-        run: python -m pytest --cov=pointcloud_geolab
+      - name: Verify portfolio
+        run: make verify-portfolio

@@ -33,6 +33,12 @@ def test_icp_recovers_small_transform_with_noise() -> None:
     assert result.final_rmse < 0.01
     assert result.final_rmse < result.initial_rmse * 0.2
     assert result.fitness == 1.0
+    assert result.diagnostics["initial_rmse"] == result.initial_rmse
+    assert result.diagnostics["final_rmse"] == result.final_rmse
+    assert result.diagnostics["fitness"] == result.fitness
+    assert result.diagnostics["num_correspondences"] > 0
+    assert result.diagnostics["residual_history"] == result.rmse_history
+    assert len(result.diagnostics["step_norm_history"]) == result.iterations
 
 
 def test_trimmed_icp_handles_low_overlap_with_source_outliers() -> None:
@@ -71,6 +77,8 @@ def test_icp_bad_initialization_fails_cleanly_with_tight_correspondence_gate() -
     assert result.iterations == 0
     assert not result.converged
     assert result.fitness == 0.0
+    assert result.diagnostics["num_correspondences"] == 0
+    assert result.diagnostics["step_norm_history"] == []
 
 
 def test_point_to_plane_icp_reports_degenerate_planar_system() -> None:
@@ -91,6 +99,7 @@ def test_point_to_plane_icp_reports_degenerate_planar_system() -> None:
     assert result.iterations == 0
     assert np.isinf(result.diagnostics["condition_number"])
     assert np.isclose(result.final_rmse, result.initial_rmse)
+    assert result.diagnostics["residual_history"] == result.rmse_history
 
 
 def test_gicp_recovers_planar_translation_with_regularized_covariances() -> None:
@@ -111,6 +120,10 @@ def test_gicp_recovers_planar_translation_with_regularized_covariances() -> None
     assert result.final_rmse < 1e-6
     assert result.final_rmse < result.initial_rmse
     assert result.diagnostics["used_correspondences"] == len(source)
+    assert result.diagnostics["full_nonlinear_gicp"] is False
+    assert result.diagnostics["algorithm"] == "gicp_style_covariance_weighted_icp"
+    assert result.diagnostics["num_correspondences"] == len(source)
+    assert result.diagnostics["residual_history"] == result.rmse_history
 
 
 def test_ransac_primitives_succeed_under_seeded_outlier_ratios() -> None:

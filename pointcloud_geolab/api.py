@@ -74,6 +74,22 @@ from pointcloud_geolab.visualization import (
     visualize_inliers_outliers,
 )
 
+__all__ = [
+    "TaskResult",
+    "run_benchmark",
+    "run_extract_primitives",
+    "run_geometry_analysis",
+    "run_ground_object_segmentation",
+    "run_icp",
+    "run_multiscale_icp",
+    "run_plane_segmentation",
+    "run_portfolio_verification",
+    "run_preprocessing",
+    "run_primitive_fitting",
+    "run_robust_icp",
+    "run_segmentation",
+]
+
 
 @dataclass(slots=True)
 class TaskResult:
@@ -1965,7 +1981,7 @@ def _benchmark_gicp(seed: int, quick: bool) -> list[dict[str, Any]]:
         gicp_time = time.perf_counter() - start
         rows.append(
             {
-                "method": "generalized_icp",
+                "method": "gicp_style_covariance_weighted_icp",
                 "initial_angle_degrees": angle,
                 "points": point_count,
                 "runtime": gicp_time,
@@ -2024,9 +2040,8 @@ def _benchmark_conclusion(benchmark: str) -> str:
             "by estimating a coarse pose first."
         ),
         "gicp": (
-            "GICP uses local covariance structure to weight correspondences; it is "
-            "more expensive per iteration than point-to-point ICP but exposes "
-            "surface-aware residuals."
+            "GICP-style covariance-weighted ICP uses local covariance structure "
+            "to weight correspondences. It is not a full nonlinear GICP optimizer."
         ),
         "segmentation": (
             "Euclidean clustering runtime scales with radius-neighborhood queries "

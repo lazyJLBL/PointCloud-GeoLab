@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import struct
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -75,6 +76,8 @@ def _check_suite_files(
             _validate_json(path, invalid)
         elif extension == "md":
             _validate_markdown(path, invalid)
+        elif extension == "png":
+            _validate_png(path, invalid)
 
 
 def _check_summary_files(
@@ -99,6 +102,10 @@ def _check_summary_files(
                 continue
             if "suites" not in payload:
                 invalid.append(f"{path}: missing suites")
+            elif not isinstance(payload["suites"], list) or not payload["suites"]:
+                invalid.append(f"{path}: suites must be a non-empty list")
+            if "metadata" not in payload:
+                invalid.append(f"{path}: missing metadata")
         elif "Benchmark Summary" not in path.read_text(encoding="utf-8"):
             invalid.append(f"{path}: missing Benchmark Summary heading")
 
@@ -111,6 +118,8 @@ def _validate_csv(path: Path, invalid: list[str]) -> None:
         invalid.append(f"{path}: missing CSV header")
     if not rows:
         invalid.append(f"{path}: no benchmark rows")
+    if rows and all(not any(str(value).strip() for value in row.values()) for row in rows):
+        invalid.append(f"{path}: benchmark rows are empty")
 
 
 def _validate_json(path: Path, invalid: list[str]) -> None:
@@ -123,6 +132,8 @@ def _validate_json(path: Path, invalid: list[str]) -> None:
         invalid.append(f"{path}: missing metadata")
     if "rows" not in payload or not payload["rows"]:
         invalid.append(f"{path}: missing benchmark rows")
+    elif not isinstance(payload["rows"], list):
+        invalid.append(f"{path}: rows must be a list")
     metadata = payload.get("metadata", {})
     if isinstance(metadata, dict):
         for key in ["parameters", "data_scale", "platform", "python"]:
@@ -138,9 +149,28 @@ def _validate_markdown(path: Path, invalid: list[str]) -> None:
         invalid.append(f"{path}: missing Run Metadata section")
 
 
+def _validate_png(path: Path, invalid: list[str]) -> None:
+    data = path.read_bytes()
+    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+        invalid.append(f"{path}: missing PNG signature")
+        return
+    if len(data) < 33 or data[12:16] != b"IHDR":
+        invalid.append(f"{path}: missing PNG IHDR chunk")
+        return
+    width, height = struct.unpack(">II", data[16:24])
+    if width <= 0 or height <= 0:
+        invalid.append(f"{path}: invalid PNG dimensions")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/benchmarks"))
+    parser.add_argument(
+        "--output-dir",
+        "--output",
+        dest="output_dir",
+        type=Path,
+        default=Path("outputs/benchmarks"),
+    )
     parser.add_argument(
         "--suite",
         choices=[*BENCHMARK_SUITES, "all"],

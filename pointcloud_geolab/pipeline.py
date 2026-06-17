@@ -706,7 +706,7 @@ def _format_pipeline_report(
             "",
             "- This pipeline is a compact portfolio demo, not a replacement for Open3D or PCL.",
             "- DBSCAN uses a simple global radius and may need tuning for very uneven densities.",
-            "- ICP is a local optimizer; it is stable for the demo pair but not a global matcher.",
+            "- ICP is a local optimizer; it works for the demo pair but is not a global matcher.",
             "- Normals and curvature are estimated with local PCA and are not globally oriented.",
             "",
             "## Interviewer Focus Points",

@@ -32,9 +32,10 @@ Robust ICP supports:
 Multi-scale ICP runs from coarse to fine voxel sizes and reports per-level
 diagnostics.
 
-Generalized ICP estimates local source and target covariance matrices with the
-custom KDTree and weights each correspondence by the Mahalanobis residual
-`e^T (C_q + R C_p R^T)^-1 e`. See [GICP](GICP.md).
+GICP-style covariance-weighted ICP estimates local source and target covariance
+matrices with the custom KDTree and weights each correspondence by the
+Mahalanobis residual `e^T (C_q + R C_p R^T)^-1 e`. This is not a full nonlinear
+GICP optimizer. See [GICP](GICP.md).
 
 Run:
 
@@ -64,6 +65,10 @@ ISS uses local covariance eigenvalue ratios. The descriptor includes linearity,
 planarity, scattering, curvature, anisotropy, omnivariance, eigenentropy, and
 local density. RANSAC samples three matched pairs and scores the transform using
 correspondence residuals.
+
+If descriptor matching cannot produce enough correspondences, the implementation
+does not silently treat a geometry fallback as descriptor registration success.
+Fallbacks must be explicitly enabled and are recorded in diagnostics.
 
 Run:
 

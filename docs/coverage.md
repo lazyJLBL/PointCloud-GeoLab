@@ -9,6 +9,10 @@ Run:
 python -m pytest --cov=pointcloud_geolab
 ```
 
+`pyproject.toml` enforces `fail_under = 65`. The threshold is intentionally
+modest because optional Open3D/PyTorch/Plotly paths are separated from the core
+geometry evidence, but it prevents coverage from silently collapsing.
+
 Generate an HTML report:
 
 ```bash
@@ -22,7 +26,7 @@ Open `htmlcov/index.html` after the command finishes.
 High-value tests compare algorithm outputs against known references:
 
 - KDTree and VoxelHashGrid queries are compared with brute force.
-- ICP/GICP tests use known rigid transforms, noise, outliers, low-overlap
+- ICP and GICP-style tests use known rigid transforms, noise, outliers, low-overlap
   cases, bad initialization, and degenerate planar systems.
 - RANSAC tests cover plane, sphere, and cylinder fitting with fixed seeds and
   controlled outlier ratios.
@@ -35,7 +39,6 @@ correctness evidence for the geometry implementation.
 
 ## Current Expectation
 
-The project does not enforce a hard coverage threshold yet. A reviewer should
-expect the core geometry modules to have meaningful unit coverage and the CLI
-pipeline to have smoke coverage. Future work can add a minimum threshold after
-the optional dependency paths are separated more cleanly from core modules.
+Core geometry modules should stay meaningfully covered, and the CLI pipeline
+should keep smoke coverage. Raising the threshold is future work after optional
+dependency paths are split into their own coverage view.

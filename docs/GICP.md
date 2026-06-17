@@ -1,15 +1,15 @@
-# Generalized ICP
+# GICP-style Covariance-weighted ICP
 
-Generalized ICP (GICP) keeps the ICP loop but changes the residual model. Plain
-point-to-point ICP treats every correspondence residual with the same isotropic
-metric:
+PointCloud-GeoLab implements a GICP-style covariance-weighted ICP loop. This is
+not a full nonlinear GICP optimizer. Plain point-to-point ICP treats every
+correspondence residual with the same isotropic metric:
 
 ```text
 min_R,t sum ||R p_i + t - q_i||^2
 ```
 
-GICP estimates a local covariance around each source point and target point.
-For correspondence `(p_i, q_i)`, the residual is:
+Full GICP estimates a local covariance around each source point and target
+point. For correspondence `(p_i, q_i)`, the residual is:
 
 ```text
 e_i = R p_i + t - q_i
@@ -37,12 +37,12 @@ The implementation is intentionally compact:
 4. Solve each rigid update with weighted SVD.
 5. Compose transforms until RMSE convergence.
 
-This is not a wrapper around Open3D. Open3D is only used as an optional
-comparison baseline in benchmarks.
+This is not a wrapper around Open3D, and it is not a full nonlinear GICP
+optimizer. Open3D is only used as an optional comparison baseline in benchmarks.
 
 ## Trade-Offs
 
-GICP costs more per iteration than point-to-point ICP because every
+This GICP-style loop costs more per iteration than point-to-point ICP because every
 correspondence evaluates a covariance system. It can be more stable on smooth
 surface data, but it is still local: it needs overlap and a reasonable initial
 pose. Bad normals/covariances, thin structures, repeated geometry, and very poor

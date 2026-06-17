@@ -72,6 +72,7 @@ def point_to_point_icp(
     converged = False
     iterations = 0
     used_correspondences = 0
+    step_norm_history: list[float] = []
 
     for iteration in range(1, max_iterations + 1):
         src_corr, tgt_corr, corr_distances = _find_correspondences(
@@ -95,6 +96,7 @@ def point_to_point_icp(
         aligned = apply_transform(aligned, step.rotation, step.translation)
         total_rotation = step.rotation @ total_rotation
         total_translation = step.rotation @ total_translation + step.translation
+        step_norm_history.append(_transform_step_norm(step.rotation, step.translation))
 
         transformed_corr = apply_transform(src_corr, step.rotation, step.translation)
         distances = np.linalg.norm(transformed_corr - tgt_corr, axis=1)
@@ -111,6 +113,7 @@ def point_to_point_icp(
     final_distances = _nearest_distances(aligned, tree)
     final_rmse = _reported_rmse(final_distances, trim_ratio)
     inlier_threshold = max_correspondence_distance
+    final_fitness = fitness(final_distances, inlier_threshold)
     return ICPResult(
         rotation=total_rotation,
         translation=total_translation,
@@ -119,14 +122,20 @@ def point_to_point_icp(
         rmse_history=rmse_history,
         initial_rmse=initial_rmse,
         final_rmse=final_rmse,
-        fitness=fitness(final_distances, inlier_threshold),
+        fitness=final_fitness,
         iterations=iterations,
         converged=converged,
         diagnostics={
             "method": "point_to_point",
             "robust_kernel": robust_kernel,
             "trim_ratio": trim_ratio,
+            "initial_rmse": initial_rmse,
+            "final_rmse": final_rmse,
+            "fitness": final_fitness,
+            "num_correspondences": used_correspondences,
             "used_correspondences": used_correspondences,
+            "residual_history": rmse_history.copy(),
+            "step_norm_history": step_norm_history,
             "raw_final_rmse": rmse(final_distances),
         },
     )
@@ -170,6 +179,7 @@ def point_to_plane_icp(
     iterations = 0
     last_condition = float("nan")
     used_correspondences = 0
+    step_norm_history: list[float] = []
 
     for iteration in range(1, max_iterations + 1):
         aligned = apply_homogeneous_transform(source, transform)
@@ -208,6 +218,7 @@ def point_to_plane_icp(
 
         delta = make_transform(_rodrigues(solution[:3]), solution[3:])
         transform = delta @ transform
+        step_norm_history.append(float(np.linalg.norm(solution)))
         current_error = rmse(corr_distances)
         rmse_history.append(current_error)
         iterations = iteration
@@ -221,6 +232,8 @@ def point_to_plane_icp(
     final_distances = _nearest_distances(aligned, tree)
     rotation = transform[:3, :3]
     translation = transform[:3, 3]
+    final_rmse = _reported_rmse(final_distances, trim_ratio)
+    final_fitness = fitness(final_distances, max_correspondence_distance)
     return ICPResult(
         rotation=rotation,
         translation=translation,
@@ -228,8 +241,8 @@ def point_to_plane_icp(
         aligned_points=aligned,
         rmse_history=rmse_history,
         initial_rmse=initial_rmse,
-        final_rmse=_reported_rmse(final_distances, trim_ratio),
-        fitness=fitness(final_distances, max_correspondence_distance),
+        final_rmse=final_rmse,
+        fitness=final_fitness,
         iterations=iterations,
         converged=converged,
         diagnostics={
@@ -237,7 +250,13 @@ def point_to_plane_icp(
             "robust_kernel": robust_kernel,
             "trim_ratio": trim_ratio,
             "condition_number": last_condition,
+            "initial_rmse": initial_rmse,
+            "final_rmse": final_rmse,
+            "fitness": final_fitness,
+            "num_correspondences": used_correspondences,
             "used_correspondences": used_correspondences,
+            "residual_history": rmse_history.copy(),
+            "step_norm_history": step_norm_history,
             "raw_final_rmse": rmse(final_distances),
         },
     )
@@ -322,8 +341,13 @@ def multiscale_icp(
                 "source_points": len(src_down),
                 "target_points": len(tgt_down),
                 "iterations": result.iterations,
+                "initial_rmse": result.initial_rmse,
+                "final_rmse": result.final_rmse,
                 "rmse": result.final_rmse,
                 "fitness": result.fitness,
+                "num_correspondences": result.diagnostics.get("num_correspondences", 0),
+                "residual_history": result.diagnostics.get("residual_history", []),
+                "step_norm_history": result.diagnostics.get("step_norm_history", []),
                 "converged": result.converged,
             }
         )
@@ -483,6 +507,13 @@ def _reported_rmse(distances: np.ndarray, trim_ratio: float) -> float:
         return rmse(distances)
     count = max(1, int(np.ceil(len(distances) * trim_ratio)))
     return rmse(np.sort(distances)[:count])
+
+
+def _transform_step_norm(rotation: np.ndarray, translation: np.ndarray) -> float:
+    cos_angle = (float(np.trace(rotation)) - 1.0) / 2.0
+    angle = float(np.arccos(np.clip(cos_angle, -1.0, 1.0)))
+    translation_norm = float(np.linalg.norm(translation))
+    return float(np.hypot(angle, translation_norm))
 
 
 def _estimate_weighted_transform(

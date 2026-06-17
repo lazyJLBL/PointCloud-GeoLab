@@ -22,7 +22,9 @@ data/*_smoke/
 # artifacts. Some historical files under outputs/ are already tracked; this
 # rule prevents new generated files from being added accidentally.
 outputs/
+results/
 benchmark_results/
 examples/demo_data/
 generated_demo_artifacts/
 portfolio_demo/
+*.log

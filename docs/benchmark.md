@@ -12,7 +12,7 @@ an algorithm exists.
 - `ransac`: custom RANSAC primitive fitting vs NumPy PCA plane and optional
   Open3D plane segmentation under increasing outlier ratios.
 - `registration`: ICP vs FPFH+RANSAC+ICP under large initial rotations.
-- `gicp`: custom covariance-weighted GICP vs point-to-point ICP.
+- `gicp`: GICP-style covariance-weighted ICP vs point-to-point ICP.
 - `segmentation`: Euclidean clustering runtime over synthetic cluster sizes.
 
 Run all quick suites:
@@ -40,5 +40,6 @@ Interpretation examples:
   rotations; FPFH+RANSAC+ICP is slower but more robust.
 - Robust ICP improves correspondence weighting when source-only outliers are
   present, but it still needs enough overlap.
-- GICP spends more time per iteration because it estimates and uses local
-  covariance matrices.
+- GICP-style covariance-weighted ICP spends more time per iteration because it
+  estimates and uses local covariance matrices. This is not a full nonlinear
+  GICP optimizer.

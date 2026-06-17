@@ -1,8 +1,8 @@
-"""Generalized ICP with local covariance weighting.
+"""GICP-style ICP with local covariance weighting.
 
 This module keeps the correspondence search and optimization in NumPy. It uses
-the GICP objective idea, where each correspondence residual is measured through
-the combined local covariance of the source and target neighborhoods.
+the GICP objective idea to form scalar correspondence weights from local source
+and target covariance neighborhoods. It is not a full nonlinear GICP optimizer.
 """
 
 from __future__ import annotations
@@ -73,7 +73,7 @@ def generalized_icp(
     regularization: float = 1e-3,
     min_correspondences: int = 6,
 ) -> ICPResult:
-    """Register source to target with a covariance-weighted GICP loop.
+    """Register source to target with a GICP-style covariance-weighted ICP loop.
 
     The full GICP objective is nonlinear in rotation. This implementation keeps
     the project compact by using the covariance objective to derive scalar
@@ -103,6 +103,7 @@ def generalized_icp(
     iterations = 0
     converged = False
     used_correspondences = 0
+    step_norm_history: list[float] = []
 
     for iteration in range(1, max_iterations + 1):
         src_corr, tgt_corr, src_ids, tgt_ids, distances = _find_correspondences(
@@ -126,6 +127,7 @@ def generalized_icp(
         aligned = apply_transform(aligned, step.rotation, step.translation)
         total_rotation = step.rotation @ total_rotation
         total_translation = step.rotation @ total_translation + step.translation
+        step_norm_history.append(_transform_step_norm(step.rotation, step.translation))
 
         transformed_corr = apply_transform(src_corr, step.rotation, step.translation)
         current_error = rmse(np.linalg.norm(transformed_corr - tgt_corr, axis=1))
@@ -140,6 +142,7 @@ def generalized_icp(
 
     final_distances = _nearest_distances(aligned, tree)
     final_rmse = rmse(final_distances)
+    final_fitness = fitness(final_distances, max_correspondence_distance)
     return ICPResult(
         rotation=total_rotation,
         translation=total_translation,
@@ -148,14 +151,22 @@ def generalized_icp(
         rmse_history=rmse_history,
         initial_rmse=initial_rmse,
         final_rmse=final_rmse,
-        fitness=fitness(final_distances, max_correspondence_distance),
+        fitness=final_fitness,
         iterations=iterations,
         converged=converged,
         diagnostics={
             "method": "generalized_icp",
+            "algorithm": "gicp_style_covariance_weighted_icp",
+            "full_nonlinear_gicp": False,
             "k_neighbors": target_cov_result.k_neighbors,
             "regularization": regularization,
+            "initial_rmse": initial_rmse,
+            "final_rmse": final_rmse,
+            "fitness": final_fitness,
+            "num_correspondences": used_correspondences,
             "used_correspondences": used_correspondences,
+            "residual_history": rmse_history.copy(),
+            "step_norm_history": step_norm_history,
             "mahalanobis_rmse_history": mahalanobis_history,
         },
     )
@@ -247,6 +258,13 @@ def _estimate_weighted_transform(
         translation=translation,
         transformation=make_transform(rotation, translation),
     )
+
+
+def _transform_step_norm(rotation: np.ndarray, translation: np.ndarray) -> float:
+    cos_angle = (float(np.trace(rotation)) - 1.0) / 2.0
+    angle = float(np.arccos(np.clip(cos_angle, -1.0, 1.0)))
+    translation_norm = float(np.linalg.norm(translation))
+    return float(np.hypot(angle, translation_norm))
 
 
 def _ensure_points(points: np.ndarray, name: str) -> np.ndarray:
