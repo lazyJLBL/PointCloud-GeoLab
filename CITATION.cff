@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use PointCloud-GeoLab, please cite this repository."
+title: "PointCloud-GeoLab"
+version: "0.1.0"
+date-released: "2026-06-17"
+authors:
+  - name: "lazyJLBL"
+repository-code: "https://github.com/lazyJLBL/PointCloud-GeoLab"
+license: "MIT"
+abstract: >
+  PointCloud-GeoLab is a point-cloud geometry portfolio project with custom
+  KDTree and VoxelHashGrid spatial indexes, ICP variants, RANSAC primitive
+  fitting, segmentation, benchmark verification, and documented real-data
+  workflows.

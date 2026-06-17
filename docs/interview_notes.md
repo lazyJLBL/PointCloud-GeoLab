@@ -1,177 +1,166 @@
 # Interview Notes
 
-## 中文速答
+These notes are written for a reviewer or interviewer who wants to understand
+what was implemented, what is optional, and where the limits are.
 
-### 为什么不用纯 Open3D？
+## 30-Second Project Pitch
 
-这个项目的定位不是替代 Open3D，而是展示我能把核心几何算法讲清楚并工程化。
-KDTree、ICP、RANSAC、PCA/OBB、segmentation、ISS 和局部描述子都保留自研实现；
-Open3D 只作为 FPFH、reconstruction、IO/visualization 或可选对照 baseline。这样既能
-证明算法理解，也能证明我知道生产工具链应该怎样对照验证。
+PointCloud-GeoLab is a point-cloud geometry portfolio project. The core
+algorithms are intentionally visible in Python and NumPy: KDTree,
+VoxelHashGrid, ICP variants, RANSAC primitive fitting, PCA/OBB geometry,
+clustering, and a small feature-registration pipeline. Optional libraries such
+as Open3D, Plotly, SciPy, scikit-learn, and PyTorch are used as baselines,
+visualization helpers, or demos, not as the proof of the core implementation.
 
-### KDTree 的剪枝原理是什么？
+## What Is Custom
 
-查询时先访问与 query 同侧的近分支，并维护当前最优距离 `best`。如果 query 到
-分裂超平面的距离已经大于 `best`，远分支里所有点都不可能更近，可以剪掉。低维
-空间效果好，高维或大半径查询会退化。
+- KDTree nearest, kNN, radius, batch, and bounded queries.
+- VoxelHashGrid for fixed-radius spatial lookup and voxel downsampling.
+- SVD rigid alignment, point-to-point ICP, point-to-plane ICP, robust ICP, and
+  multi-scale ICP.
+- GICP-style covariance-weighted ICP using covariance-derived scalar weights
+  with weighted SVD updates.
+- Plane, sphere, cylinder, and sequential primitive RANSAC.
+- DBSCAN, Euclidean clustering, region growing, ground/object segmentation, and
+  cluster reports.
+- ISS keypoints, local geometric descriptors, descriptor matching, transform
+  RANSAC, and ICP refinement.
 
-### ICP 如何求解刚体变换？
+## What Is Optional Baseline Or Demo
 
-每轮先用 KDTree 建立最近邻对应，再对对应点求 SVD 刚体配准：中心化点集，构造
-协方差 `H`，分解 `H = U S V^T`，令 `R = V U^T`，修正反射后计算
-`t = q_bar - R p_bar`。
+- Open3D FPFH registration is an optional baseline, not required by core CI.
+- Open3D mesh reconstruction is an optional demo path.
+- Plotly powers optional HTML visualization exports.
+- PyTorch powers the optional PointNet demo.
+- SciPy and scikit-learn are optional benchmark baselines.
 
-### RANSAC 迭代次数怎么估计？
+## What Is Documented Workflow Only
 
-如果内点比例是 `w`，最小样本大小是 `s`，希望成功概率是 `P`，则：
+- Stanford Bunny, KITTI, and ModelNet workflows describe expected local data
+  layouts under `data/external/`.
+- The repository does not commit those datasets and does not claim broad
+  real-data validation from the synthetic demo outputs.
+- Large LiDAR-scale processing still needs streaming, chunking, and profiling.
+
+## KDTree
+
+KDTree recursively splits the point set by coordinate axes. During nearest
+neighbor search, it visits the branch that contains the query first, keeps the
+current best distance, and prunes the opposite branch when the distance to the
+split plane is already larger than that best distance.
+
+How to say it in an interview:
+
+- "Brute force computes every distance. KDTree uses geometry to avoid visiting
+  subtrees that cannot contain a closer point."
+- "It works best in low dimensions. In high dimensions or huge radius queries,
+  pruning becomes weak and it can approach brute force."
+- "The tests compare KDTree answers against brute force, including duplicate,
+  empty, radius, and high-dimensional cases."
+
+## VoxelHashGrid
+
+VoxelHashGrid maps each point to an integer voxel coordinate and stores points
+in a hash map keyed by that coordinate. For fixed-radius queries, it only checks
+neighboring voxels that can intersect the search radius.
+
+How to say it:
+
+- "KDTree is general nearest-neighbor search. Voxel hashing is useful when I
+  repeatedly need local neighborhoods at a known radius."
+- "It trades exact global tree traversal for simple spatial bucketing."
+- "It is also a natural basis for voxel downsampling."
+
+## ICP
+
+Point-to-point ICP alternates two steps:
+
+1. Find nearest-neighbor correspondences from transformed source points to the
+   target.
+2. Solve the best rigid transform with centered SVD.
+
+Key caveat:
+
+- ICP is a local optimizer. It needs enough overlap and a reasonable initial
+  pose; otherwise nearest-neighbor correspondences can be wrong.
+
+Diagnostics now include initial RMSE, final RMSE, fitness, correspondence
+count, residual history, and step-norm history.
+
+## Point-To-Plane ICP
+
+Point-to-plane ICP minimizes residuals along target normals:
 
 ```text
-N >= log(1 - P) / log(1 - w^s)
+n_i^T (R p_i + t - q_i)
 ```
 
-内点比例下降或模型需要更多样本时，迭代次数会快速增加。
+Using small-angle updates turns the optimization into a linear least-squares
+step. It often converges faster on smooth surfaces, but it depends on stable
+normals and can be ill-conditioned on degenerate geometry such as nearly flat
+or symmetric point sets.
 
-### 点云分割有哪些失败场景？
+## GICP-Style ICP
 
-固定半径聚类容易受密度变化影响；地面拟合会在斜坡、台阶、墙面主导场景中失败；
-相邻物体接触会被连成一个 cluster；小物体可能被 `min_points` 过滤掉。
+This project includes GICP-style covariance-weighted ICP. It estimates local
+covariances and turns them into scalar correspondence weights, then solves a
+weighted SVD update.
 
-### 数据量扩大 100 倍怎么优化？
+What to say clearly:
 
-优先做分块/流式 IO、体素降采样、空间索引复用、批量 KDTree 查询、VoxelHashGrid
-固定半径搜索、并行 RANSAC/ICP correspondence search，并把 benchmark 拆成 quick
-和 full profile。需要生产部署时再引入 C++/CUDA/PCL/Open3D 后端做热点替换。
+- "This is useful for explaining covariance weighting."
+- "This is not a full nonlinear GICP optimizer."
+- "The diagnostics explicitly include `full_nonlinear_gicp: false`."
 
-## 1. Why is KDTree faster than brute force? When is it not?
+## RANSAC
 
-Brute force computes all `N` distances per query: `O(ND)`. KDTree recursively
-splits space and prunes a subtree when the splitting-plane distance is already
-larger than the best distance. In low dimensions this often behaves close to
-`O(log N)`.
+RANSAC repeatedly samples minimal point sets, fits a candidate model, counts
+inliers under a threshold, and keeps the best model. It is used here for plane,
+sphere, cylinder, and feature-registration transform estimation.
 
-It is not always faster. High-dimensional data weakens pruning because most
-points are similarly far away. Very large radius queries, duplicate-heavy data,
-or unbalanced distributions can also approach `O(N)`.
-
-Implementation: `pointcloud_geolab/kdtree/kdtree.py`.
-
-## 2. Why does ICP need an initial pose?
-
-ICP assumes nearest neighbors are meaningful correspondences. With a bad initial
-pose, nearest neighbors can be wrong, so the SVD step solves the wrong
-least-squares problem and converges to a local minimum. Feature RANSAC or
-odometry/IMU priors are typical ways to provide the initial basin.
-
-## 3. Point-to-point vs point-to-plane ICP
-
-Point-to-point minimizes:
-
-```text
-sum ||R p_i + t - q_i||^2
-```
-
-Point-to-plane minimizes distance along the target normal:
-
-```text
-sum (n_i^T (R p_i + t - q_i))^2
-```
-
-For small updates, `R p ~= p + w x p`, giving:
-
-```text
-n^T ((w x p) + t + p - q) = 0
-```
-
-Point-to-plane usually converges faster on smooth surfaces, but it depends on
-stable normals and can be ill-conditioned on degenerate geometry.
-
-## 4. Why is multi-scale ICP more stable?
-
-Large voxels remove fine local minima and make the coarse geometry easier to
-align. Smaller voxels then refine details. The trade-off is that coarse levels
-can lose small structures, so the voxel schedule should decrease gradually.
-
-Implementation: `multiscale_icp` in `pointcloud_geolab/registration/icp.py`.
-
-## 5. Why do robust kernels and trimmed ICP help with outliers?
-
-Outliers create large residuals that can dominate least squares. Trimmed ICP
-keeps only the closest correspondence ratio, which is useful when overlap is
-partial. Huber keeps quadratic loss near zero but becomes linear for large
-residuals. Tukey eventually gives very large residuals zero weight.
-
-Failure case: if the trim ratio is too low, valid geometry is discarded; if it
-is too high, outliers still influence the transform.
-
-## 6. How does RANSAC success depend on outlier ratio?
-
-If the inlier ratio is `w`, minimal sample size is `s`, and iterations are `N`,
-the success probability is:
+Important formula:
 
 ```text
 P = 1 - (1 - w^s)^N
 ```
 
-As outliers increase, `w^s` drops quickly. Cylinder fitting needs a larger
-sample than plane fitting, so it needs more iterations for the same confidence.
+`w` is the inlier ratio, `s` is the minimal sample size, and `N` is iterations.
+As outliers increase or the model needs more sample points, required iterations
+rise quickly.
 
-## 7. How does PCA compute an OBB?
+## DBSCAN And Segmentation
 
-PCA computes covariance eigenvectors. These eigenvectors define a local
-orthonormal frame. Project points into that frame, compute min/max bounds, then
-transform box corners back to world coordinates. Axes are unstable when
-eigenvalues are close, such as near-spherical clouds.
+DBSCAN finds dense connected regions and labels sparse points as noise.
+Euclidean clustering is simpler: it connects points within a fixed radius.
+Ground removal first removes a dominant plane so object clustering is not
+connected through the road or floor.
 
-## 8. What is the core idea of ISS keypoints?
+Honest limits:
 
-ISS analyzes local covariance eigenvalues. A point is salient when the
-neighborhood has strong 3D variation and eigenvalue ratios satisfy:
+- Fixed radii are sensitive to LiDAR density changes.
+- Slopes, curbs, ramps, walls, and touching objects can break simple ground and
+  cluster assumptions.
+- The current implementation is suitable for small scenes and review demos, not
+  a production autonomy segmentation stack.
 
-```text
-lambda2 / lambda1 < gamma21
-lambda3 / lambda2 < gamma32
-```
+## Feature Registration Fallback
 
-Non-maximum suppression keeps only local maxima of the saliency score.
+The feature path uses ISS keypoints, local descriptors, ratio matching,
+transform RANSAC, and ICP refinement. If descriptor matching does not produce
+enough correspondences, a geometry fallback can be enabled for diagnostics.
 
-## 9. What do FPFH and local descriptors do?
+How to say it:
 
-Descriptors turn local geometry into comparable vectors. FPFH is a widely used
-baseline implemented through Open3D in this project. The project also includes a
-custom descriptor built from eigenvalue ratios, curvature, density, and
-scattering to demonstrate the geometry behind feature matching.
+- "Fallback is not descriptor registration success."
+- "It is disabled by default and records diagnostics when explicitly enabled."
+- "For mature production descriptors, Open3D/PCL feature stacks are the
+  baseline to compare against."
 
-## 10. DBSCAN vs Euclidean clustering
+## Good Reviewer Questions
 
-Euclidean clustering builds connected components where edges connect points
-within a fixed radius. DBSCAN additionally requires enough neighbors to start a
-core point and labels sparse points as noise. DBSCAN handles noise better;
-Euclidean clustering is simpler and common in robotics object extraction after
-ground removal.
-
-## 11. Why is ground removal common in autonomous driving point clouds?
-
-LiDAR scenes are dominated by ground points. Removing the ground reduces point
-count and prevents road points from connecting separate objects. It also makes
-bounding boxes and object clusters cleaner. Failure cases include slopes,
-curbs, ramps, and scenes where the largest plane is not the road.
-
-## 12. Which parts are custom and which use Open3D?
-
-Custom implementations:
-
-- KDTree and Voxel Hash Grid;
-- point-to-point, point-to-plane, robust, and multi-scale ICP;
-- SVD rigid alignment;
-- RANSAC plane/sphere/cylinder fitting and sequential extraction;
-- ISS keypoints, local descriptors, descriptor matching, transform RANSAC;
-- DBSCAN, Euclidean clustering, region growing, ground removal pipeline.
-
-Open3D-backed parts:
-
-- FPFH descriptors and feature RANSAC baseline;
-- optional mesh reconstruction demos: Poisson, Ball Pivoting, Alpha Shape;
-- optional visualization/backend I/O when installed.
-
-This split is intentional: custom code proves algorithm understanding, while
-Open3D baselines show awareness of established tooling.
+- "Which functions are custom and which are optional baselines?"
+- "What happens when optional Open3D or PyTorch is not installed?"
+- "How do you know KDTree or VoxelHashGrid is correct?"
+- "Why does ICP fail with poor initialization?"
+- "Why is the GICP implementation not full GICP?"
+- "How would you scale this to a full KITTI sequence?"

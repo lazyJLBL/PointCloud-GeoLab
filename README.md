@@ -1,6 +1,9 @@
 # PointCloud-GeoLab
 
 ![Tests](https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Coverage threshold](https://img.shields.io/badge/coverage%20threshold-65%25-informational)
 
 PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
@@ -164,8 +167,11 @@ CI runs `verify-core` and `verify-portfolio`.
 - [Stanford Bunny Case Study](docs/case_study_bunny.md)
 - [KITTI LiDAR Case Study](docs/case_study_kitti.md)
 - [Coverage](docs/coverage.md)
+- [Interview Notes](docs/interview_notes.md)
+- [Reviewer Checklist](docs/reviewer_checklist.md)
 - [Portfolio Review Template](docs/portfolio_report_template.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Changelog](CHANGELOG.md)
 
 ## Resume Description
 
@@ -180,6 +186,6 @@ real-data workflows.
 Chinese:
 
 实现 PointCloud-GeoLab 点云几何作品集项目：包含自研 KDTree 和 VoxelHashGrid
-空间索引、ICP/GICP 风格配准、RANSAC 平面/球/圆柱拟合、PCA/OBB 几何分析、LiDAR
-地面分割与聚类、固定 seed 测试、可复现实验基准，以及 Stanford Bunny 和 KITTI
-数据工作流说明。
+空间索引、ICP 与 GICP-style covariance-weighted ICP 配准、RANSAC 平面/球/圆柱拟合、
+PCA/OBB 几何分析、LiDAR 地面分割与聚类、固定 seed 测试、可复现实验基准，以及
+Stanford Bunny 和 KITTI 数据工作流说明。
