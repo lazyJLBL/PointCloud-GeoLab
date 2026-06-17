@@ -237,6 +237,22 @@ def main() -> int:
         print("Invalid portfolio artifacts:")
         for message in artifacts.invalid_files:
             print(f"- {message}")
+    if not result.success:
+        if result.error:
+            print(f"Portfolio smoke failed: {result.error}")
+        failed_commands = result.data.get("failed", [])
+        if failed_commands:
+            print("Failed portfolio commands:")
+            for item in failed_commands:
+                print(f"- `{item['command']}` returned {item['returncode']}")
+                stderr_lines = str(item.get("stderr") or "").splitlines()
+                if stderr_lines:
+                    print(f"  stderr tail: {stderr_lines[-1]}")
+        missing_readme_artifacts = result.data.get("missing_readme_artifacts", [])
+        if missing_readme_artifacts:
+            print("Missing README artifacts:")
+            for item in missing_readme_artifacts:
+                print(f"- {item}")
     return 0 if result.success and artifacts.success else 1
 
 

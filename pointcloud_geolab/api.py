@@ -870,7 +870,7 @@ def run_global_registration(
                     target_points,
                 ],
                 labels=["coarse source", "target"],
-                title="FPFH RANSAC Coarse Registration",
+                title="Feature RANSAC Coarse Registration",
             )
             save_point_cloud_projection(
                 refined_path,

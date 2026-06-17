@@ -1,4 +1,4 @@
-"""Demo: FPFH global registration followed by ICP refinement."""
+"""Demo: descriptor-based global registration followed by ICP refinement."""
 
 from __future__ import annotations
 
@@ -43,6 +43,7 @@ def main() -> int:
         save_transform=out / "transform.txt",
         output_dir=out,
         voxel_size=0.08,
+        method="iss_descriptor_ransac_icp",
         save_results=True,
         export_html=out / "registration.html",
     )
