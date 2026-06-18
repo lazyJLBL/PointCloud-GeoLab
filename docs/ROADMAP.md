@@ -24,7 +24,8 @@ separate implemented work from planned work.
 - Preprocessing: voxel downsampling, AABB crop, normalization, random/farthest
   sampling, statistical and radius outlier removal, and local PCA normals.
 - Registration: SVD rigid transform, point-to-point ICP, point-to-plane ICP,
-  robust Huber/Tukey/trimmed ICP, multiscale ICP, and GICP-style covariance-weighted ICP.
+  robust Huber/Tukey/trimmed ICP, multiscale ICP, and GICP-style
+  covariance-weighted ICP.
 - Feature registration: ISS keypoints, local covariance-spectrum descriptors,
   descriptor matching, RANSAC transform estimation, and ICP refinement.
 - Open3D FPFH/RANSAC/ICP path as an optional comparison baseline.
@@ -41,7 +42,15 @@ separate implemented work from planned work.
   `tracemalloc` memory metadata.
 - Tiny synthetic KITTI-like `.bin` and ModelNet-like `.off` format fixtures
   with checksum validation in `verify-core`.
-- v0.1.1 release-candidate notes, artifact manifest, and release-ready checker.
+- v0.1.1 hardening release notes, artifact manifest, and release-ready checker.
+- Manual v0.1.1 tag and GitHub release.
+- Portfolio pipeline implementation split into smaller input, metrics, figure,
+  report, and runner modules while preserving the compatibility import path.
+- Lightweight artifact schema checker for release, portfolio, and benchmark
+  JSON.
+- Repository audit script for local and optional GitHub release-review
+  snapshots.
+- Manual release gate workflow for benchmark and release-readiness checks.
 - Verification scripts for benchmark artifacts and portfolio demo artifacts.
 - Real-data preparation docs and examples for Stanford Bunny/Armadillo, KITTI
   Velodyne, and ModelNet small samples.
@@ -51,10 +60,12 @@ separate implemented work from planned work.
 
 ## Next Milestones
 
-### v0.1.1 Manual Release
+### v0.1.2 Engineering Quality
 
-- After a clean final review, create the `v0.1.1` tag and GitHub release
-  manually.
+- Continue hardening public API error contracts and documentation.
+- Expand path-aware IO error tests for supported point-cloud formats.
+- Keep artifact schema checks lightweight and dependency-free.
+- Improve repository audit output without requiring `gh` for local checks.
 - Keep generated `outputs/`, benchmark bundles, demo data, and coverage reports
   out of Git.
 
@@ -72,8 +83,8 @@ separate implemented work from planned work.
 
 ### v0.4 Algorithm Depth
 
-- Improve GICP-style covariance weighting from scalar Mahalanobis weights to a fuller nonlinear
-  covariance objective.
+- Improve GICP-style covariance weighting from scalar Mahalanobis weights to a
+  fuller nonlinear covariance objective.
 - Add Octree as a second spatial index for hierarchical range queries.
 - Add SHOT-like descriptor experiments and compare against Open3D FPFH.
 - Add adaptive DBSCAN or range-image clustering for uneven LiDAR density.
@@ -88,4 +99,4 @@ separate implemented work from planned work.
 
 - Expand the C++ demo into a pybind11 optional extension or a standalone CLI.
 - Add a ROS2 perception-node wrapper design for streaming LiDAR frames.
-- Add Docker/devcontainer instructions for reproducible reviewers' setup.
+- Expand DevContainer notes only when the reviewer workflow needs it.

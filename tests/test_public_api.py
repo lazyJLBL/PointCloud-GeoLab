@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import json
 from pathlib import Path
 
 import pointcloud_geolab as pcg
@@ -54,3 +55,19 @@ def test_public_api_benchmark_error_path_is_structured(tmp_path: Path) -> None:
     assert not result.success
     assert result.error == "repeat must be at least 1"
     assert result.task == "benchmark:kdtree"
+
+
+def test_task_result_to_json_preserves_error_contract() -> None:
+    result = api.TaskResult(
+        task="demo",
+        success=False,
+        parameters={"input": "missing.ply"},
+        error="missing file",
+    )
+
+    payload = json.loads(result.to_json())
+
+    assert payload["task"] == "demo"
+    assert payload["success"] is False
+    assert payload["error"] == "missing file"
+    assert payload["parameters"]["input"] == "missing.ply"

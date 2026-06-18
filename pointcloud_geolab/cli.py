@@ -202,7 +202,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         config = _load_yaml(args.config) if args.config else {}
     except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        _emit_error_result("cli", exc, args.format or "text", {"config": str(args.config)})
         return 1
     params = _merge_parameters(args.command, config, _namespace_values(args))
     result = _execute_task(args.command, params)
@@ -463,7 +463,7 @@ def _main_legacy(argv: list[str]) -> int:
     try:
         config = _load_yaml(args.config) if args.config else {}
     except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        _emit_error_result("cli", exc, args.format, {"config": str(args.config)})
         return 1
     params = _merge_parameters(args.mode, config, _namespace_values(args))
     result = _execute_task(args.mode, params)
@@ -475,11 +475,16 @@ def _run_batch(args: argparse.Namespace) -> int:
     try:
         manifest = _load_yaml(args.batch)
     except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        _emit_error_result("batch", exc, args.format, {"batch": str(args.batch)})
         return 1
     jobs = manifest.get("jobs", manifest if isinstance(manifest, list) else None)
     if not isinstance(jobs, list):
-        print("Error: batch manifest must contain a top-level jobs list", file=sys.stderr)
+        _emit_error_result(
+            "batch",
+            ValueError("batch manifest must contain a top-level jobs list"),
+            args.format,
+            {"batch": str(args.batch)},
+        )
         return 1
 
     root_overrides = {
@@ -784,9 +789,27 @@ def _load_yaml(path: str | Path | None) -> dict[str, Any]:
 
 def _emit_result(result: TaskResult, output_format: str) -> None:
     if output_format == "json":
-        print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
+        print(result.to_json(indent=2))
         return
     print(_format_text_result(result))
+
+
+def _emit_error_result(
+    task: str,
+    error: BaseException,
+    output_format: str,
+    parameters: dict[str, Any] | None = None,
+) -> None:
+    result = TaskResult(
+        task=task,
+        success=False,
+        parameters=parameters or {},
+        error=str(error),
+    )
+    if output_format == "json":
+        print(result.to_json(indent=2))
+        return
+    print(f"Error: {error}", file=sys.stderr)
 
 
 def _format_text_result(result: TaskResult) -> str:

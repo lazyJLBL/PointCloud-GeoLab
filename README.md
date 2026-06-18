@@ -9,9 +9,9 @@ PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
 Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
-Current version: `0.1.1` release candidate. This is a portfolio, learning, and
-reviewer-oriented release candidate; no v0.1.1 tag or GitHub release is created
-by the repository checks.
+Current version: `0.1.1` hardening release. This is a portfolio, learning, and
+reviewer-oriented release; the v0.1.1 tag and GitHub release are historical
+release artifacts and should not be rewritten by v0.1.2-pre work.
 
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
@@ -193,6 +193,8 @@ python scripts/check_devcontainer.py
 python scripts/check_packaging.py
 python scripts/check_dataset_fixtures.py
 python scripts/check_release_ready.py
+python scripts/check_artifact_schema.py
+python scripts/audit_repository_state.py --help
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline \
   --input examples/demo_data \
@@ -215,11 +217,11 @@ make verify-release-candidate
 make verify-full
 ```
 
-`verify-core` runs compile, lint, format, tests with coverage, and repository
-hygiene, DevContainer, packaging, and tiny dataset fixture checks. CI runs
-`verify-core` and `verify-portfolio`. `verify-release-candidate` is heavier: it
-also regenerates portfolio and benchmark artifacts, verifies them, and runs the
-release-ready metadata checks.
+`verify-core` runs compile, lint, format, tests with coverage, repository
+hygiene, DevContainer, packaging, tiny dataset fixture, and artifact schema
+checks. CI runs `verify-core` and `verify-portfolio`.
+`verify-release-candidate` is heavier: it also regenerates portfolio and
+benchmark artifacts, verifies them, and runs release-ready metadata checks.
 
 ## Tiny Dataset Fixtures
 
@@ -251,9 +253,9 @@ make verify-core
 make verify-portfolio
 ```
 
-The v0.1.1 release candidate notes and artifact manifest live under
-`docs/releases/`. They describe expected local outputs and the remaining
-roadmap items without committing generated artifacts.
+The v0.1.1 release notes and artifact manifest live under `docs/releases/`.
+They describe expected local outputs and the remaining roadmap items without
+committing generated artifacts.
 
 ## Limitations
 
@@ -286,13 +288,16 @@ roadmap items without committing generated artifacts.
 - [Stanford Bunny Case Study](docs/case_study_bunny.md)
 - [KITTI LiDAR Case Study](docs/case_study_kitti.md)
 - [Coverage](docs/coverage.md)
+- [Artifact Schema](docs/artifact_schema.md)
 - [Release Checklist](docs/release_checklist.md)
+- [Audit Report Template](docs/audit_report_template.md)
 - [Interview Notes](docs/interview_notes.md)
 - [Reviewer Checklist](docs/reviewer_checklist.md)
 - [Portfolio Review Template](docs/portfolio_report_template.md)
 - [Roadmap](docs/ROADMAP.md)
+- [v0.1.2 Planning](docs/planning/v0.1.2.md)
 - [Changelog](CHANGELOG.md)
-- [v0.1.1 Release Candidate](docs/releases/v0.1.1.md)
+- [v0.1.1 Hardening Release](docs/releases/v0.1.1.md)
 
 ## Resume Description
 

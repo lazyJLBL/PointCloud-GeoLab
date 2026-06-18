@@ -26,8 +26,10 @@ TEXT_SHAPE_PATTERNS = (
     "README.md",
     "CHANGELOG.md",
     "pyproject.toml",
-    ".github/workflows/tests.yml",
+    "Makefile",
+    ".github/workflows/*.yml",
     "docs/**/*.md",
+    "scripts/**/*.py",
 )
 
 BANNED_CLAIM_PATTERNS = (
@@ -41,6 +43,7 @@ BANNED_CLAIM_PATTERNS = (
 )
 
 NEGATION_MARKERS = (
+    "no ",
     "not ",
     "not a ",
     "not an ",

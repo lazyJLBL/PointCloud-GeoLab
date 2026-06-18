@@ -2,7 +2,7 @@ PYTHON ?= python
 
 .PHONY: install install-dev compile data pipeline test lint format-check
 .PHONY: check-hygiene check-packaging check-devcontainer check-fixtures
-.PHONY: check-release-ready
+.PHONY: check-artifact-schema check-release-ready audit-repository
 .PHONY: benchmark verify-core verify-portfolio verify-benchmarks
 .PHONY: verify-release-candidate verify-full verify cpp-demo
 
@@ -42,13 +42,19 @@ check-devcontainer:
 check-fixtures:
 	$(PYTHON) scripts/check_dataset_fixtures.py
 
+check-artifact-schema:
+	$(PYTHON) scripts/check_artifact_schema.py
+
 check-release-ready:
 	$(PYTHON) scripts/check_release_ready.py
+
+audit-repository:
+	$(PYTHON) scripts/audit_repository_state.py
 
 benchmark:
 	$(PYTHON) -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
 
-verify-core: compile lint format-check test check-hygiene check-devcontainer check-packaging check-fixtures
+verify-core: compile lint format-check test check-hygiene check-devcontainer check-packaging check-fixtures check-artifact-schema
 
 verify-portfolio: data pipeline
 	$(PYTHON) scripts/verify_portfolio.py --quick --output-dir outputs
@@ -56,7 +62,7 @@ verify-portfolio: data pipeline
 verify-benchmarks: benchmark
 	$(PYTHON) scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 
-verify-release-candidate: verify-core verify-portfolio verify-benchmarks check-release-ready
+verify-release-candidate: verify-core verify-portfolio verify-benchmarks check-release-ready check-artifact-schema
 
 verify-full: verify-core verify-portfolio verify-benchmarks
 

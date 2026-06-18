@@ -1,9 +1,10 @@
 # Release Checklist
 
-This checklist is for v0.1.1 pre-release sanity checks. It prepares the
-repository for review; it does not create a tag or publish a release.
+This checklist records the v0.1.1 hardening release checks and the process to
+use before future manual patch releases. It does not create a tag or publish a
+release by itself.
 
-v0.1.1 is a portfolio, learning, and reviewer-oriented release candidate. It
+v0.1.1 is a portfolio, learning, and reviewer-oriented hardening release. It
 focuses on verification, packaging sanity, documentation boundaries, and local
 artifact regeneration.
 
@@ -28,14 +29,14 @@ Windows:
 mingw32-make verify-core
 ```
 
-Run the full release-candidate gate when preparing a tag manually:
+Run the full release gate when preparing a future tag manually:
 
 ```bash
 make verify-release-candidate
 ```
 
 This target runs `verify-core`, regenerates and verifies portfolio and benchmark
-artifacts, and then runs `python scripts/check_release_ready.py`.
+artifacts, and then runs release metadata and artifact schema checks.
 
 ## DevContainer
 
@@ -108,7 +109,7 @@ Expected generated reports:
 
 These outputs are ignored and should not be committed.
 
-The expected release-candidate artifact manifest is:
+The expected v0.1.1 artifact manifest is:
 
 ```text
 docs/releases/v0.1.1_artifacts.json
@@ -117,9 +118,21 @@ docs/releases/v0.1.1_artifacts.json
 It lists the verification commands, expected generated portfolio/benchmark
 files, ignored artifact paths, limitations, and open roadmap items.
 
+Validate the manifest schema directly:
+
+```bash
+python scripts/check_artifact_schema.py
+```
+
+Generate a local audit snapshot when preparing reviewer notes:
+
+```bash
+python scripts/audit_repository_state.py
+```
+
 ## Boundary Checks
 
-Before release, confirm the public wording stays bounded:
+Before any future release, confirm the public wording stays bounded:
 
 - GICP is described as GICP-style covariance-weighted ICP, not a full nonlinear
   GICP optimizer.
@@ -132,4 +145,5 @@ Before release, confirm the public wording stays bounded:
 - v0.1.1 does not complete a real KITTI benchmark, full nonlinear GICP, CUDA
   acceleration, SLAM backend, or PointNet training release.
 
-Do not create a `v0.1.1` tag unless that release action is explicitly requested.
+Do not rewrite the existing `v0.1.1` tag or GitHub release. Create a new tag
+only when that release action is explicitly requested.

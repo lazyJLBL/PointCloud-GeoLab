@@ -59,6 +59,8 @@ for small scenes and reviewer demos.
 Benchmark and report code creates evidence artifacts:
 
 - CSV, JSON, Markdown, and PNG benchmark outputs.
+- Lightweight schema checks for release manifests, portfolio metrics, and
+  benchmark JSON.
 - Metadata for parameters, random seed, data scale, platform, Python, and
   optional dependencies.
 - Portfolio metrics, report, figures, processed point clouds, and transform
@@ -74,6 +76,11 @@ Generated outputs live under ignored directories such as `outputs/` and
 pipeline command runs the deterministic portfolio demo and writes a reviewable
 bundle under `outputs/portfolio_demo`.
 
+The portfolio pipeline keeps the historical `pointcloud_geolab.pipeline` import
+path, but the implementation is split into `portfolio_pipeline.inputs`,
+`metrics`, `figures`, `reports`, and `runner` modules. This keeps the reviewer
+entry point stable while making the internals easier to audit.
+
 `pointcloud_geolab.api` is the stable task surface used by the CLI, examples,
 and tests.
 
@@ -88,4 +95,6 @@ Optional integrations are isolated from core correctness:
 - SciPy, scikit-learn, and pandas benchmark comparisons.
 
 When these dependencies are absent, tests should skip or the command should
-return a clear dependency message.
+return a clear dependency message. `pointcloud_geolab.utils.optional_deps`
+provides shared diagnostics for those paths without installing CUDA, PyTorch,
+or large external datasets by default.

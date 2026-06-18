@@ -1,0 +1,30 @@
+name: Release Gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    name: Release gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package with review extras
+        run: python -m pip install -e ".[dev,vis,bench]"
+
+      - name: Verify benchmarks
+        run: make verify-benchmarks
+
+      - name: Verify release gate
+        run: make verify-release-candidate

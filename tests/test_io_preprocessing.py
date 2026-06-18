@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import numpy as np
@@ -77,12 +78,95 @@ def test_point_cloud_io_error_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
     bad_ply = tmp_path / "bad.ply"
     bad_ply.write_text("not-ply\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="not a PLY file"):
+    with pytest.raises(ValueError, match=rf"{re.escape(str(bad_ply))}.*bad PLY header"):
         load_point_cloud(bad_ply)
 
     monkeypatch.setattr(pointcloud_io, "_optional_open3d", lambda: None)
-    with pytest.raises(ImportError, match="Open3D is required"):
+    with pytest.raises(ImportError, match="Optional dependency `open3d` is unavailable"):
         pointcloud_io.to_open3d_point_cloud(np.zeros((3, 3)))
+
+
+def test_point_cloud_load_errors_include_path_for_common_formats(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    missing = tmp_path / "missing.xyz"
+    with pytest.raises(
+        FileNotFoundError,
+        match=rf"{re.escape(str(missing))}.*missing point cloud file",
+    ):
+        load_point_cloud(missing)
+
+    unsupported = tmp_path / "cloud.abc"
+    unsupported.write_text("1 2 3\n", encoding="utf-8")
+    with pytest.raises(
+        ValueError,
+        match=rf"{re.escape(str(unsupported))}.*unsupported point cloud format",
+    ):
+        load_point_cloud(unsupported)
+
+    empty = tmp_path / "empty.txt"
+    empty.write_text("", encoding="utf-8")
+    with pytest.raises(ValueError, match=rf"{re.escape(str(empty))}.*empty"):
+        load_point_cloud(empty)
+
+    bad_xyz = tmp_path / "bad.xyz"
+    bad_xyz.write_text("1 2 nope\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=rf"{re.escape(str(bad_xyz))}.*bad numeric"):
+        load_point_cloud(bad_xyz)
+
+    bad_bin = tmp_path / "bad.bin"
+    np.asarray([1.0, 2.0, 3.0], dtype=np.float32).tofile(bad_bin)
+    with pytest.raises(ValueError, match=rf"{re.escape(str(bad_bin))}.*divisible by 4"):
+        load_point_cloud(bad_bin)
+
+    bad_off = tmp_path / "bad.off"
+    bad_off.write_text("NOFF\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=rf"{re.escape(str(bad_off))}.*bad OFF header"):
+        load_point_cloud(bad_off)
+
+    monkeypatch.setattr(pointcloud_io, "_optional_open3d", lambda: None)
+    bad_ply = tmp_path / "numeric.ply"
+    bad_ply.write_text(
+        "\n".join(
+            [
+                "ply",
+                "format ascii 1.0",
+                "element vertex 1",
+                "property float x",
+                "property float y",
+                "property float z",
+                "end_header",
+                "1 2 nope",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match=rf"{re.escape(str(bad_ply))}.*bad numeric"):
+        load_point_cloud(bad_ply)
+
+    bad_pcd = tmp_path / "numeric.pcd"
+    bad_pcd.write_text(
+        "\n".join(
+            [
+                "# .PCD v0.7",
+                "FIELDS x y z",
+                "SIZE 4 4 4",
+                "TYPE F F F",
+                "COUNT 1 1 1",
+                "WIDTH 1",
+                "HEIGHT 1",
+                "POINTS 1",
+                "DATA ascii",
+                "1 2 nope",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match=rf"{re.escape(str(bad_pcd))}.*bad numeric"):
+        load_point_cloud(bad_pcd)
 
 
 def test_stack_point_clouds_handles_empty_and_multiple_sets() -> None:

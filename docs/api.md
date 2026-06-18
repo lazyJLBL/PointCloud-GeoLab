@@ -22,7 +22,15 @@ Fields:
 - `data`
 - `error`
 
-Use `result.to_dict()` for JSON-friendly output.
+Use `result.to_dict()` for JSON-friendly output or `result.to_json()` when a
+serialized envelope is needed.
+
+Error results keep the same outer contract:
+
+- `task`: task or command that failed.
+- `success`: `False`.
+- `error`: human-readable reason.
+- `parameters`: the input parameters that reached the task, when available.
 
 ## Stable Task Functions
 

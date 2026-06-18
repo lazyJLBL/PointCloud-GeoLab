@@ -13,6 +13,8 @@ Unit tests cover the small algorithmic pieces directly:
 - RANSAC primitives with known inlier/outlier structure.
 - PCA, AABB, OBB, preprocessing, segmentation, and transform utilities.
 - CLI/API task envelopes and error paths.
+- Point-cloud IO error messages for missing files, unsupported extensions,
+  empty inputs, bad headers, and bad numeric data.
 
 Most unit tests use small NumPy arrays so failures are easy to inspect.
 
@@ -62,6 +64,20 @@ This prevents benchmark evidence from becoming a set of placeholder files.
 - Expected gallery and pipeline artifacts.
 
 The verifier supports reviewer confidence without committing generated outputs.
+
+## Artifact Schema Checks
+
+`scripts/check_artifact_schema.py` validates the required keys, basic types,
+and numeric ranges for release manifests, portfolio metrics, and benchmark
+JSON. It intentionally uses the standard library instead of `jsonschema` so the
+release checks stay dependency-light.
+
+## Repository Audit
+
+`scripts/audit_repository_state.py` prints a local audit snapshot covering
+version, tag lookup, release summary, open issues, CI, coverage gate, generated
+artifact guard, optional dependency policy, and limitations. GitHub CLI checks
+are skipped cleanly when `gh` is unavailable.
 
 ## Optional Dependency Skips
 

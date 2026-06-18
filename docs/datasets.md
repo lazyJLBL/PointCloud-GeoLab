@@ -24,6 +24,11 @@ python scripts/check_dataset_fixtures.py
 These files are format smoke tests only. They are not real KITTI, ModelNet,
 SemanticKITTI, or nuScenes data, and they are not benchmark evidence.
 
+The shared point-cloud readers report path-aware errors for missing files,
+unsupported extensions, empty files, bad headers, and bad numeric data. This
+keeps tiny fixture failures and user-provided real-data preparation issues easy
+to diagnose.
+
 ## Supported Sources
 
 ### Stanford Bunny / Armadillo

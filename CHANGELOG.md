@@ -4,7 +4,32 @@ All notable changes for PointCloud-GeoLab are recorded here.
 
 ## Unreleased
 
-No unreleased changes yet.
+### Added
+
+- v0.1.2 planning notes for API, IO, artifact schema, pipeline structure,
+  release gate, and repository audit follow-up work.
+- Lightweight artifact schema checker for release manifests, portfolio metrics,
+  and benchmark JSON.
+- Manual `release-gate.yml` workflow for benchmark and release-gate
+  verification without publishing artifacts.
+- Repository audit script for local version, tag, release, issue, CI, coverage,
+  generated-artifact, optional dependency, and limitation summaries.
+- Optional dependency diagnostics helper for Open3D, Plotly, laspy, PyTorch,
+  SciPy, scikit-learn, and pandas.
+
+### Changed
+
+- v0.1.1 wording now describes the published hardening release rather than
+  candidate wording.
+- Portfolio pipeline internals were split into input, metrics, figures, report,
+  and runner modules while preserving the public `pointcloud_geolab.pipeline`
+  import path.
+- Point-cloud IO error messages now include the path and reason for missing,
+  unsupported, empty, bad-header, and bad-numeric-data cases.
+- CLI configuration and batch errors emit a structured JSON envelope when
+  `--format json` is requested.
+- Repository hygiene checks cover workflow files, Makefile, docs, and script
+  text shape.
 
 ## v0.1.1 - 2026-06-18
 
@@ -27,7 +52,7 @@ No unreleased changes yet.
   bounded v0.1.1 scope.
 - Tiny synthetic KITTI-like `.bin` and ModelNet-like `.off` fixtures with
   SHA256 manifest validation.
-- Release candidate notes and artifact manifest for reviewer handoff.
+- Release notes and artifact manifest for reviewer handoff.
 
 ### Changed
 

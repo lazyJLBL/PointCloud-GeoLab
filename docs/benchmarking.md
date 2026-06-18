@@ -33,6 +33,13 @@ Verify generated artifacts:
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
+Validate the benchmark JSON schema directly:
+
+```bash
+python scripts/check_artifact_schema.py \
+  --benchmark-json outputs/benchmarks/all_benchmark.json
+```
+
 ## Repeat Statistics
 
 The benchmark CLI accepts `--repeat`, with default `1`.

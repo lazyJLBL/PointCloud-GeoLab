@@ -309,6 +309,33 @@ def test_cli_missing_file_returns_error_and_metrics(tmp_path: Path) -> None:
     assert payload["success"] is False
 
 
+def test_cli_missing_file_json_error_is_machine_readable(tmp_path: Path) -> None:
+    completed = run_cli(
+        "geometry",
+        "--input",
+        str(tmp_path / "missing.ply"),
+        "--output-dir",
+        str(tmp_path / "missing_json"),
+        "--format",
+        "json",
+    )
+
+    payload = json.loads(completed.stdout)
+    assert completed.returncode == 1
+    assert payload["success"] is False
+    assert payload["task"] == "geometry"
+    assert "missing.ply" in payload["error"]
+
+
+def test_cli_subcommand_help_is_available() -> None:
+    for command in ["geometry", "benchmark", "pipeline", "register"]:
+        completed = run_cli(command, "--help")
+
+        assert completed.returncode == 0
+        assert "usage:" in completed.stdout
+        assert command in completed.stdout
+
+
 def test_load_yaml_rejects_scalar_document(tmp_path: Path) -> None:
     config_path = tmp_path / "bad.yaml"
     config_path.write_text("42\n", encoding="utf-8")

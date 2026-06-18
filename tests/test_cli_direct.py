@@ -140,8 +140,13 @@ def test_cli_invalid_config_returns_error(tmp_path: Path, capsys) -> None:
     exit_code = cli.main(["geometry", "--config", str(config), "--format", "json"])
 
     captured = capsys.readouterr()
+    payload = json.loads(captured.out)
     assert exit_code == 1
-    assert "must contain a YAML mapping or list" in captured.err
+    assert payload["success"] is False
+    assert payload["task"] == "cli"
+    assert payload["parameters"]["config"] == str(config)
+    assert "must contain a YAML mapping or list" in payload["error"]
+    assert captured.err == ""
 
 
 def test_cli_requires_command_or_batch(capsys) -> None:

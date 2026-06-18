@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from pointcloud_geolab.io.pointcloud_io import save_point_cloud
+from pointcloud_geolab.utils.optional_deps import require_optional
 from pointcloud_geolab.utils.transform import apply_homogeneous_transform
 
 
@@ -116,10 +117,4 @@ def _add_cloud(fig, points: np.ndarray, color: list[float], name: str) -> None:
 
 
 def _require_plotly():
-    try:
-        import plotly.graph_objects as go  # type: ignore
-    except ImportError as exc:
-        raise ImportError(
-            "Plotly is required for HTML export. Install with `python -m pip install plotly`."
-        ) from exc
-    return go
+    return require_optional("plotly")

@@ -1,4 +1,4 @@
-"""Check v0.1.1 release-candidate metadata and repository boundaries."""
+"""Check v0.1.1 release metadata and repository boundaries."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ Runner = Callable[..., subprocess.CompletedProcess[str]]
 
 @dataclass(frozen=True, slots=True)
 class ReleaseReadyResult:
-    """Result of release-candidate checks."""
+    """Result of release readiness checks."""
 
     checked_files: list[Path]
     issues: list[str]
@@ -54,7 +54,7 @@ def run_release_ready(
     status_output: str | None = None,
     runner: Runner = subprocess.run,
 ) -> ReleaseReadyResult:
-    """Run release-candidate checks without requiring network access."""
+    """Run release readiness checks without requiring network access."""
 
     repo = Path(root).resolve()
     checked: list[Path] = []
@@ -147,7 +147,7 @@ def check_version_metadata(root: Path, expected_version: str) -> list[str]:
 
 
 def check_changelog_section(path: Path, version: str) -> list[str]:
-    """Return issues if CHANGELOG is not organized for the release candidate."""
+    """Return issues if CHANGELOG is not organized for the release."""
 
     if not path.exists():
         return ["CHANGELOG.md: missing file"]
@@ -326,7 +326,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"- {issue}")
         return 1
     if result.workspace_clean:
-        print("Release candidate is ready for manual v0.1.1 tag/release creation.")
+        print("Release checks passed for the current v0.1.1 source state.")
     else:
         print("Release readiness checks passed for the current source state.")
     return 0

@@ -4,7 +4,7 @@ This checklist is for a release reviewer who wants to verify the portfolio
 without trusting committed generated artifacts.
 
 The current package version is `0.1.1`. It is a portfolio, learning, and
-reviewer-oriented release candidate, not a production LiDAR stack or a real
+reviewer-oriented hardening release, not a production LiDAR stack or a real
 KITTI benchmark release.
 
 ## 1. Install
@@ -38,10 +38,11 @@ python scripts/check_repo_hygiene.py
 python scripts/check_devcontainer.py
 python scripts/check_packaging.py
 python scripts/check_dataset_fixtures.py
+python scripts/check_artifact_schema.py
 ```
 
 Expected result: formatting, lint, tests, the 70% coverage gate, and repository
-hygiene, DevContainer, packaging, and tiny fixture checks pass.
+hygiene, DevContainer, packaging, tiny fixture, and artifact schema checks pass.
 
 ## 3. Optional DevContainer Reproduction
 
@@ -160,9 +161,9 @@ Review especially:
   not real dataset benchmarks.
 - Stanford Bunny, KITTI, and ModelNet are documented workflows requiring local
   datasets.
-- v0.1.1 pre-release work still does not include real KITTI benchmark results,
+- v0.1.1 still does not include real KITTI benchmark results,
   a full nonlinear GICP optimizer, a SLAM backend, CUDA acceleration, or a new
-  release tag.
+  PointNet training release.
 
 ## 8. Check Repository Hygiene
 
@@ -187,9 +188,9 @@ python scripts/check_ci_status.py --branch main --workflow tests.yml
 This helper uses the GitHub CLI when available. If `gh` is missing or not
 authenticated, it reports that clearly instead of printing a traceback.
 
-## 10. Release Candidate Gate
+## 10. Release Gate
 
-Before creating a manual tag or GitHub release, run:
+Before creating a future manual tag or GitHub release, run:
 
 ```bash
 make verify-release-candidate
@@ -198,3 +199,9 @@ make verify-release-candidate
 Expected result: core checks, portfolio verification, benchmark verification,
 and release-ready metadata checks pass. The release artifact manifest is
 `docs/releases/v0.1.1_artifacts.json`.
+
+For an audit snapshot:
+
+```bash
+python scripts/audit_repository_state.py
+```

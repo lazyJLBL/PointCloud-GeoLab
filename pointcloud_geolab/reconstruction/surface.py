@@ -7,6 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
+from pointcloud_geolab.utils.optional_deps import require_optional
+
 
 @dataclass(slots=True)
 class MeshReconstructionResult:
@@ -85,11 +87,4 @@ def _ensure_points(points: np.ndarray) -> np.ndarray:
 
 
 def _require_open3d():
-    try:
-        import open3d as o3d  # type: ignore
-    except ImportError as exc:
-        raise ImportError(
-            "Open3D is required for surface reconstruction. Install with "
-            "`python -m pip install open3d`."
-        ) from exc
-    return o3d
+    return require_optional("open3d")

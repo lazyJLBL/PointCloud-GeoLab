@@ -117,6 +117,11 @@ class TaskResult:
             }
         )
 
+    def to_json(self, indent: int | None = 2) -> str:
+        """Serialize the result envelope to JSON."""
+
+        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
+
 
 def run_icp(
     source: str | Path,

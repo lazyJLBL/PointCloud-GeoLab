@@ -21,6 +21,7 @@ from pointcloud_geolab.preprocessing import estimate_normals as estimate_normals
 from pointcloud_geolab.preprocessing import voxel_downsample as voxel_downsample_numpy
 from pointcloud_geolab.registration.icp import point_to_plane_icp, point_to_point_icp
 from pointcloud_geolab.registration.metrics import fitness, rmse
+from pointcloud_geolab.utils.optional_deps import require_optional
 from pointcloud_geolab.utils.transform import apply_homogeneous_transform
 
 
@@ -250,11 +251,4 @@ def _ensure_points(points: np.ndarray, name: str) -> np.ndarray:
 
 
 def _require_open3d():
-    try:
-        import open3d as o3d  # type: ignore
-    except ImportError as exc:
-        raise ImportError(
-            "Open3D is required for FPFH global registration. Install with "
-            "`python -m pip install open3d`."
-        ) from exc
-    return o3d
+    return require_optional("open3d")
