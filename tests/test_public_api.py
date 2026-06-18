@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 
 import pointcloud_geolab as pcg
 from pointcloud_geolab import api
@@ -45,3 +46,11 @@ def test_public_api_imports_are_explicit() -> None:
     assert module.__version__ == "0.1.0"
     assert callable(module.run_icp)
     assert module.TaskResult is api.TaskResult
+
+
+def test_public_api_benchmark_error_path_is_structured(tmp_path: Path) -> None:
+    result = api.run_benchmark("kdtree", output_dir=tmp_path, points=[20], queries=2, repeat=0)
+
+    assert not result.success
+    assert result.error == "repeat must be at least 1"
+    assert result.task == "benchmark:kdtree"

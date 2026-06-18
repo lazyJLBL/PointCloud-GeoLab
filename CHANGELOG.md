@@ -11,6 +11,11 @@ All notable changes for PointCloud-GeoLab are recorded here.
 - Project boundary, architecture, and testing strategy documentation for
   reviewer orientation.
 - CI status helper for checking the latest Tests workflow with the GitHub CLI.
+- Benchmark `--repeat` support with timing mean/std/min/max fields for repeated
+  local runs.
+- Lightweight benchmark memory metadata using Python `tracemalloc`.
+- Static HTML portfolio report generated next to `report.md`.
+- Benchmarking documentation for repeat statistics and local memory metadata.
 
 ### Changed
 
@@ -21,6 +26,9 @@ All notable changes for PointCloud-GeoLab are recorded here.
   read-only repository contents permission.
 - Coverage improved with additional CLI, verifier, public API, visualization,
   reconstruction, and point-cloud I/O tests.
+- Benchmark and portfolio verifiers now check repeat, memory, and HTML report
+  structure in addition to artifact presence.
+- Coverage gate raised from 65% to 70% after local coverage reached 78.61%.
 
 ## v0.1.0 Portfolio Release - 2026-06-17
 

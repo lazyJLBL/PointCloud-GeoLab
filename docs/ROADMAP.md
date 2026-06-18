@@ -15,6 +15,7 @@ separate implemented work from planned work.
   `python main.py --mode ...` compatibility.
 - Portfolio pipeline that generates `report.md`, `metrics.json`, five figures,
   `processed_cloud.ply`, and `transformation.json`.
+- Portfolio pipeline static HTML report generated next to `report.md`.
 - Deterministic synthetic demo-data generator in `examples/generate_demo_data.py`.
 - Custom KDTree with nearest-neighbor, kNN, radius, batch, high-dimensional, and
   optional parallel query support.
@@ -36,6 +37,8 @@ separate implemented work from planned work.
   registration, GICP-style ICP, and segmentation.
 - Benchmark JSON/Markdown metadata for parameters, data scale, seed, Python,
   platform, and optional baseline package versions.
+- Benchmark repeat statistics for local repeated runs, plus lightweight
+  `tracemalloc` memory metadata.
 - Verification scripts for benchmark artifacts and portfolio demo artifacts.
 - Real-data preparation docs and examples for Stanford Bunny/Armadillo, KITTI
   Velodyne, and ModelNet small samples.
@@ -47,8 +50,9 @@ separate implemented work from planned work.
 
 ### v0.3.1 Benchmark Hardening
 
-- Add memory profiling to benchmark JSON.
-- Add repeat-count statistics with mean/std instead of single-run timing.
+- Add confidence-interval style summaries once enough repeated local runs are
+  available.
+- Compare benchmark output schemas across releases.
 
 ### v0.3.2 Real Data Coverage
 
@@ -68,7 +72,7 @@ separate implemented work from planned work.
 ### v0.5 Visualization and Reporting
 
 - Add a static docs asset gallery generated from the portfolio pipeline.
-- Add an HTML report mode for the portfolio demo.
+- Publish the static HTML report as an optional local artifact or docs page.
 - Add benchmark comparison plots with confidence intervals.
 
 ### v0.6 Optional Systems Integration

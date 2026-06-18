@@ -94,6 +94,7 @@ def test_pipeline_smoke(tmp_path: Path) -> None:
 
     assert completed.returncode == 0, completed.stderr
     assert (output_dir / "report.md").exists()
+    assert (output_dir / "report.html").exists()
     assert (output_dir / "metrics.json").exists()
     assert (output_dir / "figures").is_dir()
     assert (output_dir / "artifacts" / "processed_cloud.ply").exists()
@@ -107,11 +108,17 @@ def test_pipeline_smoke(tmp_path: Path) -> None:
     ]:
         assert (output_dir / "figures" / name).exists()
 
+    html = (output_dir / "report.html").read_text(encoding="utf-8")
+    assert "PointCloud-GeoLab Portfolio Report" in html
+    assert "Metrics JSON" in html
+    assert "This synthetic demo is a smoke test" in html
+
 
 def test_metrics_schema(tmp_path: Path) -> None:
     result, output_dir = run_pipeline_direct(tmp_path)
 
     assert result.success, result.error
+    assert "html_report" in result.artifacts
     metrics = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
     for section in ["input", "preprocessing", "registration", "segmentation", "runtime"]:
         assert section in metrics
@@ -123,6 +130,25 @@ def test_metrics_schema(tmp_path: Path) -> None:
     assert {"num_clusters", "cluster_sizes", "noise_ratio"} <= set(metrics["segmentation"])
     assert metrics["runtime"]["total_seconds"] >= 0
     assert metrics["registration"]["rmse_after"] <= metrics["registration"]["rmse_before"]
+
+
+def test_pipeline_can_skip_html_report(tmp_path: Path) -> None:
+    input_dir = tmp_path / "demo_data"
+    output_dir = tmp_path / "portfolio_demo"
+    make_pipeline_input(input_dir)
+
+    result = run_portfolio_pipeline(
+        input_path=input_dir,
+        output_dir=output_dir,
+        eps=0.08,
+        min_points=5,
+        html_report=False,
+    )
+
+    assert result.success, result.error
+    assert "html_report" not in result.artifacts
+    assert (output_dir / "report.md").exists()
+    assert not (output_dir / "report.html").exists()
 
 
 def test_pipeline_does_not_write_to_repo_root(tmp_path: Path) -> None:

@@ -27,6 +27,7 @@ EXPECTED_GALLERY_ARTIFACTS = (
 
 EXPECTED_PIPELINE_ARTIFACTS = (
     "report.md",
+    "report.html",
     "metrics.json",
     "figures/raw_pointcloud.png",
     "figures/registration_before_after.png",
@@ -81,6 +82,9 @@ def verify_portfolio_outputs(
     transform = pipeline_root / "artifacts" / "transformation.json"
     if report.exists() and report.stat().st_size > 0:
         _validate_report(report, invalid)
+    html_report = pipeline_root / "report.html"
+    if html_report.exists() and html_report.stat().st_size > 0:
+        _validate_html_report(html_report, invalid)
     if metrics.exists() and metrics.stat().st_size > 0:
         _validate_metrics(metrics, invalid)
     if transform.exists() and transform.stat().st_size > 0:
@@ -144,6 +148,22 @@ def _validate_report(path: Path, invalid: list[str]) -> None:
     for marker in required:
         if marker not in text:
             invalid.append(f"{path}: missing report section `{marker}`")
+
+
+def _validate_html_report(path: Path, invalid: list[str]) -> None:
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    required = [
+        "<!doctype html>",
+        "PointCloud-GeoLab Portfolio Report",
+        "Metrics JSON",
+        "Limitations",
+    ]
+    lowered = text.lower()
+    if "<html" not in lowered or "</html>" not in lowered:
+        invalid.append(f"{path}: expected HTML document")
+    for marker in required:
+        if marker not in text:
+            invalid.append(f"{path}: missing HTML report marker `{marker}`")
 
 
 def _validate_metrics(path: Path, invalid: list[str]) -> None:

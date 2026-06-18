@@ -53,6 +53,50 @@ def test_verify_benchmark_outputs_rejects_invalid_json(tmp_path: Path) -> None:
     assert any("invalid JSON" in message for message in result.invalid_files)
 
 
+def test_verify_benchmark_outputs_rejects_missing_repeat_metadata(tmp_path: Path) -> None:
+    _write_benchmark_suite(tmp_path, "kdtree")
+    path = tmp_path / "kdtree_benchmark.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    del payload["metadata"]["repeat"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = verify_benchmark_outputs(tmp_path, suite="kdtree")
+
+    assert not result.success
+    assert any("metadata missing repeat" in message for message in result.invalid_files)
+
+
+def test_verify_benchmark_outputs_rejects_missing_memory_metadata(tmp_path: Path) -> None:
+    _write_benchmark_suite(tmp_path, "kdtree")
+    path = tmp_path / "kdtree_benchmark.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    del payload["metadata"]["memory"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = verify_benchmark_outputs(tmp_path, suite="kdtree")
+
+    assert not result.success
+    assert any("metadata missing memory" in message for message in result.invalid_files)
+
+
+def test_verify_benchmark_outputs_rejects_missing_repeat_stat(tmp_path: Path) -> None:
+    _write_benchmark_suite(tmp_path, "kdtree")
+    path = tmp_path / "kdtree_benchmark.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["metadata"]["repeat"]["count"] = 3
+    payload["metadata"]["repeat"]["statistics"] = {
+        "enabled": True,
+        "aggregates": ["mean", "std", "min", "max"],
+    }
+    payload["rows"][0]["repeat_count"] = 3
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = verify_benchmark_outputs(tmp_path, suite="kdtree")
+
+    assert not result.success
+    assert any("kd_time_mean" in message for message in result.invalid_files)
+
+
 def test_missing_portfolio_artifacts_accepts_expected_files(tmp_path: Path) -> None:
     output_dir = tmp_path / "outputs"
     for name in EXPECTED_GALLERY_ARTIFACTS:
@@ -92,6 +136,14 @@ def test_verify_portfolio_outputs_validates_report_metrics_images_and_transform(
                 "Transformation matrix\n"
                 "## Segmentation Results\n"
                 "## Current Limitations\n",
+                encoding="utf-8",
+            )
+        elif path.name == "report.html":
+            path.write_text(
+                "<!doctype html><html><body>"
+                "<h1>PointCloud-GeoLab Portfolio Report</h1>"
+                "<h2>Metrics JSON</h2><h2>Limitations</h2>"
+                "</body></html>",
                 encoding="utf-8",
             )
         elif path.name == "metrics.json":
@@ -168,6 +220,19 @@ def _write_benchmark_suite(directory: Path, suite: str) -> None:
                     "data_scale": {"points": [100]},
                     "platform": "test",
                     "python": "3.12",
+                    "repeat": {
+                        "count": 1,
+                        "base_seed": 7,
+                        "seed_strategy": "base seed + zero-based repeat index",
+                        "timing_fields": ["kd_time"],
+                        "statistics": {"enabled": False, "aggregates": []},
+                    },
+                    "memory": {
+                        "available": True,
+                        "method": "tracemalloc",
+                        "current_bytes": 128,
+                        "peak_bytes": 256,
+                    },
                 },
                 "rows": [{"points": 100, "queries": 10, "kd_time": 0.001}],
             }

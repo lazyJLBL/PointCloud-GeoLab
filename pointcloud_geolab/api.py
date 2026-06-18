@@ -7,6 +7,7 @@ import platform
 import subprocess
 import sys
 import time
+import tracemalloc
 from csv import DictWriter
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -561,65 +562,53 @@ def run_benchmark(
     seed: int = 42,
     queries: int = 100,
     points: list[int] | None = None,
+    repeat: int = 1,
 ) -> TaskResult:
     """Run a built-in benchmark suite."""
 
     parameters = _parameters(locals())
     try:
-        conclusion = _benchmark_conclusion(benchmark)
-        if benchmark == "kdtree":
-            rows = _benchmark_kdtree(
-                seed=seed,
-                queries=queries,
-                point_counts=points or ([1000, 10000, 100000] if full or quick else [1000, 10000]),
-            )
-            markdown = _format_kdtree_table(rows)
-        elif benchmark == "icp":
-            rows = _benchmark_icp(seed=seed, full=full, quick=quick)
-            markdown = _format_icp_table(rows)
-        elif benchmark == "ransac":
-            rows = _benchmark_ransac(seed=seed, quick=quick)
-            markdown = _format_generic_table(rows)
-        elif benchmark == "registration":
-            rows = _benchmark_registration(seed=seed, quick=quick)
-            markdown = _format_generic_table(rows)
-        elif benchmark == "gicp":
-            rows = _benchmark_gicp(seed=seed, quick=quick)
-            markdown = _format_generic_table(rows)
-        elif benchmark == "segmentation":
-            rows = _benchmark_segmentation(seed=seed, quick=quick)
-            markdown = _format_generic_table(rows)
-        elif benchmark == "all":
-            rows = []
-            suite_summaries = []
-            for suite in ["kdtree", "icp", "ransac", "registration", "gicp", "segmentation"]:
-                suite_result = run_benchmark(
-                    suite,
-                    output_dir=Path(output_dir) / suite,
+        if repeat < 1:
+            raise ValueError("repeat must be at least 1")
+        memory_metadata: dict[str, Any]
+        suite_summaries: list[dict[str, Any]] = []
+        started_tracing = not tracemalloc.is_tracing()
+        if started_tracing:
+            tracemalloc.start()
+        try:
+            if benchmark == "all":
+                rows, markdown, conclusion, suite_summaries = _run_benchmark_once(
+                    benchmark=benchmark,
+                    output_dir=Path(output_dir),
                     quick=quick,
                     full=full,
                     seed=seed,
                     queries=queries,
                     points=points,
+                    repeat=repeat,
                 )
-                rows.extend(
-                    {"suite": suite, **row}
-                    for row in suite_result.to_dict().get("data", {}).get("rows", [])
-                )
-                suite_summaries.append(
-                    {
-                        "suite": suite,
-                        "cases": suite_result.metrics.get("cases", 0),
-                        "conclusion": _benchmark_conclusion(suite),
-                    }
-                )
-            markdown = _format_generic_table(rows)
-            conclusion = "Quick portfolio benchmark completed across geometry core suites."
-        else:
-            raise ValueError(
-                "benchmark must be one of: kdtree, icp, ransac, registration, gicp, "
-                "segmentation, all"
-            )
+            else:
+                repeated_rows = []
+                conclusion = _benchmark_conclusion(benchmark)
+                for repeat_index in range(repeat):
+                    run_rows, _, _, _ = _run_benchmark_once(
+                        benchmark=benchmark,
+                        output_dir=Path(output_dir),
+                        quick=quick,
+                        full=full,
+                        seed=seed + repeat_index,
+                        queries=queries,
+                        points=points,
+                        repeat=1,
+                    )
+                    repeated_rows.append(run_rows)
+                rows = _rows_with_repeat_statistics(repeated_rows)
+                markdown = _format_benchmark_rows(benchmark, rows)
+            current_bytes, peak_bytes = tracemalloc.get_traced_memory()
+            memory_metadata = _benchmark_memory_metadata(current_bytes, peak_bytes)
+        finally:
+            if started_tracing and tracemalloc.is_tracing():
+                tracemalloc.stop()
 
         artifacts: dict[str, str] = {}
         out_dir = Path(output_dir)
@@ -628,7 +617,13 @@ def run_benchmark(
         md_default_path = out_dir / f"{benchmark}_benchmark.md"
         json_default_path = out_dir / f"{benchmark}_benchmark.json"
         png_path = out_dir / f"{benchmark}_benchmark.png"
-        metadata = _benchmark_metadata(benchmark, parameters, rows)
+        metadata = _benchmark_metadata(
+            benchmark,
+            parameters,
+            rows,
+            repeat_count=repeat,
+            memory=memory_metadata,
+        )
         markdown_payload = (
             markdown
             + "\n\n"
@@ -684,6 +679,8 @@ def run_benchmark(
                 "cases": len(rows),
                 "quick": quick,
                 "full": full,
+                "repeat": repeat,
+                "peak_memory_bytes": memory_metadata.get("peak_bytes"),
                 "all_correct": all(bool(row.get("correct", True)) for row in rows),
                 "conclusion": conclusion,
             },
@@ -2020,6 +2017,140 @@ def _benchmark_segmentation(seed: int, quick: bool) -> list[dict[str, Any]]:
     return rows
 
 
+def _run_benchmark_once(
+    benchmark: str,
+    output_dir: Path,
+    quick: bool,
+    full: bool,
+    seed: int,
+    queries: int,
+    points: list[int] | None,
+    repeat: int,
+) -> tuple[list[dict[str, Any]], str, str, list[dict[str, Any]]]:
+    conclusion = _benchmark_conclusion(benchmark)
+    suite_summaries: list[dict[str, Any]] = []
+    if benchmark == "kdtree":
+        rows = _benchmark_kdtree(
+            seed=seed,
+            queries=queries,
+            point_counts=points or ([1000, 10000, 100000] if full or quick else [1000, 10000]),
+        )
+    elif benchmark == "icp":
+        rows = _benchmark_icp(seed=seed, full=full, quick=quick)
+    elif benchmark == "ransac":
+        rows = _benchmark_ransac(seed=seed, quick=quick)
+    elif benchmark == "registration":
+        rows = _benchmark_registration(seed=seed, quick=quick)
+    elif benchmark == "gicp":
+        rows = _benchmark_gicp(seed=seed, quick=quick)
+    elif benchmark == "segmentation":
+        rows = _benchmark_segmentation(seed=seed, quick=quick)
+    elif benchmark == "all":
+        rows = []
+        for suite in ["kdtree", "icp", "ransac", "registration", "gicp", "segmentation"]:
+            suite_result = run_benchmark(
+                suite,
+                output_dir=output_dir / suite,
+                quick=quick,
+                full=full,
+                seed=seed,
+                queries=queries,
+                points=points,
+                repeat=repeat,
+            )
+            if not suite_result.success:
+                raise RuntimeError(suite_result.error or f"{suite} benchmark failed")
+            rows.extend({"suite": suite, **row} for row in suite_result.data.get("rows", []))
+            suite_summaries.append(
+                {
+                    "suite": suite,
+                    "cases": suite_result.metrics.get("cases", 0),
+                    "repeat": repeat,
+                    "conclusion": _benchmark_conclusion(suite),
+                }
+            )
+        conclusion = "Quick portfolio benchmark completed across geometry core suites."
+    else:
+        raise ValueError(
+            "benchmark must be one of: kdtree, icp, ransac, registration, gicp, "
+            "segmentation, all"
+        )
+    return rows, _format_benchmark_rows(benchmark, rows), conclusion, suite_summaries
+
+
+def _format_benchmark_rows(benchmark: str, rows: list[dict[str, Any]]) -> str:
+    if benchmark == "kdtree":
+        return _format_kdtree_table(rows)
+    if benchmark == "icp":
+        return _format_icp_table(rows)
+    return _format_generic_table(rows)
+
+
+def _rows_with_repeat_statistics(
+    repeated_rows: list[list[dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    if not repeated_rows:
+        return []
+    first_run = repeated_rows[0]
+    rows = [dict(row) for row in first_run]
+    repeat_count = len(repeated_rows)
+    if repeat_count == 1:
+        return rows
+    for run_rows in repeated_rows[1:]:
+        if len(run_rows) != len(rows):
+            raise ValueError("benchmark repeat returned inconsistent row counts")
+    for row_index, row in enumerate(rows):
+        row["repeat_count"] = repeat_count
+        for timing_field in _benchmark_timing_fields([row]):
+            values = []
+            for run_rows in repeated_rows:
+                value = run_rows[row_index].get(timing_field)
+                if _is_benchmark_number(value):
+                    values.append(float(value))
+            if len(values) == repeat_count:
+                row[f"{timing_field}_mean"] = sum(values) / repeat_count
+                row[f"{timing_field}_std"] = _population_std(values)
+                row[f"{timing_field}_min"] = min(values)
+                row[f"{timing_field}_max"] = max(values)
+    return rows
+
+
+def _benchmark_timing_fields(rows: list[dict[str, Any]]) -> list[str]:
+    fields = {
+        key
+        for row in rows
+        for key, value in row.items()
+        if _is_timing_field(key) and _is_benchmark_number(value)
+    }
+    return sorted(fields)
+
+
+def _is_timing_field(key: str) -> bool:
+    return key.endswith("_time") or key in {"runtime", "total_seconds"}
+
+
+def _is_benchmark_number(value: Any) -> bool:
+    return isinstance(value, (int, float, np.integer, np.floating)) and not isinstance(value, bool)
+
+
+def _population_std(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    mean = sum(values) / len(values)
+    variance = sum((value - mean) ** 2 for value in values) / len(values)
+    return float(variance**0.5)
+
+
+def _benchmark_memory_metadata(current_bytes: int, peak_bytes: int) -> dict[str, Any]:
+    return {
+        "available": True,
+        "method": "tracemalloc",
+        "current_bytes": int(current_bytes),
+        "peak_bytes": int(peak_bytes),
+        "note": "Local Python allocation peak for this run; not a portable performance claim.",
+    }
+
+
 def _benchmark_conclusion(benchmark: str) -> str:
     conclusions = {
         "kdtree": (
@@ -2055,6 +2186,8 @@ def _benchmark_metadata(
     benchmark: str,
     parameters: dict[str, Any],
     rows: list[dict[str, Any]],
+    repeat_count: int = 1,
+    memory: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     packages = {
         package: _package_version(package)
@@ -2069,6 +2202,31 @@ def _benchmark_metadata(
         "packages": packages,
         "parameters": _json_ready(parameters),
         "data_scale": _benchmark_data_scale(rows),
+        "repeat": _benchmark_repeat_metadata(repeat_count, parameters, rows),
+        "memory": memory
+        or {
+            "available": False,
+            "method": "tracemalloc",
+            "reason": "memory tracing was not enabled",
+        },
+    }
+
+
+def _benchmark_repeat_metadata(
+    repeat_count: int,
+    parameters: dict[str, Any],
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "count": int(repeat_count),
+        "base_seed": parameters.get("seed"),
+        "seed_strategy": "base seed + zero-based repeat index",
+        "deterministic_parameters_recorded": True,
+        "timing_fields": _benchmark_timing_fields(rows),
+        "statistics": {
+            "enabled": repeat_count > 1,
+            "aggregates": ["mean", "std", "min", "max"] if repeat_count > 1 else [],
+        },
     }
 
 
@@ -2105,9 +2263,18 @@ def _format_benchmark_metadata(metadata: dict[str, Any]) -> str:
     parameters = metadata["parameters"]
     data_scale = metadata["data_scale"]
     packages = metadata["packages"]
+    repeat = metadata.get("repeat", {})
+    memory = metadata.get("memory", {})
     package_summary = ", ".join(
         f"{name}={version or 'not installed'}" for name, version in packages.items()
     )
+    if memory.get("available"):
+        memory_summary = (
+            f"{memory.get('peak_bytes')} peak bytes via {memory.get('method')} "
+            "(local reference only)"
+        )
+    else:
+        memory_summary = f"unavailable: {memory.get('reason', 'unknown')}"
     return "\n".join(
         [
             "## Run Metadata",
@@ -2119,6 +2286,9 @@ def _format_benchmark_metadata(metadata: dict[str, Any]) -> str:
             f"- Seed: `{parameters.get('seed')}`",
             f"- Parameters: `{json.dumps(parameters, sort_keys=True)}`",
             f"- Data scale: `{json.dumps(data_scale, sort_keys=True)}`",
+            f"- Repeat count: `{repeat.get('count', 1)}`",
+            f"- Repeat timing fields: `{repeat.get('timing_fields', [])}`",
+            f"- Memory: `{memory_summary}`",
             f"- Packages: `{package_summary}`",
         ]
     )

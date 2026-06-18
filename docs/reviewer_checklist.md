@@ -33,7 +33,7 @@ python -m pytest --cov=pointcloud_geolab
 python scripts/check_repo_hygiene.py
 ```
 
-Expected result: formatting, lint, tests, the 65% coverage gate, and repository
+Expected result: formatting, lint, tests, the 70% coverage gate, and repository
 hygiene checks pass.
 
 ## 3. Run Portfolio Smoke
@@ -56,14 +56,16 @@ Inspect:
 
 ```text
 outputs/portfolio_demo/report.md
+outputs/portfolio_demo/report.html
 outputs/portfolio_demo/metrics.json
 outputs/portfolio_demo/artifacts/transformation.json
 ```
 
-The main reviewer-facing report is:
+The main reviewer-facing reports are:
 
 ```text
 outputs/portfolio_demo/report.md
+outputs/portfolio_demo/report.html
 ```
 
 ## 4. Run Benchmark Verification
@@ -83,7 +85,21 @@ python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
 Expected result: CSV, JSON, Markdown, and PNG benchmark artifacts are parsed or
-structurally validated, not just checked for existence.
+structurally validated, not just checked for existence. JSON metadata should
+include repeat configuration and lightweight `tracemalloc` memory metadata.
+
+For local repeat statistics:
+
+```bash
+python -m pointcloud_geolab benchmark \
+  --suite kdtree \
+  --quick \
+  --repeat 3 \
+  --output outputs/benchmarks/kdtree-repeat
+python scripts/verify_benchmarks.py \
+  --output-dir outputs/benchmarks/kdtree-repeat \
+  --suite kdtree
+```
 
 ## 5. Read Truthfulness Documents
 

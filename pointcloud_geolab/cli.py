@@ -170,6 +170,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "seed": 42,
         "queries": 100,
         "points": None,
+        "repeat": 1,
     },
     "pipeline": {
         "input": "examples/demo_data",
@@ -178,6 +179,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "eps": None,
         "min_points": 10,
         "seed": 42,
+        "html_report": True,
     },
 }
 
@@ -373,6 +375,9 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--save-md", type=Path)
     benchmark.add_argument("--queries", type=int)
     benchmark.add_argument("--points", nargs="*", type=int)
+    benchmark.add_argument(
+        "--repeat", type=int, help="repeat each benchmark case and aggregate timing"
+    )
 
     pipeline = subparsers.add_parser(
         "pipeline",
@@ -389,6 +394,12 @@ def build_parser() -> argparse.ArgumentParser:
     pipeline.add_argument("--voxel-size", type=float)
     pipeline.add_argument("--eps", type=float, help="DBSCAN radius; defaults to an auto value")
     pipeline.add_argument("--min-points", type=int, help="DBSCAN min_points")
+    pipeline.add_argument(
+        "--html-report",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="write a static HTML report next to report.md",
+    )
 
     return parser
 
@@ -707,6 +718,7 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             seed=params["seed"],
             queries=params["queries"],
             points=params["points"],
+            repeat=params["repeat"],
         )
     if task == "pipeline":
         return run_portfolio_pipeline(
@@ -716,6 +728,7 @@ def _execute_task(task: str, params: dict[str, Any]) -> TaskResult:
             eps=params["eps"],
             min_points=params["min_points"],
             seed=params["seed"],
+            html_report=params["html_report"],
         )
     return TaskResult(
         task=task,

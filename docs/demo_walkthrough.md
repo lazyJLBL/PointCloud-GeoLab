@@ -42,10 +42,12 @@ Open:
 
 ```text
 outputs/portfolio_demo/report.md
+outputs/portfolio_demo/report.html
 ```
 
-The report summarizes preprocessing, registration, segmentation, generated
-figures, and current limitations.
+The Markdown report is easiest to diff in code review. The HTML report is a
+static browser view of the same synthetic-demo bundle, including summary
+metrics, figures, artifact links, and limitations.
 
 ## 6. Inspect The Output Bundle
 
@@ -53,6 +55,8 @@ Important files:
 
 - `outputs/portfolio_demo/metrics.json`: machine-readable input,
   preprocessing, registration, segmentation, and runtime metrics.
+- `outputs/portfolio_demo/report.html`: browser-readable static portfolio
+  report generated from the same metrics, figures, artifacts, and limitations.
 - `outputs/portfolio_demo/figures/`: PNG figures for the raw cloud,
   downsampled cloud, registration before/after, segmentation, and geometry
   view.

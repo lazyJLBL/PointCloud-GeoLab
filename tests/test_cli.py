@@ -221,6 +221,8 @@ def test_cli_benchmark_kdtree_quick(tmp_path: Path) -> None:
         "200",
         "--queries",
         "5",
+        "--repeat",
+        "2",
         "--output-dir",
         str(results_dir),
         "--save-md",
@@ -231,6 +233,9 @@ def test_cli_benchmark_kdtree_quick(tmp_path: Path) -> None:
     assert "Benchmark Result: kdtree" in completed.stdout
     assert (results_dir / "metrics.json").exists()
     assert md_path.exists()
+    payload = json.loads((results_dir / "kdtree_benchmark.json").read_text(encoding="utf-8"))
+    assert payload["metadata"]["repeat"]["count"] == 2
+    assert "kd_time_mean" in payload["rows"][0]
 
 
 def test_cli_fit_primitive_and_segment(tmp_path: Path) -> None:

@@ -9,14 +9,15 @@ Run:
 python -m pytest --cov=pointcloud_geolab
 ```
 
-`pyproject.toml` enforces `fail_under = 65`. The threshold is intentionally
-modest because optional Open3D/PyTorch/Plotly paths are separated from the core
-geometry evidence, but it prevents coverage from silently collapsing.
+`pyproject.toml` enforces `fail_under = 70`. The threshold is intentionally
+below the current measured coverage because optional Open3D/PyTorch/Plotly
+paths are separated from the core geometry evidence, but it prevents coverage
+from silently collapsing.
 
-For v0.1.1 pre-release work, the practical target is to keep moving total
-coverage above 74% with useful tests for CLI errors, verifier rejection cases,
-public API imports, fallback diagnostics, and optional-dependency boundaries.
-The gate remains 65% so optional demos do not make routine review brittle.
+For v0.1.1 pre-release work, total coverage is 78.61% on the local Python 3.12
+verification run. The gate is 70% rather than the current measured value so
+small platform or optional-dependency differences do not make routine review
+brittle.
 
 Generate an HTML report:
 
@@ -46,5 +47,5 @@ correctness evidence for the geometry implementation.
 
 Core geometry modules should stay meaningfully covered, and the CLI pipeline
 should keep smoke coverage. Repository hygiene now runs as part of
-`verify-core`, next to the coverage gate. Raising the threshold is future work
-after optional dependency paths are split into their own coverage view.
+`verify-core`, next to the coverage gate. Raising the threshold further should
+come after optional dependency paths are split into their own coverage view.

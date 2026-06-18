@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass
+from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,7 @@ def run_portfolio_pipeline(
     eps: float | None = None,
     min_points: int = 10,
     seed: int = 42,
+    html_report: bool = True,
 ) -> TaskResult:
     """Run the single-command portfolio demo and write metrics, figures, and report."""
 
@@ -57,6 +59,7 @@ def run_portfolio_pipeline(
         "eps": eps,
         "min_points": min_points,
         "seed": seed,
+        "html_report": html_report,
     }
     try:
         start_time = time.perf_counter()
@@ -194,6 +197,7 @@ def run_portfolio_pipeline(
         transformation_path = artifacts_dir / "transformation.json"
         metrics_path = out_dir / "metrics.json"
         report_path = out_dir / "report.md"
+        html_report_path = out_dir / "report.html"
         save_point_cloud(processed_cloud_path, processed)
         transformation_payload = {
             "rmse_before": registration_metrics["rmse_before"],
@@ -221,12 +225,21 @@ def run_portfolio_pipeline(
             "runtime": {"total_seconds": runtime_seconds},
         }
         metrics_path.write_text(json.dumps(_json_ready(metrics), indent=2) + "\n", encoding="utf-8")
-        report_path.write_text(
-            _format_pipeline_report(
-                metrics, figure_paths, processed_cloud_path, transformation_path
-            ),
-            encoding="utf-8",
+        markdown_report = _format_pipeline_report(
+            metrics, figure_paths, processed_cloud_path, transformation_path
         )
+        report_path.write_text(markdown_report, encoding="utf-8")
+        if html_report:
+            html_report_path.write_text(
+                _format_pipeline_html_report(
+                    metrics,
+                    figure_paths,
+                    processed_cloud_path,
+                    transformation_path,
+                    markdown_report,
+                ),
+                encoding="utf-8",
+            )
 
         artifacts = {
             "report": str(report_path),
@@ -235,6 +248,8 @@ def run_portfolio_pipeline(
             "transformation_json": str(transformation_path),
             **{name: str(path) for name, path in figure_paths.items()},
         }
+        if html_report:
+            artifacts["html_report"] = str(html_report_path)
         return TaskResult(
             task="pipeline",
             success=True,
@@ -685,6 +700,7 @@ def _format_pipeline_report(
             "| File | Purpose |",
             "|---|---|",
             "| `report.md` | Human-readable portfolio report. |",
+            "| `report.html` | Static browser-readable portfolio report. |",
             (
                 "| `metrics.json` | Machine-readable input, preprocessing, registration, "
                 "segmentation, and runtime metrics. |"
@@ -721,6 +737,136 @@ def _format_pipeline_report(
         ]
     )
     return "\n".join(lines)
+
+
+def _format_pipeline_html_report(
+    metrics: dict[str, Any],
+    figure_paths: dict[str, Path],
+    processed_cloud_path: Path,
+    transformation_path: Path,
+    markdown_report: str,
+) -> str:
+    registration = metrics["registration"]
+    segmentation = metrics["segmentation"]
+    preprocessing = metrics["preprocessing"]
+    summary_cards = [
+        ("Input points", metrics["input"]["num_points"]),
+        ("Processed points", preprocessing["num_points_after"]),
+        ("RMSE before ICP", f"{registration['rmse_before']:.6f}"),
+        ("RMSE after ICP", f"{registration['rmse_after']:.6f}"),
+        ("Clusters", segmentation["num_clusters"]),
+        ("Noise ratio", f"{segmentation['noise_ratio']:.3f}"),
+    ]
+    figure_html = "\n".join(
+        (
+            "<figure>"
+            f'<img src="{escape(_relative_artifact(path))}" alt="{escape(label)}">'
+            f"<figcaption>{escape(label.replace('_', ' ').title())}</figcaption>"
+            "</figure>"
+        )
+        for label, path in figure_paths.items()
+    )
+    card_html = "\n".join(
+        (
+            '<div class="metric">'
+            f"<span>{escape(label)}</span>"
+            f"<strong>{escape(str(value))}</strong>"
+            "</div>"
+        )
+        for label, value in summary_cards
+    )
+    metrics_json = escape(json.dumps(_json_ready(metrics), indent=2))
+    markdown_excerpt = escape(_markdown_excerpt(markdown_report))
+    return "\n".join(
+        [
+            "<!doctype html>",
+            '<html lang="en">',
+            "<head>",
+            '  <meta charset="utf-8">',
+            '  <meta name="viewport" content="width=device-width, initial-scale=1">',
+            "  <title>PointCloud-GeoLab Portfolio Report</title>",
+            "  <style>",
+            "    body { font-family: system-ui, sans-serif; margin: 2rem; color: #1f2933; }",
+            "    main { max-width: 1100px; margin: 0 auto; }",
+            "    h1, h2 { line-height: 1.2; }",
+            "    .summary { display: grid; }",
+            "    .summary { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }",
+            "    .summary { gap: 0.75rem; }",
+            "    .metric { border: 1px solid #d7dee8; padding: 0.75rem; }",
+            "    .metric { border-radius: 6px; background: #f8fafc; }",
+            "    .metric span { display: block; font-size: 0.85rem; color: #52606d; }",
+            "    .metric strong { display: block; margin-top: 0.25rem; font-size: 1.15rem; }",
+            "    .figures { display: grid; }",
+            "    .figures { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }",
+            "    .figures { gap: 1rem; }",
+            "    figure { margin: 0; border: 1px solid #d7dee8; padding: 0.75rem; }",
+            "    figure { border-radius: 6px; }",
+            "    img { max-width: 100%; height: auto; display: block; }",
+            "    figcaption { margin-top: 0.5rem; color: #52606d; font-size: 0.9rem; }",
+            "    pre { overflow-x: auto; background: #111827; color: #f9fafb; }",
+            "    pre { padding: 1rem; border-radius: 6px; }",
+            "    a { color: #0969da; }",
+            "  </style>",
+            "</head>",
+            "<body>",
+            "<main>",
+            "  <h1>PointCloud-GeoLab Portfolio Report</h1>",
+            "  <p>Static report generated from deterministic synthetic demo artifacts.</p>",
+            "  <section>",
+            "    <h2>Summary</h2>",
+            f'    <div class="summary">{card_html}</div>',
+            "  </section>",
+            "  <section>",
+            "    <h2>Figures</h2>",
+            f'    <div class="figures">{figure_html}</div>',
+            "  </section>",
+            "  <section>",
+            "    <h2>Artifacts</h2>",
+            "    <ul>",
+            '      <li><a href="report.md">Markdown report</a></li>',
+            '      <li><a href="metrics.json">Metrics JSON</a></li>',
+            (
+                '      <li><a href="'
+                f"{escape(_relative_artifact(processed_cloud_path))}"
+                '">Processed cloud</a></li>'
+            ),
+            (
+                '      <li><a href="'
+                f"{escape(_relative_artifact(transformation_path))}"
+                '">Transformation JSON</a></li>'
+            ),
+            "    </ul>",
+            "  </section>",
+            "  <section>",
+            "    <h2>Metrics JSON</h2>",
+            f"    <pre>{metrics_json}</pre>",
+            "  </section>",
+            "  <section>",
+            "    <h2>Limitations</h2>",
+            "    <ul>",
+            "      <li>This synthetic demo is a smoke test, not real-data validation.</li>",
+            "      <li>The pipeline is a compact demo, not a PCL/Open3D replacement.</li>",
+            "      <li>ICP is local and does not replace global registration.</li>",
+            "      <li>Benchmark and memory numbers are local machine references only.</li>",
+            "    </ul>",
+            "  </section>",
+            "  <section>",
+            "    <h2>Markdown Report Excerpt</h2>",
+            f"    <pre>{markdown_excerpt}</pre>",
+            "  </section>",
+            "</main>",
+            "</body>",
+            "</html>",
+            "",
+        ]
+    )
+
+
+def _markdown_excerpt(markdown_report: str, max_lines: int = 80) -> str:
+    lines = markdown_report.splitlines()
+    if len(lines) <= max_lines:
+        return markdown_report
+    return "\n".join([*lines[:max_lines], "..."])
 
 
 def _format_matrix(matrix: list[list[float]]) -> str:

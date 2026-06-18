@@ -23,13 +23,14 @@ python -m pointcloud_geolab pipeline \
   --output outputs/portfolio_demo
 ```
 
-Open `outputs/portfolio_demo/report.md`.
+Open `outputs/portfolio_demo/report.md` or `outputs/portfolio_demo/report.html`.
 
 Expected files:
 
 ```text
 outputs/portfolio_demo/
 |-- report.md
+|-- report.html
 |-- metrics.json
 |-- figures/
 |   |-- raw_pointcloud.png
@@ -69,10 +70,10 @@ Representative portfolio-pipeline figures:
 
 ### Demo-ready
 
-- **Portfolio pipeline**: one command creates a Markdown report, metrics,
-  figures, PLY artifacts, and transform JSON.
+- **Portfolio pipeline**: one command creates Markdown and HTML reports,
+  metrics, figures, PLY artifacts, and transform JSON.
 - **Benchmarks**: CLI emits CSV, JSON, Markdown, PNG, parameters, seed,
-  platform, and dependency metadata.
+  platform, repeat statistics, memory metadata, and dependency metadata.
 
 ### Experimental
 
@@ -148,6 +149,21 @@ include parameters, random seed, data scale, Python/platform metadata, and
 optional dependency versions. Timing numbers are machine-specific, so fixed
 results are not committed as claims.
 
+Use `--repeat` when you want local timing aggregates:
+
+```bash
+python -m pointcloud_geolab benchmark \
+  --suite kdtree \
+  --quick \
+  --repeat 3 \
+  --output outputs/benchmarks/kdtree-repeat
+```
+
+For `--repeat > 1`, JSON and CSV rows include mean, standard deviation, minimum,
+and maximum for timing fields. Benchmark JSON also records lightweight
+`tracemalloc` peak-memory metadata as a local reference, not a portable
+performance promise.
+
 Baseline coverage:
 
 - KDTree: brute force, optional SciPy `cKDTree`, optional sklearn `KDTree`, and
@@ -216,7 +232,7 @@ hygiene checks. CI runs `verify-core` and `verify-portfolio`.
 - [Testing Strategy](docs/testing_strategy.md)
 - [Demo Walkthrough](docs/demo_walkthrough.md)
 - [Limitations](docs/limitations.md)
-- [Benchmarking](docs/benchmark.md)
+- [Benchmarking](docs/benchmarking.md)
 - [Datasets](docs/datasets.md)
 - [Registration Case Study](docs/case_study_registration.md)
 - [Stanford Bunny Case Study](docs/case_study_bunny.md)
@@ -240,4 +256,4 @@ real-data workflows.
 [tests-workflow]: https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml
 [python-badge]: https://img.shields.io/badge/python-3.10%2B-blue
 [license-badge]: https://img.shields.io/badge/license-MIT-green
-[coverage-badge]: https://img.shields.io/badge/coverage%20threshold-65%25-informational
+[coverage-badge]: https://img.shields.io/badge/coverage%20threshold-70%25-informational

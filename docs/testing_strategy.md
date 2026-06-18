@@ -45,7 +45,8 @@ require local files under `data/external/`.
 
 `scripts/verify_benchmarks.py` checks that benchmark outputs contain valid CSV,
 JSON, Markdown, and PNG content. It rejects empty files, malformed JSON, missing
-metadata, missing rows, invalid Markdown structure, and invalid PNG headers.
+metadata, missing rows, missing repeat statistics, missing memory metadata,
+invalid Markdown structure, and invalid PNG headers.
 
 This prevents benchmark evidence from becoming a set of placeholder files.
 
@@ -54,6 +55,7 @@ This prevents benchmark evidence from becoming a set of placeholder files.
 `scripts/verify_portfolio.py` checks the generated portfolio bundle:
 
 - Markdown report sections.
+- HTML report sections.
 - Metrics JSON schema.
 - Key PNG figures.
 - Transform JSON shape and numeric values.
@@ -71,7 +73,7 @@ Core tests should not require heavyweight optional packages.
 
 ## Coverage Gate
 
-The current coverage gate is 65%. That threshold is intentionally modest because
+The current coverage gate is 70%. That threshold is intentionally modest because
 some optional visualization, ML, and integration paths are expensive or
 environment-sensitive.
 

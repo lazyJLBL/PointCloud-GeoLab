@@ -104,8 +104,11 @@ def _check_summary_files(
                 invalid.append(f"{path}: missing suites")
             elif not isinstance(payload["suites"], list) or not payload["suites"]:
                 invalid.append(f"{path}: suites must be a non-empty list")
-            if "metadata" not in payload:
+            metadata = payload.get("metadata")
+            if metadata is None:
                 invalid.append(f"{path}: missing metadata")
+            else:
+                _validate_metadata(path, metadata, invalid)
         elif "Benchmark Summary" not in path.read_text(encoding="utf-8"):
             invalid.append(f"{path}: missing Benchmark Summary heading")
 
@@ -136,9 +139,99 @@ def _validate_json(path: Path, invalid: list[str]) -> None:
         invalid.append(f"{path}: rows must be a list")
     metadata = payload.get("metadata", {})
     if isinstance(metadata, dict):
-        for key in ["parameters", "data_scale", "platform", "python"]:
-            if key not in metadata:
-                invalid.append(f"{path}: metadata missing {key}")
+        _validate_metadata(path, metadata, invalid)
+        rows = payload.get("rows")
+        if isinstance(rows, list):
+            _validate_repeat_stats(path, rows, metadata, invalid)
+    elif metadata:
+        invalid.append(f"{path}: metadata must be an object")
+
+
+def _validate_metadata(path: Path, metadata: object, invalid: list[str]) -> None:
+    if not isinstance(metadata, dict):
+        invalid.append(f"{path}: metadata must be an object")
+        return
+    for key in ["parameters", "data_scale", "platform", "python"]:
+        if key not in metadata:
+            invalid.append(f"{path}: metadata missing {key}")
+    repeat = metadata.get("repeat")
+    if repeat is None:
+        invalid.append(f"{path}: metadata missing repeat")
+    elif isinstance(repeat, dict):
+        _validate_repeat_metadata(path, repeat, invalid)
+    else:
+        invalid.append(f"{path}: metadata.repeat must be an object")
+    memory = metadata.get("memory")
+    if memory is None:
+        invalid.append(f"{path}: metadata missing memory")
+    elif isinstance(memory, dict):
+        _validate_memory_metadata(path, memory, invalid)
+    else:
+        invalid.append(f"{path}: metadata.memory must be an object")
+
+
+def _validate_repeat_metadata(path: Path, repeat: dict[str, object], invalid: list[str]) -> None:
+    count = repeat.get("count")
+    if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+        invalid.append(f"{path}: metadata.repeat missing valid count")
+    timing_fields = repeat.get("timing_fields")
+    if not isinstance(timing_fields, list):
+        invalid.append(f"{path}: metadata.repeat missing timing_fields list")
+    statistics = repeat.get("statistics")
+    if not isinstance(statistics, dict):
+        invalid.append(f"{path}: metadata.repeat missing statistics object")
+    elif count and count > 1:
+        aggregates = statistics.get("aggregates")
+        for name in ["mean", "std", "min", "max"]:
+            if not isinstance(aggregates, list) or name not in aggregates:
+                invalid.append(f"{path}: metadata.repeat.statistics missing aggregate `{name}`")
+
+
+def _validate_memory_metadata(path: Path, memory: dict[str, object], invalid: list[str]) -> None:
+    available = memory.get("available")
+    if not isinstance(available, bool):
+        invalid.append(f"{path}: metadata.memory missing available flag")
+        return
+    if "method" not in memory:
+        invalid.append(f"{path}: metadata.memory missing method")
+    if available:
+        for key in ["current_bytes", "peak_bytes"]:
+            value = memory.get(key)
+            if not _is_number(value) or float(value) < 0:
+                invalid.append(f"{path}: metadata.memory missing non-negative `{key}`")
+    elif "reason" not in memory:
+        invalid.append(f"{path}: metadata.memory unavailable without reason")
+
+
+def _validate_repeat_stats(
+    path: Path,
+    rows: list[object],
+    metadata: dict[str, object],
+    invalid: list[str],
+) -> None:
+    repeat = metadata.get("repeat", {})
+    count = repeat.get("count", 1) if isinstance(repeat, dict) else 1
+    if not isinstance(repeat, dict) or not isinstance(count, int) or count <= 1:
+        return
+    timing_fields = repeat.get("timing_fields", [])
+    if not isinstance(timing_fields, list) or not timing_fields:
+        invalid.append(f"{path}: repeat count > 1 but no timing fields were recorded")
+        return
+    for row_index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            invalid.append(f"{path}: row {row_index} must be an object")
+            continue
+        for field in timing_fields:
+            if field not in row:
+                continue
+            for aggregate in ["mean", "std", "min", "max"]:
+                stat_key = f"{field}_{aggregate}"
+                if not _is_number(row.get(stat_key)):
+                    invalid.append(f"{path}: row {row_index} missing repeat stat `{stat_key}`")
+
+
+def _is_number(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _validate_markdown(path: Path, invalid: list[str]) -> None:

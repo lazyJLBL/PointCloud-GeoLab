@@ -45,7 +45,7 @@ Core-tested:
 Demo-ready:
 
 - `run_benchmark`: built-in quick/full benchmark suites with CSV, JSON,
-  Markdown, and PNG outputs.
+  Markdown, PNG, repeat statistics, and memory metadata outputs.
 
 Documented workflow:
 
