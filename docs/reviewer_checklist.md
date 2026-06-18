@@ -3,6 +3,10 @@
 This checklist is for a release reviewer who wants to verify the portfolio
 without trusting committed generated artifacts.
 
+The current package version is `0.1.1`. It is a portfolio, learning, and
+reviewer-oriented release candidate, not a production LiDAR stack or a real
+KITTI benchmark release.
+
 ## 1. Install
 
 ```bash
@@ -182,3 +186,15 @@ python scripts/check_ci_status.py --branch main --workflow tests.yml
 
 This helper uses the GitHub CLI when available. If `gh` is missing or not
 authenticated, it reports that clearly instead of printing a traceback.
+
+## 10. Release Candidate Gate
+
+Before creating a manual tag or GitHub release, run:
+
+```bash
+make verify-release-candidate
+```
+
+Expected result: core checks, portfolio verification, benchmark verification,
+and release-ready metadata checks pass. The release artifact manifest is
+`docs/releases/v0.1.1_artifacts.json`.

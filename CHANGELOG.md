@@ -4,6 +4,10 @@ All notable changes for PointCloud-GeoLab are recorded here.
 
 ## Unreleased
 
+No unreleased changes yet.
+
+## v0.1.1 - 2026-06-18
+
 ### Added
 
 - Repository hygiene checks for tracked generated paths, README links,
@@ -23,6 +27,7 @@ All notable changes for PointCloud-GeoLab are recorded here.
   bounded v0.1.1 scope.
 - Tiny synthetic KITTI-like `.bin` and ModelNet-like `.off` fixtures with
   SHA256 manifest validation.
+- Release candidate notes and artifact manifest for reviewer handoff.
 
 ### Changed
 
@@ -40,6 +45,8 @@ All notable changes for PointCloud-GeoLab are recorded here.
   requiring Docker or the `build` module to be installed.
 - `verify-core` now checks tiny dataset fixtures without downloading external
   datasets.
+- Release metadata now identifies v0.1.1 as the current package version while
+  preserving v0.1.0 as a historical portfolio release.
 
 ## v0.1.0 Portfolio Release - 2026-06-17
 

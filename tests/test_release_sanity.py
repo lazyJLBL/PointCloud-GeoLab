@@ -57,7 +57,7 @@ def test_packaging_metadata_parser_reads_project() -> None:
     metadata = load_packaging_metadata(ROOT / "pyproject.toml")
 
     assert metadata.name == "pointcloud-geolab"
-    assert metadata.version == "0.1.0"
+    assert metadata.version == "0.1.1"
     assert metadata.scripts["pointcloud-geolab"] == "pointcloud_geolab.cli:main"
     assert {"dev", "vis", "bench"} <= set(metadata.optional_dependencies)
 
@@ -65,7 +65,7 @@ def test_packaging_metadata_parser_reads_project() -> None:
 def test_packaging_checker_finds_missing_optional_dependency() -> None:
     metadata = check_packaging.PackagingMetadata(
         name="pointcloud-geolab",
-        version="0.1.0",
+        version="0.1.1",
         requires_python=">=3.10",
         scripts={"pointcloud-geolab": "pointcloud_geolab.cli:main"},
         optional_dependencies={"dev": [], "vis": []},

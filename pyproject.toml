@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pointcloud-geolab"
-version = "0.1.0"
+version = "0.1.1"
 description = "Point cloud geometry portfolio with KDTree, ICP, RANSAC, PCA/OBB, and Open3D demos."
 readme = "README.md"
 requires-python = ">=3.10"

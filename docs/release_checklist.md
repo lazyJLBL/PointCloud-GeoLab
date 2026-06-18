@@ -3,6 +3,10 @@
 This checklist is for v0.1.1 pre-release sanity checks. It prepares the
 repository for review; it does not create a tag or publish a release.
 
+v0.1.1 is a portfolio, learning, and reviewer-oriented release candidate. It
+focuses on verification, packaging sanity, documentation boundaries, and local
+artifact regeneration.
+
 ## Local Environment
 
 Install the dependency-light reviewer environment:
@@ -23,6 +27,15 @@ Windows:
 ```bash
 mingw32-make verify-core
 ```
+
+Run the full release-candidate gate when preparing a tag manually:
+
+```bash
+make verify-release-candidate
+```
+
+This target runs `verify-core`, regenerates and verifies portfolio and benchmark
+artifacts, and then runs `python scripts/check_release_ready.py`.
 
 ## DevContainer
 
@@ -95,6 +108,15 @@ Expected generated reports:
 
 These outputs are ignored and should not be committed.
 
+The expected release-candidate artifact manifest is:
+
+```text
+docs/releases/v0.1.1_artifacts.json
+```
+
+It lists the verification commands, expected generated portfolio/benchmark
+files, ignored artifact paths, limitations, and open roadmap items.
+
 ## Boundary Checks
 
 Before release, confirm the public wording stays bounded:
@@ -107,5 +129,7 @@ Before release, confirm the public wording stays bounded:
 - KITTI, Stanford Bunny, and ModelNet remain documented workflows requiring
   local files under `data/external/`.
 - The repository is not a SLAM backend, CUDA stack, or Open3D/PCL replacement.
+- v0.1.1 does not complete a real KITTI benchmark, full nonlinear GICP, CUDA
+  acceleration, SLAM backend, or PointNet training release.
 
 Do not create a `v0.1.1` tag unless that release action is explicitly requested.

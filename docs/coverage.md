@@ -14,10 +14,10 @@ below the current measured coverage because optional Open3D/PyTorch/Plotly
 paths are separated from the core geometry evidence, but it prevents coverage
 from silently collapsing.
 
-For v0.1.1 pre-release work, total coverage is 78.61% on the local Python 3.12
-verification run. The gate is 70% rather than the current measured value so
-small platform or optional-dependency differences do not make routine review
-brittle.
+For v0.1.1 release-candidate work, the local Python 3.12 verification run
+reported 177 passing tests and 78.52% total coverage. The enforced gate stays at
+70% rather than the current measured value so small platform or
+optional-dependency differences do not make routine review brittle.
 
 Generate an HTML report:
 
@@ -49,5 +49,6 @@ Core geometry modules should stay meaningfully covered, and the CLI pipeline
 should keep smoke coverage. Repository hygiene now runs as part of
 `verify-core`, next to the coverage gate. DevContainer and packaging sanity
 checks also run there, but Docker daemon availability and the optional `build`
-module are treated as friendly skips. Raising the threshold further should come
-after optional dependency paths are split into their own coverage view.
+module are treated as friendly skips. Release-candidate checks are available
+through `make verify-release-candidate`. Raising the threshold further should
+come after optional dependency paths are split into their own coverage view.

@@ -4,6 +4,10 @@ PointCloud-GeoLab is a portfolio and learning project. It is meant to make
 point-cloud geometry algorithms readable, runnable, and reviewable in a compact
 Python codebase.
 
+The current `0.1.1` release candidate is reviewer-oriented. It improves
+verification, packaging sanity, local artifact manifests, and documentation
+boundaries without expanding the project into a production system.
+
 It is not intended to replace mature libraries such as PCL or Open3D. Those
 projects remain the right baseline for production systems, broad hardware
 coverage, and optimized large-scene processing.
@@ -63,6 +67,9 @@ PointCloud-GeoLab is:
 - not a SLAM backend;
 - not a full nonlinear GICP optimizer;
 - not a production LiDAR stack;
+- not a CUDA acceleration project;
+- not a PointNet training release;
+- not a real KITTI benchmark release;
 - not a claim that synthetic demo success proves real-world performance.
 
 The current GICP path is GICP-style covariance-weighted ICP. It uses

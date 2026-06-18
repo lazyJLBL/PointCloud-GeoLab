@@ -100,12 +100,14 @@ def run_hygiene(
         )
     )
 
+    current_version = regex_value(repo / "pyproject.toml", r'^version\s*=\s*"([^"]+)"')
     version_files = [
         repo / "pyproject.toml",
         repo / "CITATION.cff",
         repo / "CHANGELOG.md",
-        repo / "docs" / "releases" / "v0.1.0.md",
     ]
+    if current_version:
+        version_files.append(repo / "docs" / "releases" / f"v{current_version}.md")
     checked_files.extend(version_files)
     issues.extend(check_version_consistency(repo))
 

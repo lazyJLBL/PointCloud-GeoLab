@@ -9,6 +9,10 @@ PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
 Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
+Current version: `0.1.1` release candidate. This is a portfolio, learning, and
+reviewer-oriented release candidate; no v0.1.1 tag or GitHub release is created
+by the repository checks.
+
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
 LiDAR segmentation understandable, runnable, and testable.
@@ -188,6 +192,7 @@ python scripts/check_repo_hygiene.py
 python scripts/check_devcontainer.py
 python scripts/check_packaging.py
 python scripts/check_dataset_fixtures.py
+python scripts/check_release_ready.py
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline \
   --input examples/demo_data \
@@ -206,12 +211,15 @@ Make targets:
 make verify-core
 make verify-portfolio
 make verify-benchmarks
+make verify-release-candidate
 make verify-full
 ```
 
 `verify-core` runs compile, lint, format, tests with coverage, and repository
 hygiene, DevContainer, packaging, and tiny dataset fixture checks. CI runs
-`verify-core` and `verify-portfolio`.
+`verify-core` and `verify-portfolio`. `verify-release-candidate` is heavier: it
+also regenerates portfolio and benchmark artifacts, verifies them, and runs the
+release-ready metadata checks.
 
 ## Tiny Dataset Fixtures
 
@@ -238,9 +246,14 @@ Useful release-sanity commands:
 ```bash
 python scripts/check_devcontainer.py
 python scripts/check_packaging.py
+python scripts/check_release_ready.py
 make verify-core
 make verify-portfolio
 ```
+
+The v0.1.1 release candidate notes and artifact manifest live under
+`docs/releases/`. They describe expected local outputs and the remaining
+roadmap items without committing generated artifacts.
 
 ## Limitations
 
@@ -255,6 +268,8 @@ make verify-portfolio
 - DBSCAN and Euclidean clustering use global radius thresholds and are sensitive
   to LiDAR density changes.
 - Large LiDAR scenes need streaming/chunking and more careful memory profiling.
+- v0.1.1 does not add a full nonlinear GICP optimizer, SLAM backend, CUDA
+  acceleration, PointNet training release, or real KITTI benchmark report.
 
 ## Documentation
 
@@ -277,6 +292,7 @@ make verify-portfolio
 - [Portfolio Review Template](docs/portfolio_report_template.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Changelog](CHANGELOG.md)
+- [v0.1.1 Release Candidate](docs/releases/v0.1.1.md)
 
 ## Resume Description
 

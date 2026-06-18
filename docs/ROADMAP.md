@@ -41,6 +41,7 @@ separate implemented work from planned work.
   `tracemalloc` memory metadata.
 - Tiny synthetic KITTI-like `.bin` and ModelNet-like `.off` format fixtures
   with checksum validation in `verify-core`.
+- v0.1.1 release-candidate notes, artifact manifest, and release-ready checker.
 - Verification scripts for benchmark artifacts and portfolio demo artifacts.
 - Real-data preparation docs and examples for Stanford Bunny/Armadillo, KITTI
   Velodyne, and ModelNet small samples.
@@ -49,6 +50,13 @@ separate implemented work from planned work.
 - Optional C++17 KDTree demo under `cpp/`.
 
 ## Next Milestones
+
+### v0.1.1 Manual Release
+
+- After a clean final review, create the `v0.1.1` tag and GitHub release
+  manually.
+- Keep generated `outputs/`, benchmark bundles, demo data, and coverage reports
+  out of Git.
 
 ### v0.3.1 Benchmark Hardening
 
