@@ -7,7 +7,7 @@ The repository also includes `tests/fixtures/datasets/mini_kitti_like.bin`, a
 four-point synthetic format fixture validated by
 `scripts/check_dataset_fixtures.py`. That fixture only checks the `.bin` reader
 and checksum workflow. It is not a real KITTI frame and does not complete the
-real KITTI benchmark roadmap item.
+official real KITTI benchmark roadmap item.
 
 ## Data Preparation
 
@@ -44,19 +44,23 @@ path plus a pointer to `docs/datasets.md`.
 
 ## Pipeline
 
-1. Load KITTI Velodyne `.bin` as XYZ points.
+1. Load KITTI Velodyne `.bin` as XYZI points.
 2. Optionally cap the point count for laptop-friendly runs.
 3. Fit a dominant ground plane with RANSAC and a normal-angle constraint.
 4. Cluster non-ground points with Euclidean clustering.
 5. Compute per-cluster centroid, AABB, OBB, and volume.
-6. Export a colored PLY, BEV images, metrics, and a Markdown object report.
+6. Export a colored PLY, BEV images, height histogram, metrics, Markdown
+   report, and HTML report.
 
 ## Outputs
 
 - `outputs/kitti_segmentation/kitti_bev.png`
 - `outputs/kitti_segmentation/kitti_clusters.png`
+- `outputs/kitti_segmentation/kitti_height_histogram.png`
 - `outputs/kitti_segmentation/kitti_clusters.ply`
 - `outputs/kitti_segmentation/cluster_report.md`
+- `outputs/kitti_segmentation/report.md`
+- `outputs/kitti_segmentation/report.html`
 - `outputs/kitti_segmentation/metrics.json`
 
 ## Interpretation
@@ -73,3 +77,4 @@ labels are not collapsed into one component.
 - Touching objects may merge into one cluster.
 - This script processes one frame in memory; long sequences need streaming or
   chunked processing.
+- This is a user-provided workflow, not an official KITTI benchmark.

@@ -27,4 +27,4 @@ jobs:
         run: make verify-benchmarks
 
       - name: Verify release gate
-        run: make verify-release-candidate
+        run: make verify-v1-candidate

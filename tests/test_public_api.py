@@ -44,7 +44,7 @@ def test_experimental_and_optional_wrappers_are_not_stable_exports() -> None:
 def test_public_api_imports_are_explicit() -> None:
     module = importlib.import_module("pointcloud_geolab")
 
-    assert module.__version__ == "0.1.1"
+    assert module.__version__ == "1.0.0"
     assert callable(module.run_icp)
     assert module.TaskResult is api.TaskResult
 

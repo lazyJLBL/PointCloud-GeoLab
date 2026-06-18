@@ -16,6 +16,8 @@ machine.
 - `gicp`: GICP-style covariance-weighted ICP vs point-to-point ICP. This is not
   a full nonlinear GICP optimizer.
 - `segmentation`: Euclidean clustering runtime over synthetic cluster sizes.
+- `scale`: standalone synthetic point-count scale benchmark for quick
+  reviewer gates and manual larger runs.
 
 Run all quick suites:
 
@@ -32,6 +34,21 @@ Verify generated artifacts:
 ```bash
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
+
+Run the v1 scale quick gate:
+
+```bash
+python scripts/run_scale_benchmark.py \
+  --quick \
+  --repeat 2 \
+  --output-dir outputs/scale_benchmark
+python scripts/verify_benchmarks.py \
+  --output-dir outputs/scale_benchmark \
+  --suite scale
+```
+
+The full scale mode can include 1M synthetic points, but it is intended for a
+manual release gate rather than default CI.
 
 Validate the benchmark JSON schema directly:
 
@@ -103,3 +120,5 @@ benchmark inputs still need to be prepared locally under `data/external/`.
 - GICP-style covariance-weighted ICP spends more time per iteration because it
   estimates and uses local covariance matrices. This is not a full nonlinear
   GICP optimizer.
+- The scale benchmark records local trends and memory metadata. It should be
+  regenerated on the reviewer machine and not treated as a portable benchmark.

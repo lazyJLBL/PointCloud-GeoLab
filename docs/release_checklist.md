@@ -1,12 +1,12 @@
 # Release Checklist
 
-This checklist records the v0.1.1 hardening release checks and the process to
-use before future manual patch releases. It does not create a tag or publish a
-release by itself.
+This checklist records the v1.0.0 portfolio-stable release-candidate checks and
+the process to use before future manual releases. It does not create a tag or
+publish a release by itself.
 
-v0.1.1 is a portfolio, learning, and reviewer-oriented hardening release. It
-focuses on verification, packaging sanity, documentation boundaries, and local
-artifact regeneration.
+v1.0.0 is a portfolio, learning, and reviewer-oriented target. It focuses on
+verification, package sanity, documentation boundaries, local artifact
+regeneration, API/CLI contracts, and reviewer workflows.
 
 ## Local Environment
 
@@ -33,10 +33,12 @@ Run the full release gate when preparing a future tag manually:
 
 ```bash
 make verify-release-candidate
+make verify-v1-candidate
 ```
 
-This target runs `verify-core`, regenerates and verifies portfolio and benchmark
-artifacts, and then runs release metadata and artifact schema checks.
+`verify-release-candidate` keeps the v0.1.1-style release metadata checks.
+`verify-v1-candidate` additionally runs the KITTI-like dry-run, scale benchmark
+quick gate, and v1.0.0 readiness checks.
 
 ## DevContainer
 
@@ -99,6 +101,8 @@ Regenerate ignored demo artifacts locally:
 ```bash
 make verify-portfolio
 make verify-benchmarks
+make verify-scale-benchmark
+make verify-realdata
 ```
 
 Expected generated reports:
@@ -106,13 +110,16 @@ Expected generated reports:
 - `outputs/portfolio_demo/report.md`
 - `outputs/portfolio_demo/report.html`
 - `outputs/benchmarks/benchmark_summary.md`
+- `outputs/scale_benchmark/scale_benchmark.md`
+- `outputs/kitti_segmentation/report.md` when user-provided KITTI-like data is
+  available
 
 These outputs are ignored and should not be committed.
 
-The expected v0.1.1 artifact manifest is:
+The expected v1.0.0 artifact manifest is:
 
 ```text
-docs/releases/v0.1.1_artifacts.json
+docs/releases/v1.0.0_artifacts.json
 ```
 
 It lists the verification commands, expected generated portfolio/benchmark
@@ -122,6 +129,7 @@ Validate the manifest schema directly:
 
 ```bash
 python scripts/check_artifact_schema.py
+python scripts/check_v1_ready.py
 ```
 
 Generate a local audit snapshot when preparing reviewer notes:
@@ -142,8 +150,12 @@ Before any future release, confirm the public wording stays bounded:
 - KITTI, Stanford Bunny, and ModelNet remain documented workflows requiring
   local files under `data/external/`.
 - The repository is not a SLAM backend, CUDA stack, or Open3D/PCL replacement.
-- v0.1.1 does not complete a real KITTI benchmark, full nonlinear GICP, CUDA
-  acceleration, SLAM backend, or PointNet training release.
+- v1.0.0 is not an official real KITTI benchmark.
+- v1.0.0 is not a full nonlinear GICP optimizer.
+- v1.0.0 is not CUDA accelerated.
+- v1.0.0 is not a SLAM backend.
+- v1.0.0 is not a PointNet training release.
 
-Do not rewrite the existing `v0.1.1` tag or GitHub release. Create a new tag
-only when that release action is explicitly requested.
+Do not rewrite the existing `v0.1.1` tag or GitHub release. Do not create a
+`v1.0.0` tag or GitHub release unless that release action is explicitly
+requested.

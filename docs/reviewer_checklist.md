@@ -3,8 +3,8 @@
 This checklist is for a release reviewer who wants to verify the portfolio
 without trusting committed generated artifacts.
 
-The current package version is `0.1.1`. It is a portfolio, learning, and
-reviewer-oriented hardening release, not a production LiDAR stack or a real
+The current package target is `1.0.0`. It is a portfolio, learning, and
+reviewer-oriented release candidate, not a deployed LiDAR stack or an official
 KITTI benchmark release.
 
 ## 1. Install
@@ -41,7 +41,7 @@ python scripts/check_dataset_fixtures.py
 python scripts/check_artifact_schema.py
 ```
 
-Expected result: formatting, lint, tests, the 70% coverage gate, and repository
+Expected result: formatting, lint, tests, the 75% coverage gate, and repository
 hygiene, DevContainer, packaging, tiny fixture, and artifact schema checks pass.
 
 ## 3. Optional DevContainer Reproduction
@@ -121,6 +121,24 @@ python scripts/check_dataset_fixtures.py
 Expected result: the synthetic KITTI-like `.bin`, ModelNet-like `.off`, and
 manifest checksums validate. These are format smoke tests, not real benchmarks.
 
+Run the v1 scale quick gate:
+
+```bash
+make verify-scale-benchmark
+```
+
+Expected result: `outputs/scale_benchmark/scale_benchmark.{json,csv,md,png}`
+exist and include repeat statistics, memory metadata, and machine info.
+
+Run the KITTI-like workflow dry-run:
+
+```bash
+make verify-realdata
+```
+
+Expected result: a temporary synthetic KITTI-like frame exercises the same
+report and metrics validation used for user-provided local data.
+
 For local repeat statistics:
 
 ```bash
@@ -161,9 +179,11 @@ Review especially:
   not real dataset benchmarks.
 - Stanford Bunny, KITTI, and ModelNet are documented workflows requiring local
   datasets.
-- v0.1.1 still does not include real KITTI benchmark results,
-  a full nonlinear GICP optimizer, a SLAM backend, CUDA acceleration, or a new
-  PointNet training release.
+- v1.0.0 still does not include official real KITTI benchmark results.
+- v1.0.0 is not a full nonlinear GICP optimizer.
+- v1.0.0 is not a SLAM backend.
+- v1.0.0 is not CUDA accelerated.
+- v1.0.0 is not a PointNet training release.
 
 ## 8. Check Repository Hygiene
 
@@ -194,11 +214,12 @@ Before creating a future manual tag or GitHub release, run:
 
 ```bash
 make verify-release-candidate
+make verify-v1-candidate
 ```
 
 Expected result: core checks, portfolio verification, benchmark verification,
-and release-ready metadata checks pass. The release artifact manifest is
-`docs/releases/v0.1.1_artifacts.json`.
+realdata dry-run, scale quick gate, and release-ready metadata checks pass. The
+v1 artifact manifest is `docs/releases/v1.0.0_artifacts.json`.
 
 For an audit snapshot:
 

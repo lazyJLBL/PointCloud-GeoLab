@@ -1,7 +1,7 @@
 # Limitations
 
 PointCloud-GeoLab is a compact geometry lab for learning, testing, and portfolio
-review. It is not a replacement for Open3D, PCL, or a production autonomy stack.
+review. It is not a replacement for Open3D, PCL, or a deployed autonomy stack.
 
 ## Algorithmic Limits
 
@@ -29,6 +29,11 @@ review. It is not a replacement for Open3D, PCL, or a production autonomy stack.
   exit with preparation hints when data is missing.
 - Benchmark numbers are machine-specific. Regenerate them locally and inspect
   the emitted CSV/JSON/Markdown/PNG artifacts.
+- The KITTI-like segmentation workflow accepts user-provided single frames and
+  writes reports, timing, and memory metadata. It is not an official KITTI
+  benchmark.
+- Scale benchmark outputs are local references. Full 1M-point runs belong in a
+  manual gate, not the default CI path.
 
 ## Dependency Limits
 
@@ -48,3 +53,12 @@ review. It is not a replacement for Open3D, PCL, or a production autonomy stack.
   accelerate the Python implementation.
 - Coverage is useful for regression confidence, but correctness still relies on
   geometry-specific tests against brute force or known transforms.
+
+## v1.0.0 Boundary
+
+- v1.0.0 is not a full nonlinear GICP optimizer.
+- v1.0.0 is not a SLAM backend.
+- v1.0.0 is not CUDA accelerated.
+- v1.0.0 is not a PointNet training release.
+- v1.0.0 is not an official KITTI benchmark.
+- Synthetic smoke checks and tiny fixtures are not real-data benchmark results.

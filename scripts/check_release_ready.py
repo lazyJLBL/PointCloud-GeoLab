@@ -1,4 +1,4 @@
-"""Check v0.1.1 release metadata and repository boundaries."""
+"""Check current release metadata and repository boundaries."""
 
 from __future__ import annotations
 
@@ -26,9 +26,9 @@ from scripts.check_repo_hygiene import (
     regex_value,
 )
 
-CURRENT_VERSION = "0.1.1"
+CURRENT_VERSION = "1.0.0"
 RELEASE_DATE = "2026-06-18"
-ARTIFACT_MANIFEST = "v0.1.1_artifacts.json"
+ARTIFACT_MANIFEST = "v1.0.0_artifacts.json"
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
@@ -326,7 +326,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"- {issue}")
         return 1
     if result.workspace_clean:
-        print("Release checks passed for the current v0.1.1 source state.")
+        print(f"Release checks passed for the current v{args.version} source state.")
     else:
         print("Release readiness checks passed for the current source state.")
     return 0

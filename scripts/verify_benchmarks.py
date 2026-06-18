@@ -9,7 +9,15 @@ import struct
 from dataclasses import dataclass
 from pathlib import Path
 
-BENCHMARK_SUITES = ("kdtree", "icp", "ransac", "registration", "gicp", "segmentation")
+DEFAULT_BENCHMARK_SUITES = (
+    "kdtree",
+    "icp",
+    "ransac",
+    "registration",
+    "gicp",
+    "segmentation",
+)
+BENCHMARK_SUITES = (*DEFAULT_BENCHMARK_SUITES, "scale")
 ARTIFACT_EXTENSIONS = ("csv", "json", "md", "png")
 
 
@@ -38,7 +46,7 @@ def verify_benchmark_outputs(
     missing: list[Path] = []
     invalid: list[str] = []
 
-    suites = list(BENCHMARK_SUITES) if suite == "all" else [suite]
+    suites = list(DEFAULT_BENCHMARK_SUITES) if suite == "all" else [suite]
     if suite == "all":
         _check_suite_files(root, "all", checked, missing, invalid)
         _check_summary_files(root, checked, missing, invalid)

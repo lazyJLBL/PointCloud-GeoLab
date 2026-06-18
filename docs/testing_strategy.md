@@ -89,7 +89,7 @@ Core tests should not require heavyweight optional packages.
 
 ## Coverage Gate
 
-The current coverage gate is 70%. That threshold is intentionally modest because
+The current coverage gate is 75%. That threshold is intentionally modest because
 some optional visualization, ML, and integration paths are expensive or
 environment-sensitive.
 

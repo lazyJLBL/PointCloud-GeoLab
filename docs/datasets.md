@@ -46,10 +46,12 @@ Armadillo is larger.
 Official source:
 [KITTI Raw Data](https://www.cvlibs.net/datasets/kitti/raw_data.php).
 
-Local use: LiDAR ground removal and clustering.
+Local use: LiDAR ground removal and clustering through the user-provided
+single-frame workflow.
 
 Notes: KITTI stores Velodyne frames as repeated float32 `x y z intensity`
-tuples in `.bin`.
+tuples in `.bin`. The repository does not include real KITTI data and does not
+claim an official KITTI benchmark.
 
 ### ModelNet10/40
 
@@ -150,6 +152,18 @@ python examples/modelnet_primitive_demo.py \
 
 Each example exits with code `2` and a specific preparation hint if the expected
 data is missing.
+
+The KITTI-like workflow writes:
+
+- `outputs/kitti_segmentation/report.md`
+- `outputs/kitti_segmentation/report.html`
+- `outputs/kitti_segmentation/metrics.json`
+- `outputs/kitti_segmentation/kitti_bev.png`
+- `outputs/kitti_segmentation/kitti_clusters.png`
+- `outputs/kitti_segmentation/kitti_height_histogram.png`
+
+CI uses `python scripts/verify_realdata_workflow.py --dry-run` with a temporary
+synthetic frame. That dry-run validates file format and artifact schema only.
 
 ## Verification
 

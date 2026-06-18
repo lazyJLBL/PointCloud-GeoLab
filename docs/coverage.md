@@ -9,15 +9,15 @@ Run:
 python -m pytest --cov=pointcloud_geolab
 ```
 
-`pyproject.toml` enforces `fail_under = 70`. The threshold is intentionally
+`pyproject.toml` enforces `fail_under = 75`. The threshold is intentionally
 below the current measured coverage because optional Open3D/PyTorch/Plotly
 paths are separated from the core geometry evidence, but it prevents coverage
 from silently collapsing.
 
-For v0.1.1 hardening release work, the local Python 3.12 verification run
-reported 177 passing tests and 78.52% total coverage. The enforced gate stays
-at 70% rather than the current measured value so small platform or
-optional-dependency differences do not make routine review brittle.
+For v1.0.0 release-candidate work, the target is to keep local coverage at or
+above 80% while enforcing a 75% gate. The gate stays below the current measured
+value so small platform or optional-dependency differences do not make routine
+review brittle.
 
 Generate an HTML report:
 
@@ -50,5 +50,6 @@ should keep smoke coverage. Repository hygiene, artifact schema, DevContainer,
 packaging sanity, and tiny fixture checks now run as part of `verify-core`,
 next to the coverage gate. Docker daemon availability and the optional `build`
 module are treated as friendly skips. Release checks are available through
-`make verify-release-candidate`. Raising the threshold further should come
-after optional dependency paths are split into their own coverage view.
+`make verify-release-candidate` and `make verify-v1-candidate`. Raising the
+threshold further should come after optional dependency paths are split into
+their own coverage view.

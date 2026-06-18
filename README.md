@@ -9,9 +9,9 @@ PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
 Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
-Current version: `0.1.1` hardening release. This is a portfolio, learning, and
-reviewer-oriented release; the v0.1.1 tag and GitHub release are historical
-release artifacts and should not be rewritten by v0.1.2-pre work.
+Current target version: `1.0.0` portfolio-stable release candidate. This is a
+portfolio, learning, and reviewer-oriented release; the v0.1.0 and v0.1.1 tags
+and GitHub releases remain historical artifacts and should not be rewritten.
 
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
@@ -78,6 +78,9 @@ Representative portfolio-pipeline figures:
   metrics, figures, PLY artifacts, and transform JSON.
 - **Benchmarks**: CLI emits CSV, JSON, Markdown, PNG, parameters, seed,
   platform, repeat statistics, memory metadata, and dependency metadata.
+- **KITTI-like LiDAR workflow**: user-provided single-frame `.bin` data can be
+  segmented into ground and object clusters with JSON, Markdown, HTML, PLY, and
+  PNG outputs. This is not an official KITTI benchmark.
 
 ### Experimental
 
@@ -95,7 +98,8 @@ Representative portfolio-pipeline figures:
 ### Documented workflow
 
 - **Real data workflows**: Stanford Bunny, KITTI, and ModelNet instructions
-  expect local files under `data/external/`.
+  expect local files under `data/external/`. Tiny fixtures in tests validate
+  formats, not real dataset accuracy.
 
 See [AUDIT.md](AUDIT.md) for the detailed truthfulness audit.
 
@@ -121,6 +125,18 @@ python -m pointcloud_geolab benchmark \
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
 ```
 
+Run the scale benchmark quick gate:
+
+```bash
+python scripts/run_scale_benchmark.py \
+  --quick \
+  --repeat 2 \
+  --output-dir outputs/scale_benchmark
+python scripts/verify_benchmarks.py \
+  --output-dir outputs/scale_benchmark \
+  --suite scale
+```
+
 Run real-data case studies after preparing local data:
 
 ```bash
@@ -136,6 +152,12 @@ python examples/kitti_lidar_segmentation.py \
 If the real data is missing, these scripts exit with preparation instructions.
 Synthetic demos are smoke tests only and should not be described as real-data
 results.
+
+CI uses a dry-run version of the KITTI-like workflow:
+
+```bash
+python scripts/verify_realdata_workflow.py --dry-run
+```
 
 ## Benchmark Notes
 
@@ -194,6 +216,8 @@ python scripts/check_packaging.py
 python scripts/check_dataset_fixtures.py
 python scripts/check_release_ready.py
 python scripts/check_artifact_schema.py
+python scripts/verify_realdata_workflow.py --dry-run
+python scripts/check_v1_ready.py
 python scripts/audit_repository_state.py --help
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline \
@@ -205,6 +229,8 @@ python -m pointcloud_geolab benchmark \
   --quick \
   --output outputs/benchmarks
 python scripts/verify_benchmarks.py --output-dir outputs/benchmarks
+python scripts/run_scale_benchmark.py --quick --repeat 2 --output-dir outputs/scale_benchmark
+python scripts/verify_benchmarks.py --output-dir outputs/scale_benchmark --suite scale
 ```
 
 Make targets:
@@ -213,7 +239,10 @@ Make targets:
 make verify-core
 make verify-portfolio
 make verify-benchmarks
+make verify-realdata
+make verify-scale-benchmark
 make verify-release-candidate
+make verify-v1-candidate
 make verify-full
 ```
 
@@ -222,6 +251,8 @@ hygiene, DevContainer, packaging, tiny dataset fixture, and artifact schema
 checks. CI runs `verify-core` and `verify-portfolio`.
 `verify-release-candidate` is heavier: it also regenerates portfolio and
 benchmark artifacts, verifies them, and runs release-ready metadata checks.
+`verify-v1-candidate` adds the real-data dry-run, scale benchmark quick gate,
+and v1.0.0 readiness checks.
 
 ## Tiny Dataset Fixtures
 
@@ -253,9 +284,9 @@ make verify-core
 make verify-portfolio
 ```
 
-The v0.1.1 release notes and artifact manifest live under `docs/releases/`.
+The v1.0.0 release notes and artifact manifest live under `docs/releases/`.
 They describe expected local outputs and the remaining roadmap items without
-committing generated artifacts.
+committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
 
 ## Limitations
 
@@ -270,8 +301,11 @@ committing generated artifacts.
 - DBSCAN and Euclidean clustering use global radius thresholds and are sensitive
   to LiDAR density changes.
 - Large LiDAR scenes need streaming/chunking and more careful memory profiling.
-- v0.1.1 does not add a full nonlinear GICP optimizer, SLAM backend, CUDA
-  acceleration, PointNet training release, or real KITTI benchmark report.
+- v1.0.0 does not add a full nonlinear GICP optimizer, SLAM backend, CUDA
+  acceleration, PointNet training release, or official real KITTI benchmark
+  report.
+- The KITTI-like workflow is a user-provided single-frame case study. It is not
+  an official KITTI benchmark and does not commit real KITTI data.
 
 ## Documentation
 
@@ -289,6 +323,12 @@ committing generated artifacts.
 - [KITTI LiDAR Case Study](docs/case_study_kitti.md)
 - [Coverage](docs/coverage.md)
 - [Artifact Schema](docs/artifact_schema.md)
+- [API Stability](docs/api_stability.md)
+- [CLI Reference](docs/cli_reference.md)
+- [Versioning](docs/versioning.md)
+- [Gallery](docs/gallery/README.md)
+- [Scale Benchmark](docs/scale_benchmark.md)
+- [KITTI LiDAR Result](docs/case_studies/kitti_lidar_result.md)
 - [Release Checklist](docs/release_checklist.md)
 - [Audit Report Template](docs/audit_report_template.md)
 - [Interview Notes](docs/interview_notes.md)
@@ -298,6 +338,7 @@ committing generated artifacts.
 - [v0.1.2 Planning](docs/planning/v0.1.2.md)
 - [Changelog](CHANGELOG.md)
 - [v0.1.1 Hardening Release](docs/releases/v0.1.1.md)
+- [v1.0.0 Portfolio-Stable Release Candidate](docs/releases/v1.0.0.md)
 
 ## Resume Description
 
@@ -311,4 +352,4 @@ real-data workflows.
 [tests-workflow]: https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml
 [python-badge]: https://img.shields.io/badge/python-3.10%2B-blue
 [license-badge]: https://img.shields.io/badge/license-MIT-green
-[coverage-badge]: https://img.shields.io/badge/coverage%20threshold-70%25-informational
+[coverage-badge]: https://img.shields.io/badge/coverage%20threshold-75%25-informational

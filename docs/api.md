@@ -81,6 +81,8 @@ These are useful, but intentionally not exported from `pointcloud_geolab.__all__
 - `run_reconstruction`: Open3D-backed optional workflow.
 - `run_visualization`: optional HTML visualization workflow.
 - `run_train_pointnet` and `run_infer_pointnet`: optional PyTorch demo.
+- GICP-style covariance-weighted ICP internals: experimental, not a full
+  nonlinear GICP optimizer, and not part of the v1.0.0 stable API promise.
 
 The CLI remains the preferred reviewer interface:
 

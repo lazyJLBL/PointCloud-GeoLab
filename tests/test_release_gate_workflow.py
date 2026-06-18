@@ -12,7 +12,7 @@ def test_release_gate_workflow_is_manual_only() -> None:
     assert "push:" not in workflow
     assert "pull_request:" not in workflow
     assert "make verify-benchmarks" in workflow
-    assert "make verify-release-candidate" in workflow
+    assert "make verify-v1-candidate" in workflow
     assert "permissions:" in workflow
     assert "contents: read" in workflow
 

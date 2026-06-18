@@ -57,7 +57,7 @@ def test_packaging_metadata_parser_reads_project() -> None:
     metadata = load_packaging_metadata(ROOT / "pyproject.toml")
 
     assert metadata.name == "pointcloud-geolab"
-    assert metadata.version == "0.1.1"
+    assert metadata.version == "1.0.0"
     assert metadata.scripts["pointcloud-geolab"] == "pointcloud_geolab.cli:main"
     assert {"dev", "vis", "bench"} <= set(metadata.optional_dependencies)
 

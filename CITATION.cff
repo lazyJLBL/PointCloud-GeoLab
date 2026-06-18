@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use PointCloud-GeoLab, please cite this repository."
 title: "PointCloud-GeoLab"
-version: "0.1.1"
+version: "1.0.0"
 date-released: "2026-06-18"
 authors:
   - name: "lazyJLBL"

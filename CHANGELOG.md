@@ -4,8 +4,24 @@ All notable changes for PointCloud-GeoLab are recorded here.
 
 ## Unreleased
 
+No unreleased changes yet.
+
+## v1.0.0 - 2026-06-18
+
 ### Added
 
+- v1.0.0 release notes and artifact manifest for portfolio-stable review.
+- User-provided KITTI-like LiDAR segmentation workflow with JSON, Markdown,
+  HTML, PLY, PNG, timing, and memory outputs.
+- Real-data workflow verifier with a CI-safe synthetic KITTI-like dry-run.
+- Scale benchmark with 1k/10k quick sizes, optional larger manual sizes,
+  repeat statistics, memory metadata, machine info, JSON, CSV, Markdown, and
+  PNG outputs.
+- API and CLI stability documentation for stable, experimental, deprecated,
+  and optional surfaces.
+- Gallery documentation and small synthetic/tiny-fixture assets for reviewer
+  navigation.
+- v1 readiness checker and `verify-v1-candidate` Makefile target.
 - v0.1.2 planning notes for API, IO, artifact schema, pipeline structure,
   release gate, and repository audit follow-up work.
 - Lightweight artifact schema checker for release manifests, portfolio metrics,
@@ -19,6 +35,12 @@ All notable changes for PointCloud-GeoLab are recorded here.
 
 ### Changed
 
+- Current package, citation, release-ready metadata, and README version wording
+  are prepared for v1.0.0 while v0.1.0 and v0.1.1 remain historical releases.
+- GICP-style covariance-weighted ICP remains Experimental and outside the
+  stable API commitment; it is not a full nonlinear GICP optimizer.
+- KITTI documentation now separates the user-provided single-frame workflow
+  from any official real KITTI benchmark claim.
 - v0.1.1 wording now describes the published hardening release rather than
   candidate wording.
 - Portfolio pipeline internals were split into input, metrics, figures, report,

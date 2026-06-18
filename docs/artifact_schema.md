@@ -9,7 +9,7 @@ Run:
 python scripts/check_artifact_schema.py
 ```
 
-The default command validates `docs/releases/v0.1.1_artifacts.json`. Optional
+The default command validates `docs/releases/v1.0.0_artifacts.json`. Optional
 arguments can validate generated portfolio and benchmark files:
 
 ```bash
@@ -28,6 +28,7 @@ The release manifest must include:
 - `local_verification_commands`
 - `expected_generated_artifacts.portfolio`
 - `expected_generated_artifacts.benchmarks`
+- optional extra sections such as `expected_generated_artifacts.realdata`
 - `ignored_artifact_paths`
 - `limitations`
 - `open_roadmap_items`
@@ -63,6 +64,13 @@ Benchmark JSON must include:
 
 Repeat and memory metadata are local-run diagnostics. They are useful for
 reviewing reproducibility but are not portable performance promises.
+
+The scale benchmark uses the same benchmark JSON shape and can be checked with:
+
+```bash
+python scripts/check_artifact_schema.py \
+  --benchmark-json outputs/scale_benchmark/scale_benchmark.json
+```
 
 ## Limits
 

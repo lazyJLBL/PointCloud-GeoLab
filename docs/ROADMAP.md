@@ -44,6 +44,13 @@ separate implemented work from planned work.
   with checksum validation in `verify-core`.
 - v0.1.1 hardening release notes, artifact manifest, and release-ready checker.
 - Manual v0.1.1 tag and GitHub release.
+- v1.0.0 portfolio-stable release-candidate notes and artifact manifest.
+- User-provided KITTI-like LiDAR segmentation workflow with reports, metrics,
+  figures, timing, and memory metadata. This is not an official KITTI
+  benchmark.
+- Real-data workflow verifier with a CI-safe synthetic dry-run.
+- Scale benchmark quick gate with repeat statistics and local memory metadata.
+- API stability, CLI reference, versioning, gallery, and v1 readiness docs.
 - Portfolio pipeline implementation split into smaller input, metrics, figure,
   report, and runner modules while preserving the compatibility import path.
 - Lightweight artifact schema checker for release, portfolio, and benchmark
@@ -60,14 +67,15 @@ separate implemented work from planned work.
 
 ## Next Milestones
 
-### v0.1.2 Engineering Quality
+### v1.0.0 Release Readiness
 
-- Continue hardening public API error contracts and documentation.
-- Expand path-aware IO error tests for supported point-cloud formats.
+- Keep public API error contracts and documentation aligned.
+- Keep path-aware IO error tests for supported point-cloud formats.
 - Keep artifact schema checks lightweight and dependency-free.
-- Improve repository audit output without requiring `gh` for local checks.
+- Keep repository audit output useful without requiring `gh` for local checks.
 - Keep generated `outputs/`, benchmark bundles, demo data, and coverage reports
   out of Git.
+- Do not create a v1.0.0 tag or GitHub release until explicitly requested.
 
 ### v0.3.1 Benchmark Hardening
 
@@ -75,13 +83,14 @@ separate implemented work from planned work.
   available.
 - Compare benchmark output schemas across releases.
 
-### v0.3.2 Real Data Coverage
+### v1.x Real Data Coverage
 
 - Add checksum-verified public-domain micro fixtures if licensing allows, kept
   separate from benchmark claims.
 - Add SemanticKITTI or nuScenes documentation as optional LiDAR extensions.
+ - Add an official real KITTI benchmark report only as a separate future task.
 
-### v0.4 Algorithm Depth
+### v1.x Algorithm Depth
 
 - Improve GICP-style covariance weighting from scalar Mahalanobis weights to a
   fuller nonlinear covariance objective.
