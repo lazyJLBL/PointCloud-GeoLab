@@ -1,10 +1,10 @@
 # Release Checklist
 
-This checklist records the v1.0.0 portfolio-stable release-candidate checks and
-the process to use before future manual releases. It does not create a tag or
+This checklist records the v1.0.0 portfolio-stable release checks and the
+process to use before future manual releases. It does not create a tag or
 publish a release by itself.
 
-v1.0.0 is a portfolio, learning, and reviewer-oriented target. It focuses on
+v1.0.0 is a portfolio, learning, and reviewer-oriented release. It focuses on
 verification, package sanity, documentation boundaries, local artifact
 regeneration, API/CLI contracts, and reviewer workflows.
 

@@ -3,9 +3,9 @@
 This checklist is for a release reviewer who wants to verify the portfolio
 without trusting committed generated artifacts.
 
-The current package target is `1.0.0`. It is a portfolio, learning, and
-reviewer-oriented release candidate, not a deployed LiDAR stack or an official
-KITTI benchmark release.
+The current package version is `1.0.0`. It is a portfolio, learning, and
+reviewer-oriented release, not a deployed LiDAR stack or an official KITTI
+benchmark release.
 
 ## 1. Install
 

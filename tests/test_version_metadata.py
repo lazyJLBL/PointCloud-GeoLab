@@ -27,6 +27,6 @@ def test_release_metadata_mentions_current_release_and_history() -> None:
     assert "## v1.0.0 - 2026-06-18" in changelog
     assert "## v0.1.1 - 2026-06-18" in changelog
     assert "## v0.1.0 Portfolio Release" in changelog
-    assert "# v1.0.0 Portfolio-Stable Release Candidate" in current_notes
+    assert "# v1.0.0 Portfolio-Stable Release" in current_notes
     assert "# v0.1.1 Hardening Release" in historical_011_notes
     assert "# v0.1.0 Portfolio Release" in historical_010_notes

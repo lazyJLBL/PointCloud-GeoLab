@@ -1,4 +1,4 @@
-"""Check v1.0.0 portfolio-stable release-candidate readiness."""
+"""Check v1.0.0 portfolio-stable release readiness."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ REQUIRED_MAKE_TARGETS = (
 
 @dataclass(frozen=True, slots=True)
 class V1ReadyResult:
-    """Result of v1.0.0 release-candidate checks."""
+    """Result of v1.0.0 release checks."""
 
     root: Path
     issues: list[str]
@@ -257,7 +257,7 @@ def main(argv: list[str] | None = None) -> int:
         for issue in result.issues:
             print(f"- {issue}")
         return 1
-    print("v1.0.0 portfolio-stable release candidate checks passed.")
+    print("v1.0.0 portfolio-stable release checks passed.")
     return 0
 
 

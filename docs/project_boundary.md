@@ -4,10 +4,10 @@ PointCloud-GeoLab is a portfolio and learning project. It is meant to make
 point-cloud geometry algorithms readable, runnable, and reviewable in a compact
 Python codebase.
 
-The current `1.0.0` target is a portfolio-stable and reviewer-stable release
-candidate. It improves verification, package sanity, artifact schemas, local
-case-study workflows, and documentation boundaries without turning the project
-into a deployed perception system.
+The current `1.0.0` release is portfolio-stable and reviewer-stable. It
+improves verification, package sanity, artifact schemas, local case-study
+workflows, and documentation boundaries without turning the project into a
+deployed perception system.
 
 It is not intended to replace mature libraries such as PCL or Open3D. Those
 projects remain the right baseline for production systems, broad hardware

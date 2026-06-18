@@ -122,7 +122,7 @@ def _write_minimal_release_repo(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "docs" / "releases" / "v1.0.0.md").write_text(
-        "# v1.0.0 Portfolio-Stable Release Candidate\n\n"
+        "# v1.0.0 Portfolio-Stable Release\n\n"
         "This is not a full nonlinear GICP optimizer and not real KITTI data.\n",
         encoding="utf-8",
     )

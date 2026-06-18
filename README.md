@@ -9,9 +9,9 @@ PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
 Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
-Current target version: `1.0.0` portfolio-stable release candidate. This is a
-portfolio, learning, and reviewer-oriented release; the v0.1.0 and v0.1.1 tags
-and GitHub releases remain historical artifacts and should not be rewritten.
+Current version: `1.0.0` Portfolio-Stable Release. This is a portfolio,
+learning, and reviewer-oriented release; the v0.1.0 and v0.1.1 tags and GitHub
+releases remain historical artifacts and should not be rewritten.
 
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
@@ -338,7 +338,7 @@ committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
 - [v0.1.2 Planning](docs/planning/v0.1.2.md)
 - [Changelog](CHANGELOG.md)
 - [v0.1.1 Hardening Release](docs/releases/v0.1.1.md)
-- [v1.0.0 Portfolio-Stable Release Candidate](docs/releases/v1.0.0.md)
+- [v1.0.0 Portfolio-Stable Release](docs/releases/v1.0.0.md)
 
 ## Resume Description
 

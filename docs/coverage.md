@@ -14,7 +14,7 @@ below the current measured coverage because optional Open3D/PyTorch/Plotly
 paths are separated from the core geometry evidence, but it prevents coverage
 from silently collapsing.
 
-For v1.0.0 release-candidate work, the target is to keep local coverage at or
+For v1.0.0 release work, the target is to keep local coverage at or
 above 80% while enforcing a 75% gate. The gate stays below the current measured
 value so small platform or optional-dependency differences do not make routine
 review brittle.

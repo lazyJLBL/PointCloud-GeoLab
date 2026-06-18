@@ -2,13 +2,13 @@
 
 PointCloud-GeoLab uses semantic version labels for reviewer milestones.
 
-## Current Target
+## Current Version
 
-- Current target: `1.0.0`
-- Release type: portfolio-stable / reviewer-stable candidate
+- Current version: `1.0.0`
+- Release type: portfolio-stable / reviewer-stable release
 - Historical releases retained: `v0.1.0`, `v0.1.1`
 
-The `v1.0.0` target means the documented portfolio workflow, stable public API,
+The `v1.0.0` release means the documented portfolio workflow, stable public API,
 CLI reference, artifact schema, and reviewer verification commands are expected
 to remain coherent. It does not mean the project is a replacement for Open3D or
 PCL, and it does not add full nonlinear GICP, SLAM, CUDA, PointNet training, or
@@ -27,4 +27,4 @@ an official KITTI benchmark.
 
 `v0.1.0` established the portfolio release baseline. `v0.1.1` hardened CI,
 hygiene, packaging, DevContainer, benchmark metadata, and tiny dataset fixtures.
-The v1.0.0 candidate keeps those records as history instead of rewriting them.
+The v1.0.0 release keeps those records as history instead of rewriting them.

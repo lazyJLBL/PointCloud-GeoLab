@@ -44,7 +44,7 @@ separate implemented work from planned work.
   with checksum validation in `verify-core`.
 - v0.1.1 hardening release notes, artifact manifest, and release-ready checker.
 - Manual v0.1.1 tag and GitHub release.
-- v1.0.0 portfolio-stable release-candidate notes and artifact manifest.
+- v1.0.0 portfolio-stable release notes and artifact manifest.
 - User-provided KITTI-like LiDAR segmentation workflow with reports, metrics,
   figures, timing, and memory metadata. This is not an official KITTI
   benchmark.
