@@ -10,12 +10,17 @@ All notable changes for PointCloud-GeoLab are recorded here.
   overclaim wording, text-file shape, and release metadata consistency.
 - Project boundary, architecture, and testing strategy documentation for
   reviewer orientation.
+- CI status helper for checking the latest Tests workflow with the GitHub CLI.
 
 ### Changed
 
 - Markdown and TOML formatting cleanup for easier review.
-- `verify-core` now includes the repository hygiene check.
-- Coverage improved with additional CLI and point-cloud I/O error-path tests.
+- `verify-core` now includes the repository hygiene check, and CI keeps running
+  that target on Python 3.10, 3.11, and 3.12.
+- GitHub Actions now use newer official checkout/setup-python actions with
+  read-only repository contents permission.
+- Coverage improved with additional CLI, verifier, public API, visualization,
+  reconstruction, and point-cloud I/O tests.
 
 ## v0.1.0 Portfolio Release - 2026-06-17
 

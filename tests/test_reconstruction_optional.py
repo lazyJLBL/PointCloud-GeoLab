@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from pointcloud_geolab.datasets import make_sphere
@@ -21,3 +22,11 @@ def test_open3d_reconstruction_optional_smoke(tmp_path) -> None:
 
     assert output.exists()
     assert len(result.vertices) > 0
+
+
+def test_reconstruction_rejects_invalid_point_arrays() -> None:
+    with pytest.raises(ValueError, match="shape"):
+        reconstruct_surface(np.zeros((4, 2)))
+
+    with pytest.raises(ValueError, match="at least 4 points"):
+        reconstruct_surface(np.zeros((3, 3)))

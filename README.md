@@ -168,6 +168,7 @@ python -m compileall -q main.py pointcloud_geolab tests examples scripts benchma
 python -m ruff check .
 python -m black --check .
 python -m pytest --cov=pointcloud_geolab
+python scripts/check_repo_hygiene.py
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline \
   --input examples/demo_data \
@@ -189,7 +190,8 @@ make verify-benchmarks
 make verify-full
 ```
 
-CI runs `verify-core` and `verify-portfolio`.
+`verify-core` runs compile, lint, format, tests with coverage, and repository
+hygiene checks. CI runs `verify-core` and `verify-portfolio`.
 
 ## Limitations
 

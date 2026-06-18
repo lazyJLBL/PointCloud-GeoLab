@@ -30,9 +30,11 @@ python -m compileall -q main.py pointcloud_geolab tests examples scripts benchma
 python -m ruff check .
 python -m black --check .
 python -m pytest --cov=pointcloud_geolab
+python scripts/check_repo_hygiene.py
 ```
 
-Expected result: formatting, lint, tests, and the 65% coverage gate pass.
+Expected result: formatting, lint, tests, the 65% coverage gate, and repository
+hygiene checks pass.
 
 ## 3. Run Portfolio Smoke
 
@@ -101,6 +103,7 @@ Review especially:
 ## 6. Check Repository Hygiene
 
 ```bash
+python scripts/check_repo_hygiene.py
 git status --short --untracked-files=all
 git ls-files \
   outputs results benchmark_results examples/demo_data \
@@ -108,3 +111,14 @@ git ls-files \
 ```
 
 Expected result: no tracked generated outputs.
+
+## 7. Check Latest CI Status
+
+After pushing a review branch or main update:
+
+```bash
+python scripts/check_ci_status.py --branch main --workflow tests.yml
+```
+
+This helper uses the GitHub CLI when available. If `gh` is missing or not
+authenticated, it reports that clearly instead of printing a traceback.

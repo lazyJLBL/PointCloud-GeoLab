@@ -18,10 +18,17 @@ def test_repo_hygiene_script_runs_on_repository() -> None:
 def test_repo_hygiene_finds_tracked_generated_path(tmp_path: Path) -> None:
     _write_minimal_repo(tmp_path)
 
-    result = run_hygiene(tmp_path, tracked_files=["outputs/portfolio_demo/report.md"])
+    result = run_hygiene(
+        tmp_path,
+        tracked_files=[
+            "outputs/portfolio_demo/report.md",
+            "benchmark_results/summary.json",
+        ],
+    )
 
     assert not result.success
-    assert any("generated path is tracked" in issue for issue in result.issues)
+    assert any("outputs/portfolio_demo/report.md" in issue for issue in result.issues)
+    assert any("benchmark_results/summary.json" in issue for issue in result.issues)
 
 
 def test_repo_hygiene_finds_bad_readme_link(tmp_path: Path) -> None:
@@ -31,16 +38,29 @@ def test_repo_hygiene_finds_bad_readme_link(tmp_path: Path) -> None:
 
     issues = check_readme_links(tmp_path, readme)
 
-    assert issues == ["README link target is missing: docs/missing.md"]
+    assert issues == ["README.md: missing local link target `docs/missing.md`"]
+
+
+def test_repo_hygiene_finds_bad_docs_link(tmp_path: Path) -> None:
+    _write_minimal_repo(tmp_path)
+    (tmp_path / "docs" / "bad_link.md").write_text(
+        "[Missing](missing_doc.md)\n",
+        encoding="utf-8",
+    )
+
+    result = run_hygiene(tmp_path, tracked_files=[])
+
+    assert not result.success
+    assert any("docs/bad_link.md" in issue for issue in result.issues)
 
 
 def test_repo_hygiene_finds_long_single_line_text(tmp_path: Path) -> None:
     path = tmp_path / "pyproject.toml"
     path.write_text("x" * 180, encoding="utf-8")
 
-    issues = check_text_file_shape([path], max_line_length=100)
+    issues = check_text_file_shape(tmp_path, [path], max_line_length=100)
 
-    assert any("compressed into too few lines" in issue for issue in issues)
+    assert any("compressed into 1 line" in issue for issue in issues)
     assert any("line length 180 exceeds 100" in issue for issue in issues)
 
 
@@ -65,6 +85,13 @@ def test_repo_hygiene_finds_positive_overclaim(tmp_path: Path) -> None:
 
     assert not result.success
     assert any("overclaim term `full GICP`" in issue for issue in result.issues)
+
+
+def test_verify_core_runs_hygiene() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+    assert "check-hygiene:" in makefile
+    assert "verify-core: compile lint format-check test check-hygiene" in makefile
 
 
 def _write_minimal_repo(root: Path) -> None:

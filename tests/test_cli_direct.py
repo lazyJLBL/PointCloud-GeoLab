@@ -142,3 +142,11 @@ def test_cli_invalid_config_returns_error(tmp_path: Path, capsys) -> None:
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "must contain a YAML mapping or list" in captured.err
+
+
+def test_cli_requires_command_or_batch(capsys) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        cli.main([])
+
+    assert exc_info.value.code == 2
+    assert "a subcommand or --batch is required" in capsys.readouterr().err

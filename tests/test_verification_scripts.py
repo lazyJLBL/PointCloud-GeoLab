@@ -43,6 +43,16 @@ def test_verify_benchmark_outputs_rejects_invalid_png(tmp_path: Path) -> None:
     assert any("PNG signature" in message for message in result.invalid_files)
 
 
+def test_verify_benchmark_outputs_rejects_invalid_json(tmp_path: Path) -> None:
+    _write_benchmark_suite(tmp_path, "kdtree")
+    (tmp_path / "kdtree_benchmark.json").write_text("{not-json", encoding="utf-8")
+
+    result = verify_benchmark_outputs(tmp_path, suite="kdtree")
+
+    assert not result.success
+    assert any("invalid JSON" in message for message in result.invalid_files)
+
+
 def test_missing_portfolio_artifacts_accepts_expected_files(tmp_path: Path) -> None:
     output_dir = tmp_path / "outputs"
     for name in EXPECTED_GALLERY_ARTIFACTS:

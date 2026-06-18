@@ -13,6 +13,11 @@ python -m pytest --cov=pointcloud_geolab
 modest because optional Open3D/PyTorch/Plotly paths are separated from the core
 geometry evidence, but it prevents coverage from silently collapsing.
 
+For v0.1.1 pre-release work, the practical target is to keep moving total
+coverage above 74% with useful tests for CLI errors, verifier rejection cases,
+public API imports, fallback diagnostics, and optional-dependency boundaries.
+The gate remains 65% so optional demos do not make routine review brittle.
+
 Generate an HTML report:
 
 ```bash
@@ -40,5 +45,6 @@ correctness evidence for the geometry implementation.
 ## Current Expectation
 
 Core geometry modules should stay meaningfully covered, and the CLI pipeline
-should keep smoke coverage. Raising the threshold is future work after optional
-dependency paths are split into their own coverage view.
+should keep smoke coverage. Repository hygiene now runs as part of
+`verify-core`, next to the coverage gate. Raising the threshold is future work
+after optional dependency paths are split into their own coverage view.

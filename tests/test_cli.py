@@ -370,6 +370,46 @@ def test_batch_manifest_reports_invalid_jobs(
 
 
 def test_cli_text_formatters_cover_reviewer_outputs() -> None:
+    error = _format_text_result(TaskResult(task="geometry", success=False, error="bad input"))
+    icp = _format_text_result(
+        TaskResult(
+            task="icp",
+            success=True,
+            metrics={
+                "iterations": 2,
+                "initial_rmse": 0.5,
+                "final_rmse": 0.1,
+                "fitness": 0.9,
+                "converged": True,
+            },
+            data={
+                "rotation": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                "translation": [0.0, 0.0, 0.0],
+                "transformation": _identity(),
+            },
+        )
+    )
+    plane = _format_text_result(
+        TaskResult(
+            task="plane",
+            success=True,
+            metrics={"inliers": 9, "outliers": 1, "inlier_ratio": 0.9},
+            data={"plane_model": [0.0, 0.0, 1.0, -0.1]},
+        )
+    )
+    geometry = _format_text_result(
+        TaskResult(
+            task="geometry",
+            success=True,
+            metrics={
+                "center": [0.0, 0.0, 0.0],
+                "aabb_extent": [1.0, 2.0, 3.0],
+                "obb_extent": [1.0, 2.0, 3.0],
+                "pca_eigenvalues": [3.0, 2.0, 1.0],
+                "main_direction": [1.0, 0.0, 0.0],
+            },
+        )
+    )
     preprocess = _format_text_result(
         TaskResult(
             task="preprocess",
@@ -384,6 +424,78 @@ def test_cli_text_formatters_cover_reviewer_outputs() -> None:
             },
         )
     )
+    primitive = _format_text_result(
+        TaskResult(
+            task="fit-primitive",
+            success=True,
+            metrics={
+                "model": "plane",
+                "inliers": 10,
+                "outliers": 2,
+                "inlier_ratio": 0.8,
+                "residual_mean": 0.01,
+            },
+            data={"model_params": {"normal": [0.0, 0.0, 1.0]}},
+        )
+    )
+    extracted = _format_text_result(
+        TaskResult(
+            task="extract-primitives",
+            success=True,
+            metrics={"model_count": 1, "remaining_points": 4},
+            data={
+                "primitives": [
+                    {
+                        "model_type": "plane",
+                        "inlier_ratio": 0.9,
+                        "residual_mean": 0.01,
+                    }
+                ]
+            },
+        )
+    )
+    segmented = _format_text_result(
+        TaskResult(
+            task="segment",
+            success=True,
+            metrics={"cluster_count": 2, "noise_points": 3},
+            data={"clusters": [{"label": 0, "size": 5}]},
+        )
+    )
+    visualize = _format_text_result(
+        TaskResult(task="visualize", success=True, metrics={"mode": "html"})
+    )
+    train = _format_text_result(
+        TaskResult(task="train-pointnet", success=True, metrics={"loss": 0.1, "accuracy": 0.9})
+    )
+    reconstruct = _format_text_result(
+        TaskResult(
+            task="reconstruct",
+            success=True,
+            metrics={"method": "alpha_shape", "vertices": 4, "triangles": 2},
+        )
+    )
+    verify = _format_text_result(
+        TaskResult(
+            task="verify-portfolio",
+            success=True,
+            metrics={
+                "passed_commands": 3,
+                "failed_commands": 0,
+                "generated_artifacts": 8,
+                "missing_readme_artifacts": 0,
+            },
+        )
+    )
+    infer = _format_text_result(
+        TaskResult(
+            task="infer-pointnet",
+            success=True,
+            metrics={"class": "sphere", "confidence": 0.8},
+        )
+    )
+    unknown = _format_text_result(TaskResult(task="unknown", success=True, metrics={"ok": 1}))
+
     benchmark = _format_text_result(
         TaskResult(
             task="benchmark:kdtree",
@@ -419,7 +531,20 @@ def test_cli_text_formatters_cover_reviewer_outputs() -> None:
         )
     )
 
+    assert error == "Error: bad input"
+    assert "ICP Registration Result" in icp
+    assert "RANSAC Plane Fitting Result" in plane
+    assert "Point Cloud Geometry" in geometry
     assert "Estimated normals: true" in preprocess
+    assert "Primitive Fitting Result" in primitive
+    assert "Sequential Primitive Extraction Result" in extracted
+    assert "Segmentation Result" in segmented
+    assert "Visualization Result" in visualize
+    assert "PointNet Training Result" in train
+    assert "Surface Reconstruction Result" in reconstruct
+    assert "Portfolio Verification Result" in verify
+    assert "PointNet Inference Result" in infer
+    assert '"task": "unknown"' in unknown
     assert "Benchmark Result: kdtree" in benchmark
     assert "Refined Transformation" in register
     assert "- transform: transform.json" in register

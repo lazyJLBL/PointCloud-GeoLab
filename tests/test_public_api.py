@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib
+
 import pointcloud_geolab as pcg
 from pointcloud_geolab import api
 
@@ -35,3 +37,11 @@ def test_experimental_and_optional_wrappers_are_not_stable_exports() -> None:
     assert "run_global_registration" not in api.__all__
     assert "run_reconstruction" not in api.__all__
     assert "run_train_pointnet" not in api.__all__
+
+
+def test_public_api_imports_are_explicit() -> None:
+    module = importlib.import_module("pointcloud_geolab")
+
+    assert module.__version__ == "0.1.0"
+    assert callable(module.run_icp)
+    assert module.TaskResult is api.TaskResult
