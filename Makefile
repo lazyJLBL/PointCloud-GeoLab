@@ -1,7 +1,7 @@
 PYTHON ?= python
 
 .PHONY: install install-dev compile data pipeline test lint format-check
-.PHONY: check-hygiene check-packaging check-devcontainer
+.PHONY: check-hygiene check-packaging check-devcontainer check-fixtures
 .PHONY: benchmark verify-core verify-portfolio verify-benchmarks
 .PHONY: verify-full verify cpp-demo
 
@@ -38,10 +38,13 @@ check-packaging:
 check-devcontainer:
 	$(PYTHON) scripts/check_devcontainer.py
 
+check-fixtures:
+	$(PYTHON) scripts/check_dataset_fixtures.py
+
 benchmark:
 	$(PYTHON) -m pointcloud_geolab benchmark --suite all --quick --output outputs/benchmarks
 
-verify-core: compile lint format-check test check-hygiene check-devcontainer check-packaging
+verify-core: compile lint format-check test check-hygiene check-devcontainer check-packaging check-fixtures
 
 verify-portfolio: data pipeline
 	$(PYTHON) scripts/verify_portfolio.py --quick --output-dir outputs

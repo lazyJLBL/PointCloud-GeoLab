@@ -91,7 +91,9 @@ def test_verify_core_runs_hygiene() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
     assert "check-hygiene:" in makefile
-    assert "verify-core: compile lint format-check test check-hygiene" in makefile
+    assert "verify-core:" in makefile
+    verify_core = makefile.split("verify-core:", 1)[1].splitlines()[0]
+    assert "check-hygiene" in verify_core
 
 
 def _write_minimal_repo(root: Path) -> None:

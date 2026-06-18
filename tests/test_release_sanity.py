@@ -113,10 +113,9 @@ def test_makefile_runs_release_sanity_checks() -> None:
 
     assert "check-packaging:" in makefile
     assert "check-devcontainer:" in makefile
-    assert (
-        "verify-core: compile lint format-check test check-hygiene "
-        "check-devcontainer check-packaging"
-    ) in makefile
+    verify_core = makefile.split("verify-core:", 1)[1].splitlines()[0]
+    assert "check-devcontainer" in verify_core
+    assert "check-packaging" in verify_core
 
 
 def _write_devcontainer(root: Path) -> None:

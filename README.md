@@ -187,6 +187,7 @@ python -m pytest --cov=pointcloud_geolab
 python scripts/check_repo_hygiene.py
 python scripts/check_devcontainer.py
 python scripts/check_packaging.py
+python scripts/check_dataset_fixtures.py
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline \
   --input examples/demo_data \
@@ -209,8 +210,22 @@ make verify-full
 ```
 
 `verify-core` runs compile, lint, format, tests with coverage, and repository
-hygiene, DevContainer, and packaging checks. CI runs `verify-core` and
-`verify-portfolio`.
+hygiene, DevContainer, packaging, and tiny dataset fixture checks. CI runs
+`verify-core` and `verify-portfolio`.
+
+## Tiny Dataset Fixtures
+
+The repository includes tiny synthetic format fixtures under
+`tests/fixtures/datasets/`:
+
+- `mini_kitti_like.bin`: four `float32 x y z intensity` records.
+- `mini_modelnet_like.off`: five vertices and four triangular faces.
+- `manifest.json`: expected counts and SHA256 checksums.
+
+These fixtures prove that the readers and validators handle KITTI-like and
+ModelNet-like file formats in CI. They are not real KITTI or ModelNet samples
+and are not benchmark evidence. Real datasets still belong under
+`data/external/`.
 
 ## Reproducible Review Environment
 

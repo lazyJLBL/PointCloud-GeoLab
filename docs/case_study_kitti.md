@@ -3,6 +3,12 @@
 This case study demonstrates the LiDAR segmentation path without committing
 large KITTI files.
 
+The repository also includes `tests/fixtures/datasets/mini_kitti_like.bin`, a
+four-point synthetic format fixture validated by
+`scripts/check_dataset_fixtures.py`. That fixture only checks the `.bin` reader
+and checksum workflow. It is not a real KITTI frame and does not complete the
+real KITTI benchmark roadmap item.
+
 ## Data Preparation
 
 Download a KITTI Raw Velodyne frame and place it at:

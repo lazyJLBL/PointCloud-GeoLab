@@ -33,10 +33,11 @@ python -m pytest --cov=pointcloud_geolab
 python scripts/check_repo_hygiene.py
 python scripts/check_devcontainer.py
 python scripts/check_packaging.py
+python scripts/check_dataset_fixtures.py
 ```
 
 Expected result: formatting, lint, tests, the 70% coverage gate, and repository
-hygiene, DevContainer, and packaging checks pass.
+hygiene, DevContainer, packaging, and tiny fixture checks pass.
 
 ## 3. Optional DevContainer Reproduction
 
@@ -106,6 +107,15 @@ Expected result: CSV, JSON, Markdown, and PNG benchmark artifacts are parsed or
 structurally validated, not just checked for existence. JSON metadata should
 include repeat configuration and lightweight `tracemalloc` memory metadata.
 
+Tiny dataset fixtures can be checked separately:
+
+```bash
+python scripts/check_dataset_fixtures.py
+```
+
+Expected result: the synthetic KITTI-like `.bin`, ModelNet-like `.off`, and
+manifest checksums validate. These are format smoke tests, not real benchmarks.
+
 For local repeat statistics:
 
 ```bash
@@ -142,6 +152,8 @@ Review especially:
 - GICP-style covariance-weighted ICP is not a full nonlinear GICP optimizer.
 - Feature fallback diagnostics do not mean descriptor registration succeeded.
 - Synthetic demo outputs are smoke evidence, not broad real-data validation.
+- Tiny KITTI-like and ModelNet-like fixtures are synthetic format smoke tests,
+  not real dataset benchmarks.
 - Stanford Bunny, KITTI, and ModelNet are documented workflows requiring local
   datasets.
 - v0.1.1 pre-release work still does not include real KITTI benchmark results,

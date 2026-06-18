@@ -21,6 +21,8 @@ All notable changes for PointCloud-GeoLab are recorded here.
   sdist/wheel builds.
 - Release checklist covering local validation, DevContainer use, packaging, and
   bounded v0.1.1 scope.
+- Tiny synthetic KITTI-like `.bin` and ModelNet-like `.off` fixtures with
+  SHA256 manifest validation.
 
 ### Changed
 
@@ -36,6 +38,8 @@ All notable changes for PointCloud-GeoLab are recorded here.
 - Coverage gate raised from 65% to 70% after local coverage reached 78.61%.
 - `verify-core` now includes DevContainer and packaging sanity checks without
   requiring Docker or the `build` module to be installed.
+- `verify-core` now checks tiny dataset fixtures without downloading external
+  datasets.
 
 ## v0.1.0 Portfolio Release - 2026-06-17
 

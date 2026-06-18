@@ -4,6 +4,26 @@ PointCloud-GeoLab keeps large datasets out of git. The repository contains
 small synthetic demo data for CI, while real data should live under
 `data/external/` or another local path passed to the examples.
 
+## Tiny Format Fixtures
+
+The repository commits two tiny synthetic format fixtures under
+`tests/fixtures/datasets/`:
+
+- `mini_kitti_like.bin`: four `float32 x y z intensity` records in KITTI-like
+  Velodyne layout.
+- `mini_modelnet_like.off`: five vertices and four triangular faces in
+  ModelNet-like OFF layout.
+- `manifest.json`: declared counts, SHA256 checksums, and fixture notes.
+
+Validate them with:
+
+```bash
+python scripts/check_dataset_fixtures.py
+```
+
+These files are format smoke tests only. They are not real KITTI, ModelNet,
+SemanticKITTI, or nuScenes data, and they are not benchmark evidence.
+
 ## Supported Sources
 
 ### Stanford Bunny / Armadillo

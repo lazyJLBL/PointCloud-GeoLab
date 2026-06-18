@@ -1,0 +1,22 @@
+{
+  "description": "Tiny synthetic dataset format fixtures for smoke tests only. These are not real KITTI or ModelNet samples.",
+  "fixtures": [
+    {
+      "filename": "mini_kitti_like.bin",
+      "format": "kitti-like-bin",
+      "points": 4,
+      "sha256": "058179899e339f8b04c718a7a5e5d42ca365ec46b926c71487eff7e8134aab8b",
+      "synthetic": true,
+      "note": "Synthetic KITTI-like float32 xyzi format fixture; not real KITTI benchmark data."
+    },
+    {
+      "filename": "mini_modelnet_like.off",
+      "format": "modelnet-like-off",
+      "vertices": 5,
+      "faces": 4,
+      "sha256": "4d444f75e419eb31debec409c987559db0a099cc1c10e5309537ec19aad1747c",
+      "synthetic": true,
+      "note": "Synthetic ModelNet-like OFF format fixture; not real ModelNet benchmark data."
+    }
+  ]
+}

@@ -66,6 +66,18 @@ or `*.egg-info` artifacts.
 If `build` is not installed, the script reports a warning and keeps the metadata
 checks active.
 
+## Tiny Dataset Fixtures
+
+Validate committed synthetic format fixtures:
+
+```bash
+python scripts/check_dataset_fixtures.py
+```
+
+This checks the tiny KITTI-like `.bin`, ModelNet-like `.off`, and SHA256
+manifest under `tests/fixtures/datasets/`. These files are format smoke tests
+only and are not real dataset benchmarks.
+
 ## Portfolio And Benchmarks
 
 Regenerate ignored demo artifacts locally:
@@ -90,9 +102,10 @@ Before release, confirm the public wording stays bounded:
 - GICP is described as GICP-style covariance-weighted ICP, not a full nonlinear
   GICP optimizer.
 - Synthetic demo outputs are smoke evidence, not real-data validation.
+- Tiny KITTI-like and ModelNet-like fixtures are format smoke tests, not real
+  dataset benchmarks.
 - KITTI, Stanford Bunny, and ModelNet remain documented workflows requiring
   local files under `data/external/`.
 - The repository is not a SLAM backend, CUDA stack, or Open3D/PCL replacement.
 
 Do not create a `v0.1.1` tag unless that release action is explicitly requested.
-

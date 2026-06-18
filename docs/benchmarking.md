@@ -71,6 +71,19 @@ These values describe Python allocations observed during the local benchmark
 process. They are useful for spotting large regressions on the same machine, but
 they are not a portable memory-performance claim.
 
+## Dataset Fixture Boundary
+
+`tests/fixtures/datasets/` contains tiny synthetic KITTI-like and ModelNet-like
+format fixtures. They are checksum-validated by:
+
+```bash
+python scripts/check_dataset_fixtures.py
+```
+
+These fixtures only prove that small `.bin` and `.off` files can be parsed and
+validated in CI. They are not real KITTI or ModelNet benchmark data. Real
+benchmark inputs still need to be prepared locally under `data/external/`.
+
 ## Interpretation Examples
 
 - The custom KDTree is useful for explaining nearest-neighbor search and is fine
@@ -83,4 +96,3 @@ they are not a portable memory-performance claim.
 - GICP-style covariance-weighted ICP spends more time per iteration because it
   estimates and uses local covariance matrices. This is not a full nonlinear
   GICP optimizer.
-

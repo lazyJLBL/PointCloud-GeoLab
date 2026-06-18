@@ -39,6 +39,8 @@ separate implemented work from planned work.
   platform, and optional baseline package versions.
 - Benchmark repeat statistics for local repeated runs, plus lightweight
   `tracemalloc` memory metadata.
+- Tiny synthetic KITTI-like `.bin` and ModelNet-like `.off` format fixtures
+  with checksum validation in `verify-core`.
 - Verification scripts for benchmark artifacts and portfolio demo artifacts.
 - Real-data preparation docs and examples for Stanford Bunny/Armadillo, KITTI
   Velodyne, and ModelNet small samples.
@@ -56,9 +58,8 @@ separate implemented work from planned work.
 
 ### v0.3.2 Real Data Coverage
 
-- Add tiny checksum-verified real-data fixtures that are safe to keep in git.
-- Add CI smoke tests for real-data examples using generated miniature KITTI-like
-  `.bin` and ModelNet-like `.off` files.
+- Add checksum-verified public-domain micro fixtures if licensing allows, kept
+  separate from benchmark claims.
 - Add SemanticKITTI or nuScenes documentation as optional LiDAR extensions.
 
 ### v0.4 Algorithm Depth
