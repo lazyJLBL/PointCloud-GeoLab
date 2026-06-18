@@ -185,6 +185,8 @@ python -m ruff check .
 python -m black --check .
 python -m pytest --cov=pointcloud_geolab
 python scripts/check_repo_hygiene.py
+python scripts/check_devcontainer.py
+python scripts/check_packaging.py
 python examples/generate_demo_data.py --output examples/demo_data
 python -m pointcloud_geolab pipeline \
   --input examples/demo_data \
@@ -207,7 +209,23 @@ make verify-full
 ```
 
 `verify-core` runs compile, lint, format, tests with coverage, and repository
-hygiene checks. CI runs `verify-core` and `verify-portfolio`.
+hygiene, DevContainer, and packaging checks. CI runs `verify-core` and
+`verify-portfolio`.
+
+## Reproducible Review Environment
+
+Reviewers can open the repository in the included DevContainer. It uses a
+Python slim image, installs `.[dev,vis,bench]`, and keeps Open3D/ML extras and
+real datasets out of the default environment.
+
+Useful release-sanity commands:
+
+```bash
+python scripts/check_devcontainer.py
+python scripts/check_packaging.py
+make verify-core
+make verify-portfolio
+```
 
 ## Limitations
 
@@ -238,6 +256,7 @@ hygiene checks. CI runs `verify-core` and `verify-portfolio`.
 - [Stanford Bunny Case Study](docs/case_study_bunny.md)
 - [KITTI LiDAR Case Study](docs/case_study_kitti.md)
 - [Coverage](docs/coverage.md)
+- [Release Checklist](docs/release_checklist.md)
 - [Interview Notes](docs/interview_notes.md)
 - [Reviewer Checklist](docs/reviewer_checklist.md)
 - [Portfolio Review Template](docs/portfolio_report_template.md)

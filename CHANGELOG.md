@@ -16,6 +16,11 @@ All notable changes for PointCloud-GeoLab are recorded here.
 - Lightweight benchmark memory metadata using Python `tracemalloc`.
 - Static HTML portfolio report generated next to `report.md`.
 - Benchmarking documentation for repeat statistics and local memory metadata.
+- DevContainer configuration for dependency-light reviewer reproduction.
+- Packaging sanity checker for pyproject metadata and optional temporary
+  sdist/wheel builds.
+- Release checklist covering local validation, DevContainer use, packaging, and
+  bounded v0.1.1 scope.
 
 ### Changed
 
@@ -29,6 +34,8 @@ All notable changes for PointCloud-GeoLab are recorded here.
 - Benchmark and portfolio verifiers now check repeat, memory, and HTML report
   structure in addition to artifact presence.
 - Coverage gate raised from 65% to 70% after local coverage reached 78.61%.
+- `verify-core` now includes DevContainer and packaging sanity checks without
+  requiring Docker or the `build` module to be installed.
 
 ## v0.1.0 Portfolio Release - 2026-06-17
 

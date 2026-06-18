@@ -47,5 +47,7 @@ correctness evidence for the geometry implementation.
 
 Core geometry modules should stay meaningfully covered, and the CLI pipeline
 should keep smoke coverage. Repository hygiene now runs as part of
-`verify-core`, next to the coverage gate. Raising the threshold further should
-come after optional dependency paths are split into their own coverage view.
+`verify-core`, next to the coverage gate. DevContainer and packaging sanity
+checks also run there, but Docker daemon availability and the optional `build`
+module are treated as friendly skips. Raising the threshold further should come
+after optional dependency paths are split into their own coverage view.

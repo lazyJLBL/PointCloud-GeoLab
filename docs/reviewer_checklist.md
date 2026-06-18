@@ -31,12 +31,30 @@ python -m ruff check .
 python -m black --check .
 python -m pytest --cov=pointcloud_geolab
 python scripts/check_repo_hygiene.py
+python scripts/check_devcontainer.py
+python scripts/check_packaging.py
 ```
 
 Expected result: formatting, lint, tests, the 70% coverage gate, and repository
-hygiene checks pass.
+hygiene, DevContainer, and packaging checks pass.
 
-## 3. Run Portfolio Smoke
+## 3. Optional DevContainer Reproduction
+
+Open the repository with VS Code Dev Containers or another compatible tool.
+The container uses a Python slim image and installs `.[dev,vis,bench]`.
+
+Inside the container:
+
+```bash
+python -m pytest
+make verify-core
+make verify-portfolio
+```
+
+Open3D/ML extras and real datasets are optional and not installed in the default
+review container.
+
+## 4. Run Portfolio Smoke
 
 ```bash
 make verify-portfolio
@@ -68,7 +86,7 @@ outputs/portfolio_demo/report.md
 outputs/portfolio_demo/report.html
 ```
 
-## 4. Run Benchmark Verification
+## 5. Run Benchmark Verification
 
 ```bash
 make verify-benchmarks
@@ -101,12 +119,23 @@ python scripts/verify_benchmarks.py \
   --suite kdtree
 ```
 
-## 5. Read Truthfulness Documents
+## 6. Check Packaging Sanity
+
+```bash
+python scripts/check_packaging.py
+```
+
+If the `build` module is available, this builds an sdist and wheel in a
+temporary copy. Generated `dist/`, `build/`, and `*.egg-info` files should not be
+committed.
+
+## 7. Read Truthfulness Documents
 
 - [AUDIT.md](../AUDIT.md)
 - [Limitations](limitations.md)
 - [Coverage](coverage.md)
 - [Interview Notes](interview_notes.md)
+- [Release Checklist](release_checklist.md)
 
 Review especially:
 
@@ -115,8 +144,11 @@ Review especially:
 - Synthetic demo outputs are smoke evidence, not broad real-data validation.
 - Stanford Bunny, KITTI, and ModelNet are documented workflows requiring local
   datasets.
+- v0.1.1 pre-release work still does not include real KITTI benchmark results,
+  a full nonlinear GICP optimizer, a SLAM backend, CUDA acceleration, or a new
+  release tag.
 
-## 6. Check Repository Hygiene
+## 8. Check Repository Hygiene
 
 ```bash
 python scripts/check_repo_hygiene.py
@@ -128,7 +160,7 @@ git ls-files \
 
 Expected result: no tracked generated outputs.
 
-## 7. Check Latest CI Status
+## 9. Check Latest CI Status
 
 After pushing a review branch or main update:
 

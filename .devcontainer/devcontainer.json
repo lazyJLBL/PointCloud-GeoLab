@@ -1,0 +1,28 @@
+{
+  "name": "PointCloud-GeoLab Reviewer",
+  "description": "Dependency-light reviewer environment. Open3D/ML extras are optional and not installed.",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/PointCloud-GeoLab",
+  "containerEnv": {
+    "MPLBACKEND": "Agg"
+  },
+  "postCreateCommand": "python -m pip install --upgrade pip && python -m pip install -e \".[dev,vis,bench]\" && python scripts/check_devcontainer.py && python scripts/check_packaging.py",
+  "postAttachCommand": "python -m pytest --version && make verify-core -n && make verify-portfolio -n",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false
+      }
+    }
+  }
+}
