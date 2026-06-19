@@ -229,7 +229,14 @@ def _validate_repeat_stats(
         if not isinstance(row, dict):
             invalid.append(f"{path}: row {row_index} must be an object")
             continue
-        for field in timing_fields:
+        if row.get("repeat_count") != count:
+            invalid.append(f"{path}: row {row_index} missing repeat_count={count}")
+        row_fields = [field for field in timing_fields if field in row]
+        if "suite" not in row:
+            row_fields = timing_fields
+        if not row_fields:
+            invalid.append(f"{path}: row {row_index} has no declared timing fields")
+        for field in row_fields:
             if field not in row:
                 invalid.append(f"{path}: row {row_index} missing timing field `{field}`")
                 continue

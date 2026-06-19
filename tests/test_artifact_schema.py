@@ -75,14 +75,49 @@ def test_benchmark_schema_requires_repeat_and_memory_metadata(tmp_path: Path) ->
         "benchmark": "kdtree",
         "metadata": {
             "parameters": {},
-            "repeat": {"count": 2, "statistics": {"enabled": True}},
+            "repeat": {
+                "count": 2,
+                "timing_fields": ["kd_time"],
+                "statistics": {"enabled": True, "aggregates": ["mean", "std", "min", "max"]},
+            },
             "memory": {"available": True, "method": "tracemalloc", "peak_bytes": 1234},
         },
         "conclusion": "local run",
-        "rows": [{"kd_time_mean": 0.01}],
+        "rows": [
+            {
+                "repeat_count": 2,
+                "kd_time": 0.01,
+                "kd_time_mean": 0.01,
+                "kd_time_std": 0.0,
+                "kd_time_min": 0.01,
+                "kd_time_max": 0.01,
+            }
+        ],
     }
 
     assert validate_benchmark_json(payload, path) == []
+
+
+def test_benchmark_schema_reports_missing_repeat_row_stat(tmp_path: Path) -> None:
+    path = tmp_path / "benchmark.json"
+    payload = {
+        "benchmark": "kdtree",
+        "metadata": {
+            "parameters": {},
+            "repeat": {
+                "count": 2,
+                "timing_fields": ["kd_time"],
+                "statistics": {"enabled": True, "aggregates": ["mean", "std", "min", "max"]},
+            },
+            "memory": {"available": True, "method": "tracemalloc", "peak_bytes": 1234},
+        },
+        "conclusion": "local run",
+        "rows": [{"repeat_count": 2, "kd_time": 0.01, "kd_time_mean": 0.01}],
+    }
+
+    issues = validate_benchmark_json(payload, path)
+
+    assert any("kd_time_std" in issue for issue in issues)
 
 
 def test_benchmark_schema_reports_missing_memory(tmp_path: Path) -> None:

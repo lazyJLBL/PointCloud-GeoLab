@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from pointcloud_geolab.segmentation import (
     cluster_statistics,
@@ -39,6 +40,20 @@ def test_euclidean_clustering_output_statistics_are_stable() -> None:
     assert result.cluster_count == 2
     assert [item["point_count"] for item in stats] == [20, 25]
     assert {"label", "point_count", "min_bound", "max_bound", "extent"} <= set(stats[0])
+
+
+def test_clustering_handles_empty_and_rejects_nonfinite_inputs() -> None:
+    empty = np.empty((0, 3), dtype=float)
+
+    assert dbscan_clustering(empty, eps=0.1).cluster_count == 0
+    assert euclidean_clustering(empty, tolerance=0.1).cluster_count == 0
+    assert cluster_statistics(empty, np.empty(0, dtype=int)) == []
+
+    bad = np.asarray([[0.0, 0.0, 0.0], [np.nan, 1.0, 0.0]])
+    with pytest.raises(ValueError, match="NaN or infinite"):
+        dbscan_clustering(bad, eps=0.1)
+    with pytest.raises(ValueError, match="same length"):
+        cluster_statistics(np.zeros((2, 3)), np.asarray([0]))
 
 
 def test_region_growing_terminates() -> None:

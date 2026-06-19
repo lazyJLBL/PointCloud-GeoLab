@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from pointcloud_geolab.datasets import make_cylinder, make_plane, make_sphere
 from pointcloud_geolab.geometry import compute_obb, pca_analysis
@@ -11,6 +12,7 @@ from pointcloud_geolab.registration import (
     point_to_point_icp,
     robust_icp,
 )
+from pointcloud_geolab.segmentation.ransac_plane import ransac_plane_fitting
 from pointcloud_geolab.utils.transform import apply_transform, rotation_matrix_from_euler
 
 
@@ -81,6 +83,32 @@ def test_icp_bad_initialization_fails_cleanly_with_tight_correspondence_gate() -
     assert result.diagnostics["step_norm_history"] == []
 
 
+@pytest.mark.parametrize("count", [0, 1, 2])
+def test_icp_rejects_too_few_points(count: int) -> None:
+    points = np.zeros((count, 3), dtype=float)
+
+    with pytest.raises(ValueError, match="at least 3"):
+        point_to_point_icp(points, points)
+
+
+def test_icp_rejects_nonfinite_points() -> None:
+    source = np.asarray([[0.0, 0.0, 0.0], [1.0, np.nan, 0.0], [0.0, 1.0, 0.0]])
+    target = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+
+    with pytest.raises(ValueError, match="NaN or infinite"):
+        point_to_point_icp(source, target)
+
+
+def test_icp_all_identical_points_returns_diagnostics() -> None:
+    points = np.zeros((3, 3), dtype=float)
+
+    result = point_to_point_icp(points, points, max_iterations=3)
+
+    assert result.final_rmse == 0.0
+    assert result.diagnostics["initial_rmse"] == 0.0
+    assert result.diagnostics["residual_history"][0] == 0.0
+
+
 def test_point_to_plane_icp_reports_degenerate_planar_system() -> None:
     rng = np.random.default_rng(223)
     xy = rng.uniform(-1.0, 1.0, size=(160, 2))
@@ -100,6 +128,24 @@ def test_point_to_plane_icp_reports_degenerate_planar_system() -> None:
     assert np.isinf(result.diagnostics["condition_number"])
     assert np.isclose(result.final_rmse, result.initial_rmse)
     assert result.diagnostics["residual_history"] == result.rmse_history
+
+
+def test_point_to_plane_icp_rejects_nonfinite_normals() -> None:
+    points = np.asarray(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [1.0, 1.0, 0.0],
+            [0.5, 0.2, 0.0],
+            [0.2, 0.5, 0.0],
+        ]
+    )
+    normals = np.tile(np.asarray([0.0, 0.0, 1.0]), (len(points), 1))
+    normals[0, 0] = np.inf
+
+    with pytest.raises(ValueError, match="target_normals.*NaN or infinite"):
+        point_to_plane_icp(points, points, target_normals=normals)
 
 
 def test_gicp_recovers_planar_translation_with_regularized_covariances() -> None:
@@ -124,6 +170,16 @@ def test_gicp_recovers_planar_translation_with_regularized_covariances() -> None
     assert result.diagnostics["algorithm"] == "gicp_style_covariance_weighted_icp"
     assert result.diagnostics["num_correspondences"] == len(source)
     assert result.diagnostics["residual_history"] == result.rmse_history
+
+
+def test_gicp_rejects_too_few_and_nonfinite_points() -> None:
+    with pytest.raises(ValueError, match="at least 3"):
+        generalized_icp(np.zeros((2, 3)), np.zeros((2, 3)))
+
+    source = np.asarray([[0.0, 0.0, 0.0], [1.0, np.inf, 0.0], [0.0, 1.0, 0.0]])
+    target = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+    with pytest.raises(ValueError, match="NaN or infinite"):
+        generalized_icp(source, target)
 
 
 def test_ransac_primitives_succeed_under_seeded_outlier_ratios() -> None:
@@ -175,6 +231,19 @@ def test_ransac_primitives_succeed_under_seeded_outlier_ratios() -> None:
 
         assert result.score >= min_score
         assert result.residual_mean < 0.03
+
+
+def test_ransac_plane_rejects_degenerate_inputs() -> None:
+    with pytest.raises(ValueError, match="at least 3"):
+        ransac_plane_fitting(np.zeros((2, 3)))
+
+    bad = np.asarray([[0.0, 0.0, 0.0], [1.0, np.inf, 0.0], [0.0, 1.0, 0.0]])
+    with pytest.raises(ValueError, match="NaN or infinite"):
+        ransac_plane_fitting(bad)
+
+    same = np.zeros((3, 3))
+    with pytest.raises(RuntimeError, match="non-degenerate plane"):
+        ransac_plane_fitting(same, max_iterations=3, seed=1)
 
 
 def test_pca_obb_extents_and_volume_are_stable_under_rigid_rotation() -> None:

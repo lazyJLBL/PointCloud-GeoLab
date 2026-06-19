@@ -43,9 +43,13 @@ should remain machine-readable through the `TaskResult` envelope:
   "artifacts": {},
   "parameters": {},
   "data": {},
-  "error": "path/to/file: missing point cloud file"
+  "error": "path/to/file: missing point cloud file",
+  "path": "path/to/file"
 }
 ```
+
+`Path` values and NumPy values are serialized into JSON-friendly values.
+Non-finite numbers such as `NaN` and `Inf` are emitted as `null`.
 
 The deprecated `--mode` interface still exists for compatibility, but new
 review commands should use subcommands.

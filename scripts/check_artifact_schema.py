@@ -101,6 +101,7 @@ def validate_benchmark_json(payload: dict[str, Any], path: Path) -> list[str]:
                     issues.append("metadata.repeat.count must be at least 1")
                 if repeat_count > 1:
                     _require_type(repeat, "statistics", dict, issues, "metadata.repeat")
+                    _validate_repeat_rows(payload, repeat, int(repeat_count), issues)
             else:
                 issues.append("metadata.repeat.count must be a positive number")
         memory = metadata.get("memory")
@@ -114,6 +115,47 @@ def validate_benchmark_json(payload: dict[str, Any], path: Path) -> list[str]:
     if isinstance(rows, list) and not rows:
         issues.append("rows must not be empty")
     return _prefix(path, issues)
+
+
+def _validate_repeat_rows(
+    payload: dict[str, Any],
+    repeat: dict[str, Any],
+    repeat_count: int,
+    issues: list[str],
+) -> None:
+    rows = payload.get("rows")
+    timing_fields = repeat.get("timing_fields")
+    statistics = repeat.get("statistics")
+    aggregates = statistics.get("aggregates") if isinstance(statistics, dict) else []
+    if not isinstance(rows, list) or not rows:
+        return
+    if not isinstance(timing_fields, list) or not timing_fields:
+        issues.append("metadata.repeat.timing_fields must list timing fields when repeat > 1")
+        return
+    if not isinstance(aggregates, list) or not aggregates:
+        issues.append("metadata.repeat.statistics.aggregates must list repeat aggregates")
+        return
+    for row_index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            continue
+        if row.get("repeat_count") != repeat_count:
+            issues.append(f"rows[{row_index}].repeat_count must equal {repeat_count}")
+        row_fields = [field for field in timing_fields if field in row]
+        if "suite" not in row:
+            row_fields = timing_fields
+        if not row_fields:
+            issues.append(f"rows[{row_index}] has no declared timing fields")
+        for field in row_fields:
+            if field not in row:
+                issues.append(f"rows[{row_index}] missing timing field {field}")
+                continue
+            for aggregate in aggregates:
+                _require_nonnegative_number(
+                    row,
+                    f"{field}_{aggregate}",
+                    issues,
+                    f"rows[{row_index}]",
+                )
 
 
 def validate_file(path: str | Path, schema: str) -> SchemaCheck:

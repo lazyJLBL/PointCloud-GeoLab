@@ -23,6 +23,8 @@ def estimate_rigid_transform(source: np.ndarray, target: np.ndarray) -> RigidTra
     tgt = np.asarray(target, dtype=float)
     if src.shape != tgt.shape or src.ndim != 2 or src.shape[1] != 3:
         raise ValueError("source and target must both have shape (N, 3)")
+    if not np.all(np.isfinite(src)) or not np.all(np.isfinite(tgt)):
+        raise ValueError("source and target must not contain NaN or infinite values")
     if len(src) < 3:
         raise ValueError("at least 3 point pairs are required")
 

@@ -125,7 +125,10 @@ def cluster_statistics(points: np.ndarray, labels: np.ndarray) -> list[dict[str,
     """Return JSON-friendly cluster statistics."""
 
     pts = _ensure_points(points)
-    result = _build_result(pts, np.asarray(labels, dtype=int))
+    label_values = np.asarray(labels, dtype=int)
+    if len(label_values) != len(pts):
+        raise ValueError("labels must have the same length as points")
+    result = _build_result(pts, label_values)
     stats = []
     for cluster in result.clusters:
         stats.append(
@@ -167,4 +170,6 @@ def _ensure_points(points: np.ndarray) -> np.ndarray:
     pts = np.asarray(points, dtype=float)
     if pts.ndim != 2 or pts.shape[1] != 3:
         raise ValueError("points must have shape (N, 3)")
+    if not np.all(np.isfinite(pts)):
+        raise ValueError("points must not contain NaN or infinite values")
     return pts

@@ -551,6 +551,8 @@ def _prepare_normals(target: np.ndarray, normals: np.ndarray | None) -> np.ndarr
     values = np.asarray(normals, dtype=float)
     if values.shape != target.shape:
         raise ValueError("target_normals must have the same shape as target_points")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("target_normals must not contain NaN or infinite values")
     lengths = np.linalg.norm(values, axis=1)
     safe = lengths > 1e-12
     prepared = np.zeros_like(values)
@@ -562,6 +564,8 @@ def _prepare_normals(target: np.ndarray, normals: np.ndarray | None) -> np.ndarr
 def _validate_icp_inputs(source: np.ndarray, target: np.ndarray) -> None:
     if source.ndim != 2 or target.ndim != 2 or source.shape[1] != 3 or target.shape[1] != 3:
         raise ValueError("source_points and target_points must have shape (N, 3)")
+    if not np.all(np.isfinite(source)) or not np.all(np.isfinite(target)):
+        raise ValueError("source_points and target_points must not contain NaN or infinite values")
     if len(source) < 3 or len(target) < 3:
         raise ValueError("ICP requires at least 3 source and target points")
 

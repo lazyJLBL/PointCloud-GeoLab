@@ -32,6 +32,8 @@ def ransac_plane_fitting(
     pts = np.asarray(points, dtype=float)
     if pts.ndim != 2 or pts.shape[1] != 3:
         raise ValueError("points must have shape (N, 3)")
+    if not np.all(np.isfinite(pts)):
+        raise ValueError("points must not contain NaN or infinite values")
     if len(pts) < 3:
         raise ValueError("at least 3 points are required")
     if threshold <= 0:

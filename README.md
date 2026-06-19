@@ -99,7 +99,8 @@ Representative portfolio-pipeline figures:
 
 - **Real data workflows**: Stanford Bunny, KITTI, and ModelNet instructions
   expect local files under `data/external/`. Tiny fixtures in tests validate
-  formats, not real dataset accuracy.
+  formats, not real dataset accuracy. These workflows are examples plus
+  verifier scripts, not stable public API entry points.
 
 See [AUDIT.md](AUDIT.md) for the detailed truthfulness audit.
 

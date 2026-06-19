@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from pointcloud_geolab.datasets.fixtures import (
@@ -63,11 +64,28 @@ def test_bad_kitti_like_bin_reports_path_and_reason(tmp_path: Path) -> None:
         load_kitti_like_bin(bad_path)
 
 
+def test_kitti_like_bin_rejects_nonfinite_coordinates(tmp_path: Path) -> None:
+    bad_path = tmp_path / "nonfinite.bin"
+    raw = np.asarray([[0.0, 0.0, 0.0, 0.1], [1.0, np.inf, 2.0, 0.2]], dtype=np.float32)
+    raw.tofile(bad_path)
+
+    with pytest.raises(ValueError, match=r"nonfinite\.bin.*NaN or infinite coordinates"):
+        load_kitti_like_bin(bad_path)
+
+
 def test_bad_off_reports_path_and_reason(tmp_path: Path) -> None:
     bad_path = tmp_path / "bad.off"
     bad_path.write_text("NOFF\n", encoding="utf-8")
 
     with pytest.raises(ValueError, match=r"bad\.off.*bad OFF header"):
+        load_modelnet_like_off(bad_path)
+
+
+def test_modelnet_like_off_rejects_nonfinite_vertices(tmp_path: Path) -> None:
+    bad_path = tmp_path / "nonfinite.off"
+    bad_path.write_text("OFF\n3 1 0\n0 0 0\nnan 0 0\n0 1 0\n3 0 1 2\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match=r"nonfinite\.off.*NaN or infinite"):
         load_modelnet_like_off(bad_path)
 
 

@@ -245,6 +245,8 @@ def _ensure_points(points: np.ndarray, name: str) -> np.ndarray:
     arr = np.asarray(points, dtype=float)
     if arr.ndim != 2 or arr.shape[1] != 3:
         raise ValueError(f"{name} must have shape (N, 3)")
+    if not np.all(np.isfinite(arr)):
+        raise ValueError(f"{name} must not contain NaN or infinite values")
     if len(arr) < 4:
         raise ValueError(f"{name} must contain at least 4 points")
     return arr

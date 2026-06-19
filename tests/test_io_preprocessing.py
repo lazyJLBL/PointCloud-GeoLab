@@ -169,6 +169,109 @@ def test_point_cloud_load_errors_include_path_for_common_formats(
         load_point_cloud(bad_pcd)
 
 
+@pytest.mark.parametrize("suffix", [".xyz", ".txt"])
+def test_text_point_cloud_rejects_nan_and_inf(tmp_path: Path, suffix: str) -> None:
+    path = tmp_path / f"nonfinite{suffix}"
+    path.write_text("0 0 0\n1 nan 2\n3 4 inf\n", encoding="utf-8")
+
+    with pytest.raises(
+        ValueError,
+        match=rf"{re.escape(str(path))}.*NaN or infinite coordinates",
+    ):
+        load_point_cloud(path)
+
+
+def test_kitti_bin_rejects_nan_coordinates(tmp_path: Path) -> None:
+    path = tmp_path / "nonfinite.bin"
+    raw = np.asarray([[0.0, 0.0, 0.0, 0.1], [np.nan, 1.0, 2.0, 0.2]], dtype=np.float32)
+    raw.tofile(path)
+
+    with pytest.raises(
+        ValueError,
+        match=rf"{re.escape(str(path))}.*NaN or infinite coordinates",
+    ):
+        load_point_cloud(path)
+
+
+def test_off_rejects_nan_vertices(tmp_path: Path) -> None:
+    path = tmp_path / "nonfinite.off"
+    path.write_text("OFF\n3 1 0\n0 0 0\n1 nan 0\n0 1 0\n3 0 1 2\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match=rf"{re.escape(str(path))}.*NaN or infinite"):
+        load_point_cloud(path)
+
+
+def test_ascii_ply_and_pcd_reject_inf_coordinates(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(pointcloud_io, "_optional_open3d", lambda: None)
+    ply = tmp_path / "nonfinite.ply"
+    ply.write_text(
+        "\n".join(
+            [
+                "ply",
+                "format ascii 1.0",
+                "element vertex 1",
+                "property float x",
+                "property float y",
+                "property float z",
+                "end_header",
+                "1 2 inf",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    pcd = tmp_path / "nonfinite.pcd"
+    pcd.write_text(
+        "\n".join(
+            [
+                "# .PCD v0.7",
+                "FIELDS x y z",
+                "SIZE 4 4 4",
+                "TYPE F F F",
+                "COUNT 1 1 1",
+                "WIDTH 1",
+                "HEIGHT 1",
+                "POINTS 1",
+                "DATA ascii",
+                "1 2 inf",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match=rf"{re.escape(str(ply))}.*NaN or infinite"):
+        load_point_cloud(ply)
+    with pytest.raises(ValueError, match=rf"{re.escape(str(pcd))}.*NaN or infinite"):
+        load_point_cloud(pcd)
+
+
+def test_las_loader_rejects_nonfinite_coordinates(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeLas:
+        x = np.asarray([0.0, np.inf])
+        y = np.asarray([0.0, 1.0])
+        z = np.asarray([0.0, 2.0])
+
+    class FakeLaspy:
+        @staticmethod
+        def read(path: str) -> FakeLas:
+            assert path
+            return FakeLas()
+
+    path = tmp_path / "nonfinite.las"
+    path.write_bytes(b"fake")
+    monkeypatch.setattr(pointcloud_io, "require_optional", lambda name: FakeLaspy)
+
+    with pytest.raises(ValueError, match=rf"{re.escape(str(path))}.*NaN or infinite"):
+        pointcloud_io.load_las(path)
+
+
 def test_stack_point_clouds_handles_empty_and_multiple_sets() -> None:
     assert pointcloud_io.stack_point_clouds([]).shape == (0, 3)
 

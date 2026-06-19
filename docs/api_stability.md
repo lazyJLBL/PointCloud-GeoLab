@@ -7,6 +7,8 @@ the package-level exports from `pointcloud_geolab` for reviewer exercises.
 
 - `TaskResult`
 - `run_icp`
+- `run_robust_icp`
+- `run_multiscale_icp`
 - `run_preprocessing`
 - `run_plane_segmentation`
 - `run_geometry_analysis`
@@ -26,9 +28,13 @@ the package-level exports from `pointcloud_geolab` for reviewer exercises.
 - `parameters`
 - `data`
 - `error`
+- `path`
 
-Error results must include `task`, `success`, `error`, and `parameters` so CLI
-JSON output can be checked by scripts.
+Error results must include `task`, `success`, `error`, `parameters`, and
+`path` so CLI JSON output can be checked by scripts. `Path` values and NumPy
+scalars/arrays are serialized into JSON-friendly values. Non-finite numeric
+values such as `NaN` and `Inf` become JSON `null` rather than non-standard JSON
+tokens.
 
 ## Experimental
 
@@ -39,6 +45,12 @@ JSON output can be checked by scripts.
 
 The GICP-style path is not a full nonlinear GICP optimizer and is not part of a
 strong stable API promise for v1.0.0.
+
+The real-data workflow is intentionally documented as an example plus verifier
+script, not a stable public API entry point. Reviewers should use
+`examples/kitti_lidar_segmentation.py` and
+`scripts/verify_realdata_workflow.py`; missing real data should produce a
+friendly skip or error envelope, not a traceback.
 
 ## Optional
 

@@ -97,6 +97,55 @@ def test_verify_benchmark_outputs_rejects_missing_repeat_stat(tmp_path: Path) ->
     assert any("kd_time_mean" in message for message in result.invalid_files)
 
 
+def test_verify_benchmark_outputs_accepts_all_repeat_mixed_suite_rows(tmp_path: Path) -> None:
+    _write_benchmark_suite(tmp_path, "all")
+    for suite in ["kdtree", "icp", "ransac", "registration", "gicp", "segmentation"]:
+        suite_dir = tmp_path / suite
+        suite_dir.mkdir()
+        _write_benchmark_suite(suite_dir, suite)
+    path = tmp_path / "all_benchmark.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["metadata"]["repeat"] = {
+        "count": 2,
+        "base_seed": 7,
+        "seed_strategy": "base seed + zero-based repeat index",
+        "timing_fields": ["kd_time", "icp_time"],
+        "statistics": {"enabled": True, "aggregates": ["mean", "std", "min", "max"]},
+    }
+    payload["rows"] = [
+        {
+            "suite": "kdtree",
+            "points": 100,
+            "kd_time": 0.001,
+            "repeat_count": 2,
+            "kd_time_mean": 0.001,
+            "kd_time_std": 0.0,
+            "kd_time_min": 0.001,
+            "kd_time_max": 0.001,
+        },
+        {
+            "suite": "icp",
+            "points": 100,
+            "icp_time": 0.01,
+            "repeat_count": 2,
+            "icp_time_mean": 0.01,
+            "icp_time_std": 0.0,
+            "icp_time_min": 0.01,
+            "icp_time_max": 0.01,
+        },
+    ]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    (tmp_path / "benchmark_summary.md").write_text("# Benchmark Summary\n", encoding="utf-8")
+    (tmp_path / "benchmark_summary.json").write_text(
+        json.dumps({"metadata": payload["metadata"], "suites": [{"suite": "kdtree"}]}),
+        encoding="utf-8",
+    )
+
+    result = verify_benchmark_outputs(tmp_path, suite="all")
+
+    assert result.success, result.invalid_files
+
+
 def test_missing_portfolio_artifacts_accepts_expected_files(tmp_path: Path) -> None:
     output_dir = tmp_path / "outputs"
     for name in EXPECTED_GALLERY_ARTIFACTS:

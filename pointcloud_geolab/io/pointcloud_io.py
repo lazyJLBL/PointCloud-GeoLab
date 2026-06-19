@@ -28,12 +28,13 @@ def _optional_open3d():
 
 def _ensure_points(points: np.ndarray, path: str | Path | None = None) -> np.ndarray:
     arr = np.asarray(points, dtype=float)
+    prefix = f"{Path(path)}: " if path is not None else ""
     if arr.ndim != 2 or arr.shape[1] < 3:
-        prefix = f"{Path(path)}: " if path is not None else ""
         raise ValueError(f"{prefix}point cloud must be an array with shape (N, 3) or wider")
     if len(arr) == 0:
-        prefix = f"{Path(path)}: " if path is not None else ""
         raise ValueError(f"{prefix}point cloud file is empty")
+    if not np.all(np.isfinite(arr[:, :3])):
+        raise ValueError(f"{prefix}point cloud contains NaN or infinite coordinates")
     return arr[:, :3].copy()
 
 
@@ -144,6 +145,8 @@ def load_kitti_bin(path: str | Path, include_intensity: bool = False) -> np.ndar
     if data.size % 4 != 0:
         raise ValueError(f"{file_path}: KITTI .bin value count {data.size} must be divisible by 4")
     cloud = data.reshape(-1, 4).astype(float)
+    if not np.all(np.isfinite(cloud[:, :3])):
+        raise ValueError(f"{file_path}: KITTI .bin contains NaN or infinite coordinates")
     return cloud if include_intensity else cloud[:, :3].copy()
 
 
@@ -153,7 +156,7 @@ def load_las(path: str | Path) -> dict[str, np.ndarray]:
     laspy = require_optional("laspy")
 
     las = laspy.read(str(path))
-    points = np.column_stack([las.x, las.y, las.z]).astype(float)
+    points = _ensure_points(np.column_stack([las.x, las.y, las.z]).astype(float), path)
     result: dict[str, np.ndarray] = {"points": points}
     if hasattr(las, "intensity"):
         result["intensity"] = np.asarray(las.intensity)

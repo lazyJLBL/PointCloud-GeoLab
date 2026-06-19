@@ -125,7 +125,7 @@ class TaskResult:
     def to_json(self, indent: int | None = 2) -> str:
         """Serialize the result envelope to JSON."""
 
-        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
+        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False, allow_nan=False)
 
 
 def run_icp(
@@ -476,22 +476,29 @@ def run_preprocessing(
     try:
         points = load_point_cloud(input_path)
         original_count = len(points)
+        after_crop = original_count
+        after_downsample = original_count
+        after_statistical = original_count
+        after_radius = original_count
+        after_sample = original_count
+        statistical_inliers = np.arange(original_count, dtype=int)
 
         if crop_min is not None or crop_max is not None:
             if crop_min is None or crop_max is None:
                 raise ValueError("crop_min and crop_max must be provided together")
             points, _ = crop_by_aabb(points, crop_min, crop_max)
-        after_crop = len(points)
+            after_crop = len(points)
 
         if voxel_size > 0:
             points = voxel_downsample(points, voxel_size)
         after_downsample = len(points)
 
-        points, statistical_inliers = remove_statistical_outliers(
-            points,
-            nb_neighbors=statistical_nb_neighbors,
-            std_ratio=statistical_std_ratio,
-        )
+        if statistical_nb_neighbors > 0 and len(points) > 0:
+            points, statistical_inliers = remove_statistical_outliers(
+                points,
+                nb_neighbors=statistical_nb_neighbors,
+                std_ratio=statistical_std_ratio,
+            )
         after_statistical = len(points)
 
         if radius > 0:
@@ -654,7 +661,10 @@ def run_benchmark(
         }
         _write_csv(csv_path, rows)
         md_default_path.write_text(markdown_payload, encoding="utf-8")
-        json_default_path.write_text(json.dumps(json_payload, indent=2) + "\n", encoding="utf-8")
+        json_default_path.write_text(
+            json.dumps(json_payload, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
         _save_benchmark_plot(png_path, benchmark, rows)
         artifacts.update(
             {
@@ -667,7 +677,10 @@ def run_benchmark(
         if save_json:
             json_path = Path(save_json)
             json_path.parent.mkdir(parents=True, exist_ok=True)
-            json_path.write_text(json.dumps(json_payload, indent=2) + "\n", encoding="utf-8")
+            json_path.write_text(
+                json.dumps(json_payload, indent=2, allow_nan=False) + "\n",
+                encoding="utf-8",
+            )
             artifacts["benchmark_json_custom"] = str(json_path)
         if save_md:
             md_path = Path(save_md)
@@ -681,7 +694,12 @@ def run_benchmark(
             summary_md_path = out_dir / "benchmark_summary.md"
             summary_md_path.write_text(summary_md + "\n", encoding="utf-8")
             summary_json.write_text(
-                json.dumps({"metadata": metadata, "suites": summary_rows}, indent=2) + "\n",
+                json.dumps(
+                    {"metadata": metadata, "suites": summary_rows},
+                    indent=2,
+                    allow_nan=False,
+                )
+                + "\n",
                 encoding="utf-8",
             )
             artifacts["benchmark_summary_markdown"] = str(summary_md_path)
@@ -1787,6 +1805,7 @@ def _benchmark_ransac(seed: int, quick: bool) -> list[dict[str, Any]]:
         points = np.vstack([inliers, outliers])
         truth_mask = np.zeros(len(points), dtype=bool)
         truth_mask[:inlier_count] = True
+        start = time.perf_counter()
         result = ransac_fit_primitive(
             points,
             "plane",
@@ -1794,6 +1813,7 @@ def _benchmark_ransac(seed: int, quick: bool) -> list[dict[str, Any]]:
             max_iterations=800,
             random_state=seed + i,
         )
+        custom_ransac_time = time.perf_counter() - start
         predicted = np.zeros(len(points), dtype=bool)
         predicted[result.inlier_indices] = True
         true_positive = int(np.sum(predicted & truth_mask))
@@ -1813,6 +1833,7 @@ def _benchmark_ransac(seed: int, quick: bool) -> list[dict[str, Any]]:
                 "custom_precision": precision,
                 "custom_recall": recall,
                 "custom_residual_mean": result.residual_mean,
+                "custom_ransac_time": custom_ransac_time,
                 **numpy_baseline,
                 **open3d_baseline,
             }
@@ -1903,7 +1924,9 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
         rotation = rotation_matrix_from_euler(0.0, 0.0, np.radians(angle))
         translation = np.asarray([0.25, -0.1, 0.08])
         source = apply_transform(target, rotation, translation)
+        start = time.perf_counter()
         icp = point_to_point_icp(source, target, max_iterations=60, tolerance=1e-7)
+        custom_icp_time = time.perf_counter() - start
         rows.append(
             {
                 "method": "icp",
@@ -1911,8 +1934,11 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
                 "success": icp.final_rmse < 0.05,
                 "rmse": icp.final_rmse,
                 "fitness": icp.fitness,
+                "runtime": custom_icp_time,
+                "custom_icp_time": custom_icp_time,
             }
         )
+        start = time.perf_counter()
         try:
             global_result = register_fpfh_ransac_icp(
                 source,
@@ -1922,6 +1948,7 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
                 seed=seed,
             )
             metrics = evaluate_registration(source, target, global_result.refined_transform, 0.3)
+            global_registration_time = time.perf_counter() - start
             rows.append(
                 {
                     "method": "fpfh_ransac_icp",
@@ -1929,9 +1956,12 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
                     "success": metrics["rmse"] < 0.08,
                     "rmse": metrics["rmse"],
                     "fitness": metrics["fitness"],
+                    "runtime": global_registration_time,
+                    "global_registration_time": global_registration_time,
                 }
             )
         except Exception:
+            global_registration_time = time.perf_counter() - start
             rows.append(
                 {
                     "method": "fpfh_ransac_icp",
@@ -1939,6 +1969,8 @@ def _benchmark_registration(seed: int, quick: bool) -> list[dict[str, Any]]:
                     "success": False,
                     "rmse": float("nan"),
                     "fitness": 0.0,
+                    "runtime": global_registration_time,
+                    "global_registration_time": global_registration_time,
                 }
             )
     return rows
@@ -2233,12 +2265,15 @@ def _benchmark_repeat_metadata(
     parameters: dict[str, Any],
     rows: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    timing_fields = _benchmark_timing_fields(rows)
+    if rows and not any("suite" in row for row in rows):
+        timing_fields = [field for field in timing_fields if all(field in row for row in rows)]
     return {
         "count": int(repeat_count),
         "base_seed": parameters.get("seed"),
         "seed_strategy": "base seed + zero-based repeat index",
         "deterministic_parameters_recorded": True,
-        "timing_fields": _benchmark_timing_fields(rows),
+        "timing_fields": timing_fields,
         "statistics": {
             "enabled": repeat_count > 1,
             "aggregates": ["mean", "std", "min", "max"] if repeat_count > 1 else [],
@@ -2610,7 +2645,10 @@ def _finalize_result(result: TaskResult, output_dir: str | Path) -> TaskResult:
     out_dir.mkdir(parents=True, exist_ok=True)
     metrics_path = out_dir / "metrics.json"
     result.artifacts["metrics_json"] = str(metrics_path)
-    metrics_path.write_text(json.dumps(result.to_dict(), indent=2) + "\n", encoding="utf-8")
+    metrics_path.write_text(
+        json.dumps(result.to_dict(), indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
     return result
 
 
@@ -2639,11 +2677,15 @@ def _first_error_path(parameters: dict[str, Any]) -> str | None:
 
 def _json_ready(value: Any) -> Any:
     if isinstance(value, np.ndarray):
-        return value.tolist()
+        return [_json_ready(item) for item in value.tolist()]
     if isinstance(value, np.generic):
-        return value.item()
+        return _json_ready(value.item())
     if isinstance(value, Path):
         return str(value)
+    if isinstance(value, float):
+        return value if np.isfinite(value) else None
+    if isinstance(value, int) and not isinstance(value, bool):
+        return int(value)
     if isinstance(value, dict):
         return {str(key): _json_ready(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):

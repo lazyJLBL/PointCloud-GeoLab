@@ -21,6 +21,7 @@ Fields:
 - `parameters`
 - `data`
 - `error`
+- `path`
 
 Use `result.to_dict()` for JSON-friendly output or `result.to_json()` when a
 serialized envelope is needed.
@@ -31,6 +32,13 @@ Error results keep the same outer contract:
 - `success`: `False`.
 - `error`: human-readable reason.
 - `parameters`: the input parameters that reached the task, when available.
+- `path`: the explicit failed path, or a best-effort path inferred from
+  parameters such as `input_path`, `input`, `source`, `target`, `output`, or
+  `output_dir`.
+
+`Path` values and NumPy scalars/arrays are converted to JSON-friendly values.
+Non-finite numeric values such as `NaN` and `Inf` are emitted as JSON `null`
+so strict JSON parsers can consume the envelope.
 
 ## Stable Task Functions
 
@@ -83,6 +91,10 @@ These are useful, but intentionally not exported from `pointcloud_geolab.__all__
 - `run_train_pointnet` and `run_infer_pointnet`: optional PyTorch demo.
 - GICP-style covariance-weighted ICP internals: experimental, not a full
   nonlinear GICP optimizer, and not part of the v1.0.0 stable API promise.
+- User-provided real-data workflow helpers: documented as examples plus
+  verifier scripts, not stable public API. Use
+  `examples/kitti_lidar_segmentation.py` and
+  `scripts/verify_realdata_workflow.py` for that workflow.
 
 The CLI remains the preferred reviewer interface:
 

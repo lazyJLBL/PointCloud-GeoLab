@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from pointcloud_geolab.registration.icp import point_to_point_icp
 from pointcloud_geolab.registration.svd_solver import estimate_rigid_transform
@@ -21,6 +22,14 @@ def test_svd_solver_recovers_known_transform() -> None:
     assert np.allclose(
         apply_transform(source, result.rotation, result.translation), target, atol=1e-10
     )
+
+
+def test_svd_solver_rejects_nonfinite_pairs() -> None:
+    source = np.asarray([[0.0, 0.0, 0.0], [1.0, np.inf, 0.0], [0.0, 1.0, 0.0]])
+    target = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+
+    with pytest.raises(ValueError, match="NaN or infinite"):
+        estimate_rigid_transform(source, target)
 
 
 def test_icp_converges_on_translated_grid() -> None:

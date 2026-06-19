@@ -53,6 +53,8 @@ def load_kitti_like_bin(
     if data.size % 4 != 0:
         raise ValueError(f"{file_path}: KITTI-like .bin value count is not divisible by 4")
     cloud = data.reshape(-1, 4).astype(float)
+    if not np.all(np.isfinite(cloud[:, :3])):
+        raise ValueError(f"{file_path}: KITTI-like .bin contains NaN or infinite coordinates")
     if expected_points is not None and len(cloud) != expected_points:
         raise ValueError(
             f"{file_path}: expected {expected_points} KITTI-like points, found {len(cloud)}"
@@ -84,6 +86,8 @@ def load_modelnet_like_off(path: str | Path) -> OffMesh:
                 vertices.append([float(value) for value in parts[:3]])
             except ValueError as exc:
                 raise ValueError(f"{file_path}: vertex {index} contains a non-number") from exc
+            if not np.all(np.isfinite(vertices[-1])):
+                raise ValueError(f"{file_path}: vertex {index} contains NaN or infinite values")
 
         faces = []
         for index in range(face_count):

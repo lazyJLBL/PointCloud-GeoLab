@@ -4,6 +4,8 @@ import importlib
 import json
 from pathlib import Path
 
+import numpy as np
+
 import pointcloud_geolab as pcg
 from pointcloud_geolab import api
 
@@ -41,6 +43,21 @@ def test_experimental_and_optional_wrappers_are_not_stable_exports() -> None:
     assert "run_train_pointnet" not in api.__all__
 
 
+def test_stable_api_docs_match_export_contract() -> None:
+    root = Path(__file__).resolve().parents[1]
+    api_doc = (root / "docs" / "api.md").read_text(encoding="utf-8")
+    stability_doc = (root / "docs" / "api_stability.md").read_text(encoding="utf-8")
+
+    for name in STABLE_API:
+        assert f"`{name}`" in api_doc
+        assert f"`{name}`" in stability_doc
+    for field in ["task", "success", "metrics", "artifacts", "parameters", "data", "error", "path"]:
+        assert f"`{field}`" in api_doc
+        assert f"`{field}`" in stability_doc
+    assert "examples/kitti_lidar_segmentation.py" in stability_doc
+    assert "not a stable public API" in stability_doc
+
+
 def test_public_api_imports_are_explicit() -> None:
     module = importlib.import_module("pointcloud_geolab")
 
@@ -72,3 +89,23 @@ def test_task_result_to_json_preserves_error_contract() -> None:
     assert payload["error"] == "missing file"
     assert payload["parameters"]["input"] == "missing.ply"
     assert payload["path"] == "missing.ply"
+
+
+def test_task_result_to_json_normalizes_paths_numpy_and_nonfinite_values(tmp_path: Path) -> None:
+    result = api.TaskResult(
+        task="serialize",
+        success=True,
+        metrics={
+            "path": tmp_path / "cloud.ply",
+            "scalar": np.float64(1.25),
+            "array": np.asarray([1.0, np.nan, np.inf]),
+        },
+        parameters={"input_path": tmp_path / "cloud.ply"},
+    )
+
+    payload = json.loads(result.to_json())
+
+    assert payload["metrics"]["path"] == str(tmp_path / "cloud.ply")
+    assert payload["metrics"]["scalar"] == 1.25
+    assert payload["metrics"]["array"] == [1.0, None, None]
+    assert payload["parameters"]["input_path"] == str(tmp_path / "cloud.ply")

@@ -12,6 +12,14 @@ All notable changes for PointCloud-GeoLab are recorded here.
   release-candidate and issue-state wording.
 - KITTI-like workflow, scale benchmark, artifact schema, documented command,
   and CLI JSON-error edge cases now have tighter validation.
+- `run_preprocessing()` now reports complete metrics even when crop,
+  downsample, radius filtering, or sampling are skipped.
+- `TaskResult` JSON output now serializes `Path`, NumPy values, and non-finite
+  floats consistently, with stable error `path` fields.
+- Point-cloud IO and tiny fixture loaders now reject NaN/Inf coordinates with
+  path-aware errors across supported text, binary, PLY, PCD, OFF, and LAS paths.
+- `benchmark all --repeat` verifier logic now handles mixed-suite timing
+  fields while preserving strict repeat-stat checks for single-suite reports.
 
 ## v1.0.0 - 2026-06-18
 
