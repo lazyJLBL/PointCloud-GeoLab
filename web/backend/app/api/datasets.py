@@ -34,24 +34,17 @@ async def upload_dataset(
         raise HTTPException(status_code=400, detail=f"unsupported upload extension: {extension}")
 
     dataset_id, destination = storage.create_dataset_path(original)
-    total = 0
     try:
-        with destination.open("wb") as handle:
-            while True:
-                chunk = await file.read(1024 * 1024)
-                if not chunk:
-                    break
-                total += len(chunk)
-                if total > settings.max_upload_bytes:
-                    raise HTTPException(status_code=413, detail="upload exceeds size limit")
-                handle.write(chunk)
+        total = await write_upload_file(file, destination, settings.max_upload_bytes)
         if total == 0:
             raise HTTPException(status_code=400, detail="uploaded point cloud file is empty")
         return storage.save_dataset_record(dataset_id, original, original, destination, total)
     except HTTPException:
-        if destination.exists():
-            destination.unlink()
+        storage.cleanup_dataset_dir(dataset_id)
         raise
+    except Exception as exc:
+        storage.cleanup_dataset_dir(dataset_id)
+        raise HTTPException(status_code=500, detail=f"failed to store upload: {exc}") from exc
 
 
 @router.get("/datasets", response_model=list[DatasetRecord])
@@ -88,3 +81,19 @@ def preview_dataset(dataset_id: str, request: Request) -> DatasetPreview:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+async def write_upload_file(file: UploadFile, destination: Path, max_upload_bytes: int) -> int:
+    """Write an upload with a hard size limit and return bytes written."""
+
+    total = 0
+    with destination.open("wb") as handle:
+        while True:
+            chunk = await file.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > max_upload_bytes:
+                raise HTTPException(status_code=413, detail="upload exceeds size limit")
+            handle.write(chunk)
+    return total

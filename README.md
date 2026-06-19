@@ -9,8 +9,9 @@ PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
 Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
-Latest release: `v1.0.0` Portfolio-Stable Release. This is a portfolio,
-learning, and reviewer-oriented stable release; the v0.1.0 and v0.1.1 tags and
+Latest release: `v1.1.0` Experimental Web Console MVP. This is a portfolio,
+learning, and reviewer-oriented release that adds an experimental Web Console
+on top of the stable Python API; the v0.1.0, v0.1.1, and v1.0.0 tags and
 GitHub releases remain historical artifacts and should not be rewritten.
 Supported Python versions are 3.10-3.12.
 
@@ -256,7 +257,7 @@ checks, plus help checks for documented commands. CI runs `verify-core` and
 `verify-release-candidate` is heavier: it also regenerates portfolio and
 benchmark artifacts, verifies them, and runs release-ready metadata checks.
 `verify-v1-candidate` adds the real-data dry-run, scale benchmark quick gate,
-and v1.0.0 readiness checks.
+Web readiness checks, and v1.1.0 readiness checks.
 
 ## Tiny Dataset Fixtures
 
@@ -289,9 +290,10 @@ make verify-core
 make verify-portfolio
 ```
 
-The v1.0.0 release notes and artifact manifest live under `docs/releases/`.
+The v1.1.0 release notes and artifact manifest live under `docs/releases/`.
 They describe expected local outputs and the remaining roadmap items without
-committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
+committing generated artifacts. The v0.1.0, v0.1.1, and v1.0.0 notes remain
+historical.
 
 ## Limitations
 
@@ -306,9 +308,11 @@ committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
 - DBSCAN and Euclidean clustering use global radius thresholds and are sensitive
   to LiDAR density changes.
 - Large LiDAR scenes need streaming/chunking and more careful memory profiling.
-- v1.0.0 does not add a full nonlinear GICP optimizer, SLAM backend, CUDA
+- v1.1.0 does not add a full nonlinear GICP optimizer, SLAM backend, CUDA
   acceleration, PointNet training release, or official real KITTI benchmark
   report.
+- v1.1.0 adds an experimental Web Console, not a production web platform. Long
+  Web tasks still execute synchronously and may block the request.
 - The KITTI-like workflow is a user-provided single-frame case study. It is not
   an official KITTI benchmark and does not commit real KITTI data.
 
@@ -346,13 +350,16 @@ committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
 - [Changelog](CHANGELOG.md)
 - [v0.1.1 Hardening Release](docs/releases/v0.1.1.md)
 - [v1.0.0 Portfolio-Stable Release](docs/releases/v1.0.0.md)
+- [v1.1.0 Experimental Web Console MVP](docs/releases/v1.1.0.md)
 
 ## Experimental Web Console
 
 The repository includes an isolated experimental Web Console under `web/`.
 It provides a FastAPI backend and Vue 3 frontend for reviewer-friendly uploads,
 previews, task runs, and artifact downloads. It is not a production LiDAR
-platform and does not change the stable Python package install.
+platform, not a production web platform, and does not change the stable Python
+package install. Long Web tasks currently run synchronously and may block the
+request until they finish.
 
 ```bash
 python -m pip install -r web/backend/requirements.txt

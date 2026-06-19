@@ -4,7 +4,48 @@ All notable changes for PointCloud-GeoLab are recorded here.
 
 ## Unreleased
 
+No unreleased changes yet.
+
+## v1.1.0 - 2026-06-19
+
+### Added
+
+- Experimental FastAPI and Vue 3 Web Console MVP under `web/`.
+- Web dataset upload, listing, deletion, sampled preview, task history, metrics,
+  artifact downloads, and TaskResult JSON viewing.
+- Web task pages for preprocessing, registration, segmentation, geometry,
+  primitives, quick benchmarks, portfolio verification, and reports.
+- Web documentation covering setup, API endpoints, storage paths, Python
+  3.10-3.12 support, and experimental boundaries.
+- `verify-web` Makefile target for Web backend tests and frontend build checks.
+- Manual release-gate workflow coverage for the Web Console.
+
 ### Fixed
+
+- Nested Web artifacts now keep relative paths, avoid same-name collisions, and
+  reject path traversal during downloads.
+- Upload and preview now support `.off` format smoke files.
+- Failed, empty, oversized, or write-failed uploads now clean partial dataset
+  directories.
+- Frontend error handling now preserves FastAPI `detail` strings, arrays, and
+  objects.
+- Web benchmark tasks are restricted to quick mode with bounded repeat, query,
+  and point-count parameters.
+- Web upload success now clears the browser file input.
+- Release, artifact-schema, and v1 readiness checkers now track v1.1.0 metadata
+  and Web docs.
+
+### Notes
+
+- The Web Console remains experimental and reviewer-oriented. It is not a
+  production web platform, not a production LiDAR stack, and not a replacement
+  for the stable Python API.
+- Web tasks currently execute synchronously, so long portfolio or benchmark
+  requests may block until completion.
+- Frontend builds may report Vite/Rollup bundle-size warnings; those are tracked
+  as reviewer notes rather than performance claims.
+
+### Post-v1.0.0 Hardening
 
 - Post-release v1.0.0 wording now consistently describes the latest stable
   release instead of a release candidate or future target.

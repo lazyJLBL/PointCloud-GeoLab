@@ -13,6 +13,8 @@ def test_release_gate_workflow_is_manual_only() -> None:
     assert "pull_request:" not in workflow
     assert "make verify-benchmarks" in workflow
     assert "make verify-v1-candidate" in workflow
+    assert "make verify-web" in workflow
+    assert "actions/setup-node" in workflow
     assert "permissions:" in workflow
     assert "contents: read" in workflow
 
@@ -22,4 +24,7 @@ def test_makefile_includes_artifact_schema_and_audit_targets() -> None:
 
     assert "check-artifact-schema:" in makefile
     assert "audit-repository:" in makefile
+    assert "verify-web:" in makefile
+    assert "npm test" in makefile
+    assert "npm run build" in makefile
     assert "check-artifact-schema" in makefile.split("verify-core:", 1)[1].splitlines()[0]

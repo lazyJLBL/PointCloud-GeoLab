@@ -6,7 +6,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-ALLOWED_UPLOAD_EXTENSIONS = (".ply", ".pcd", ".xyz", ".txt", ".bin")
+ALLOWED_UPLOAD_EXTENSIONS = (".ply", ".pcd", ".xyz", ".txt", ".bin", ".off")
 
 
 class Settings:

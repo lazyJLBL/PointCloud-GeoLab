@@ -61,7 +61,7 @@ def test_stable_api_docs_match_export_contract() -> None:
 def test_public_api_imports_are_explicit() -> None:
     module = importlib.import_module("pointcloud_geolab")
 
-    assert module.__version__ == "1.0.0"
+    assert module.__version__ == "1.1.0"
     assert callable(module.run_icp)
     assert module.TaskResult is api.TaskResult
 

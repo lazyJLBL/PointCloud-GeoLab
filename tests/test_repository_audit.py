@@ -19,7 +19,7 @@ def test_audit_repository_skips_github_when_gh_unavailable(tmp_path: Path) -> No
     audit = collect_audit(tmp_path, runner=_fake_runner, gh_available=False)
     rendered = format_audit(audit)
 
-    assert audit.version == "1.0.0"
+    assert audit.version == "1.1.0"
     assert audit.release_summary == "skipped: GitHub CLI unavailable"
     assert "GitHub CLI unavailable" in audit.warnings[0]
     assert "Repository Audit Snapshot" in rendered
@@ -45,7 +45,7 @@ def _fake_runner(
     if "rev-list" in joined:
         return subprocess.CompletedProcess(command, 0, stdout="0\t0\n", stderr="")
     if "tag -l" in joined:
-        return subprocess.CompletedProcess(command, 0, stdout="v1.0.0\n", stderr="")
+        return subprocess.CompletedProcess(command, 0, stdout="v1.1.0\n", stderr="")
     return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
 
 
@@ -63,7 +63,7 @@ def _fake_runner_with_generated(
 
 def _write_minimal_repo(root: Path) -> None:
     (root / "pyproject.toml").write_text(
-        '[project]\nname = "demo"\nversion = "1.0.0"\n\n'
+        '[project]\nname = "demo"\nversion = "1.1.0"\n\n'
         "[tool.coverage.report]\nfail_under = 75\n",
         encoding="utf-8",
     )

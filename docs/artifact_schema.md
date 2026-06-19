@@ -9,7 +9,7 @@ Run:
 python scripts/check_artifact_schema.py
 ```
 
-The default command validates `docs/releases/v1.0.0_artifacts.json`. Optional
+The default command validates `docs/releases/v1.1.0_artifacts.json`. Optional
 arguments can validate generated portfolio and benchmark files:
 
 ```bash

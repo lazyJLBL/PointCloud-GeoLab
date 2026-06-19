@@ -22,6 +22,31 @@ from pointcloud_geolab import (
 )
 from web.backend.app.storage import WebStorage
 
+MAX_WEB_BENCHMARK_REPEAT = 3
+MAX_WEB_BENCHMARK_QUERIES = 500
+MAX_WEB_BENCHMARK_POINTS = 100_000
+ALLOWED_WEB_BENCHMARKS = {
+    "all",
+    "kdtree",
+    "icp",
+    "ransac",
+    "registration",
+    "gicp",
+    "segmentation",
+}
+BLOCKED_PARAMETER_NAMES = {
+    "input_path",
+    "source",
+    "target",
+    "output",
+    "output_dir",
+    "save_json",
+    "save_md",
+    "save_diagnostics",
+    "export_html",
+    "export_report",
+}
+
 
 class GeolabService:
     """Run stable API tasks for Web Console requests."""
@@ -116,7 +141,8 @@ class GeolabService:
                 )
             if task_type == "benchmark":
                 suite = str(parameters.pop("suite", parameters.pop("benchmark", "all")))
-                parameters["quick"] = bool(parameters.pop("quick", True))
+                self._validate_web_benchmark(suite, parameters)
+                parameters["quick"] = True
                 parameters["full"] = False
                 return run_benchmark(suite, output_dir=artifacts_dir, **parameters)
             if task_type == "portfolio":
@@ -166,13 +192,47 @@ class GeolabService:
             **extra,
         )
 
+    def _validate_web_benchmark(self, suite: str, parameters: dict[str, Any]) -> None:
+        if suite not in ALLOWED_WEB_BENCHMARKS:
+            raise ValueError(
+                "benchmark suite must be one of: " + ", ".join(sorted(ALLOWED_WEB_BENCHMARKS))
+            )
+        if parameters.get("full") or parameters.get("quick") is False:
+            raise ValueError("Web benchmark tasks only support quick mode")
+        repeat = int(parameters.get("repeat", 1))
+        if repeat < 1 or repeat > MAX_WEB_BENCHMARK_REPEAT:
+            raise ValueError(
+                f"Web benchmark repeat must be between 1 and {MAX_WEB_BENCHMARK_REPEAT}"
+            )
+        parameters["repeat"] = repeat
+        queries = int(parameters.get("queries", 100))
+        if queries < 1 or queries > MAX_WEB_BENCHMARK_QUERIES:
+            raise ValueError(
+                f"Web benchmark queries must be between 1 and {MAX_WEB_BENCHMARK_QUERIES}"
+            )
+        parameters["queries"] = queries
+        points = parameters.get("points")
+        if points is not None:
+            if not isinstance(points, list) or any(
+                not isinstance(value, int) or value < 1 or value > MAX_WEB_BENCHMARK_POINTS
+                for value in points
+            ):
+                raise ValueError(
+                    "Web benchmark points must be a list of positive integers no larger "
+                    f"than {MAX_WEB_BENCHMARK_POINTS}"
+                )
+
 
 def _allowed_parameters(
     function: Callable[..., TaskResult],
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
     allowed = set(function.__annotations__)
-    return {key: value for key, value in parameters.items() if key in allowed}
+    return {
+        key: value
+        for key, value in parameters.items()
+        if key in allowed and key not in BLOCKED_PARAMETER_NAMES
+    }
 
 
 def _request_path(request: dict[str, Any]) -> str | None:

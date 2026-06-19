@@ -1,11 +1,12 @@
 {
   "name": "pointcloud-geolab-web-console",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "@types/three": "^0.184.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
+    "vitest": "^2.1.9",
     "vue-tsc": "^2.2.0"
   }
 }

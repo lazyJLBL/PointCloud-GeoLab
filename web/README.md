@@ -1,7 +1,8 @@
 # PointCloud-GeoLab Web Console
 
-This directory contains an experimental Web Console MVP for reviewer workflows.
-It is intentionally separate from the stable `pointcloud_geolab` package.
+This directory contains the v1.1.0 experimental Web Console MVP for reviewer
+workflows. It is intentionally separate from the stable `pointcloud_geolab`
+package.
 
 Backend Python support is 3.10-3.12. The DevContainer and local backend docs use
 Python 3.12 as the recommended default.
@@ -42,3 +43,6 @@ CUDA stack, not a PointNet training app, and not an official KITTI benchmark.
 It calls stable PointCloud-GeoLab task API functions and keeps generated files
 under ignored `outputs/web/` paths.
 
+The Web Console is also not a production web platform. Tasks currently execute
+synchronously, so long portfolio or benchmark requests may block until they
+finish.

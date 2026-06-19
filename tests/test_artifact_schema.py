@@ -148,6 +148,7 @@ def test_artifact_schema_cli_validates_explicit_files(tmp_path: Path) -> None:
                     "portfolio": ["outputs/portfolio_demo/report.md"],
                     "benchmarks": ["outputs/benchmarks/all_benchmark.json"],
                     "realdata": ["outputs/kitti_segmentation/report.md"],
+                    "web": ["outputs/web/tasks/{task_id}/result.json"],
                 },
                 "ignored_artifact_paths": ["outputs/"],
                 "limitations": ["not real benchmark data"],

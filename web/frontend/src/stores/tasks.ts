@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 
+import { errorMessage } from '../api/client'
 import { listTasks } from '../api/tasks'
 import type { TaskRecord } from '../types'
 
@@ -16,7 +17,7 @@ export const useTaskStore = defineStore('tasks', {
       try {
         this.items = await listTasks()
       } catch (error) {
-        this.error = error instanceof Error ? error.message : String(error)
+        this.error = errorMessage(error)
       } finally {
         this.loading = false
       }

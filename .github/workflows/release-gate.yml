@@ -23,6 +23,16 @@ jobs:
       - name: Install package with review extras
         run: python -m pip install -e ".[dev,vis,bench]"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/frontend/package-lock.json
+
+      - name: Verify Web Console
+        run: make verify-web
+
       - name: Verify benchmarks
         run: make verify-benchmarks
 

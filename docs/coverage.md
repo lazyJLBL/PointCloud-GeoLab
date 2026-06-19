@@ -14,10 +14,11 @@ below the current measured coverage because optional Open3D/PyTorch/Plotly
 paths are separated from the core geometry evidence, but it prevents coverage
 from silently collapsing.
 
-For the latest v1.0.0 stable release, local coverage should stay at or above
-80% while enforcing a 75% gate. The gate stays below the current measured value
-so small platform or optional-dependency differences do not make routine review
-brittle.
+For the latest v1.1.0 release, local coverage should stay at or above 80% while
+enforcing a 75% gate. The gate stays below the current measured value so small
+platform or optional-dependency differences do not make routine review brittle.
+Web backend tests are included in normal pytest runs, while frontend build
+checks live in `make verify-web`.
 
 Generate an HTML report:
 

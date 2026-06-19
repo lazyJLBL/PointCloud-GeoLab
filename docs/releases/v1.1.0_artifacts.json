@@ -1,0 +1,93 @@
+{
+  "version": "1.1.0",
+  "release_date": "2026-06-19",
+  "commit": "HEAD",
+  "local_verification_commands": [
+    "python -m compileall -q main.py pointcloud_geolab tests examples scripts benchmarks web/backend",
+    "python -m ruff check .",
+    "python -m black --check .",
+    "python -m pytest --cov=pointcloud_geolab",
+    "python -m pytest web/backend/tests",
+    "python scripts/check_repo_hygiene.py",
+    "python scripts/check_dataset_fixtures.py",
+    "python scripts/check_artifact_schema.py",
+    "python scripts/verify_realdata_workflow.py --dry-run",
+    "python scripts/check_release_ready.py",
+    "python scripts/check_v1_ready.py",
+    "python scripts/check_documented_commands.py",
+    "make verify-core",
+    "make verify-portfolio",
+    "make verify-benchmarks",
+    "make verify-realdata",
+    "make verify-scale-benchmark",
+    "make verify-release-candidate",
+    "make verify-v1-candidate",
+    "make verify-web",
+    "cd web/frontend && npm install && npm run build"
+  ],
+  "expected_generated_artifacts": {
+    "portfolio": [
+      "outputs/portfolio_demo/report.md",
+      "outputs/portfolio_demo/report.html",
+      "outputs/portfolio_demo/metrics.json",
+      "outputs/portfolio_demo/figures/raw_pointcloud.png",
+      "outputs/portfolio_demo/figures/downsampled.png",
+      "outputs/portfolio_demo/figures/registration_before_after.png",
+      "outputs/portfolio_demo/figures/segmentation_result.png",
+      "outputs/portfolio_demo/artifacts/transformation.json"
+    ],
+    "benchmarks": [
+      "outputs/benchmarks/all_benchmark.json",
+      "outputs/benchmarks/benchmark_summary.json",
+      "outputs/scale_benchmark/scale_benchmark.json",
+      "outputs/scale_benchmark/scale_benchmark.csv",
+      "outputs/scale_benchmark/scale_benchmark.md",
+      "outputs/scale_benchmark/scale_benchmark.png"
+    ],
+    "realdata": [
+      "outputs/kitti_segmentation/report.md",
+      "outputs/kitti_segmentation/report.html",
+      "outputs/kitti_segmentation/metrics.json"
+    ],
+    "web": [
+      "outputs/web/uploads/{dataset_id}/dataset.json",
+      "outputs/web/tasks/{task_id}/request.json",
+      "outputs/web/tasks/{task_id}/result.json",
+      "outputs/web/tasks/{task_id}/logs.txt",
+      "outputs/web/tasks/{task_id}/artifacts/**",
+      "web/frontend/dist/**"
+    ]
+  },
+  "ignored_artifact_paths": [
+    "outputs/",
+    "results/",
+    "examples/demo_data/",
+    "benchmark_results/",
+    "generated_demo_artifacts/",
+    "portfolio_demo/",
+    "htmlcov/",
+    "dist/",
+    "build/",
+    "*.egg-info",
+    ".coverage",
+    "web/frontend/node_modules/",
+    "web/frontend/dist/"
+  ],
+  "limitations": [
+    "This is not a full nonlinear GICP optimizer.",
+    "The KITTI workflow is not an official KITTI benchmark.",
+    "This repository is not a SLAM backend.",
+    "This repository is not a CUDA stack.",
+    "This repository is not a PointNet training release.",
+    "The Web Console is experimental and not a production web platform.",
+    "Web Console tasks currently execute synchronously and may block long requests.",
+    "Synthetic demos and tiny fixtures are not real-data benchmark results."
+  ],
+  "open_roadmap_items": [
+    "Implement a full nonlinear GICP optimizer as future v1.x work.",
+    "Add an official real KITTI benchmark report as a separate future task.",
+    "Evaluate larger real-data scenes with user-managed data under data/external/.",
+    "Consider a background worker for long Web Console tasks.",
+    "Consider Web Console frontend code splitting if the reviewer MVP grows."
+  ]
+}

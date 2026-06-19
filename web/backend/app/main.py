@@ -22,7 +22,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="PointCloud-GeoLab Experimental Web Console",
-        version="0.1.0",
+        version="1.1.0",
         description=(
             "Experimental reviewer console for PointCloud-GeoLab. "
             "This is not a production LiDAR platform."

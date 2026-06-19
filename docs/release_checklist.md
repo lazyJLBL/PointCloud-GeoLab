@@ -1,12 +1,12 @@
 # Release Checklist
 
-This checklist records the v1.0.0 portfolio-stable release checks and the
-process to use before future manual releases. It does not create a tag or
+This checklist records the v1.1.0 experimental Web Console release checks and
+the process to use before future manual releases. It does not create a tag or
 publish a release by itself.
 
-v1.0.0 is a portfolio, learning, and reviewer-oriented release. It focuses on
-verification, package sanity, documentation boundaries, local artifact
-regeneration, API/CLI contracts, and reviewer workflows.
+v1.1.0 is a portfolio, learning, and reviewer-oriented release. It keeps the
+v1.0.0 portfolio-stable baseline and adds an experimental Web Console, Web
+artifact handling, and Web verification.
 
 ## Local Environment
 
@@ -38,7 +38,7 @@ make verify-v1-candidate
 
 `verify-release-candidate` keeps the v0.1.1-style release metadata checks.
 `verify-v1-candidate` additionally runs the KITTI-like dry-run, scale benchmark
-quick gate, and v1.0.0 readiness checks.
+quick gate, Web readiness checks, and v1.1.0 readiness checks.
 
 ## DevContainer
 
@@ -103,6 +103,7 @@ make verify-portfolio
 make verify-benchmarks
 make verify-scale-benchmark
 make verify-realdata
+make verify-web
 ```
 
 Expected generated reports:
@@ -116,10 +117,10 @@ Expected generated reports:
 
 These outputs are ignored and should not be committed.
 
-The expected v1.0.0 artifact manifest is:
+The expected v1.1.0 artifact manifest is:
 
 ```text
-docs/releases/v1.0.0_artifacts.json
+docs/releases/v1.1.0_artifacts.json
 ```
 
 It lists the verification commands, expected generated portfolio/benchmark
@@ -150,12 +151,14 @@ Before any future release, confirm the public wording stays bounded:
 - KITTI, Stanford Bunny, and ModelNet remain documented workflows requiring
   local files under `data/external/`.
 - The repository is not a SLAM backend, CUDA stack, or Open3D/PCL replacement.
-- v1.0.0 is not an official real KITTI benchmark.
-- v1.0.0 is not a full nonlinear GICP optimizer.
-- v1.0.0 is not CUDA accelerated.
-- v1.0.0 is not a SLAM backend.
-- v1.0.0 is not a PointNet training release.
+- v1.1.0 is not an official real KITTI benchmark.
+- v1.1.0 is not a full nonlinear GICP optimizer.
+- v1.1.0 is not CUDA accelerated.
+- v1.1.0 is not a SLAM backend.
+- v1.1.0 is not a PointNet training release.
+- v1.1.0 is not a production web platform.
+- Web Console tasks currently execute synchronously and may block long
+  requests.
 
-Do not rewrite the existing `v0.1.1` tag or GitHub release. Do not create a
-`v1.0.0` tag or GitHub release unless that release action is explicitly
-requested.
+Do not rewrite existing historical tags or GitHub releases. Create `v1.1.0`
+only when that release action is explicitly requested.

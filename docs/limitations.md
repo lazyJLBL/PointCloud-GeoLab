@@ -49,16 +49,21 @@ review. It is not a replacement for Open3D, PCL, or a deployed autonomy stack.
 - The public API is typed and documented where it is used by CLI/examples, but
   this is still a small research-style project rather than a long-term stable
   SDK.
+- The Web Console is experimental and reviewer-oriented. It is not a production
+  web platform, and long task requests currently execute synchronously.
 - The C++ KDTree demo is independent from the Python package and does not
   accelerate the Python implementation.
 - Coverage is useful for regression confidence, but correctness still relies on
   geometry-specific tests against brute force or known transforms.
 
-## v1.0.0 Boundary
+## v1.1.0 Boundary
 
-- v1.0.0 is not a full nonlinear GICP optimizer.
-- v1.0.0 is not a SLAM backend.
-- v1.0.0 is not CUDA accelerated.
-- v1.0.0 is not a PointNet training release.
-- v1.0.0 is not an official KITTI benchmark.
+- v1.1.0 is not a full nonlinear GICP optimizer.
+- v1.1.0 is not a SLAM backend.
+- v1.1.0 is not CUDA accelerated.
+- v1.1.0 is not a PointNet training release.
+- v1.1.0 is not an official KITTI benchmark.
+- v1.1.0 is not a production web platform.
+- Web Console tasks currently execute synchronously and may block long
+  requests.
 - Synthetic smoke checks and tiny fixtures are not real-data benchmark results.

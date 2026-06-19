@@ -1,8 +1,8 @@
 # Experimental Web Console
 
-The Web Console is an experimental reviewer interface for PointCloud-GeoLab.
-It is not a production LiDAR platform and does not change the stable Python
-package API.
+The Web Console is an experimental reviewer interface for PointCloud-GeoLab
+v1.1.0. It is not a production LiDAR platform, not a production web platform,
+and does not change the stable Python package API.
 
 Supported backend Python versions are 3.10-3.12. Python 3.12 is recommended
 for the local Web Console environment.
@@ -67,8 +67,9 @@ The backend routes call stable `pointcloud_geolab.api` task functions for
 processing work. The preview route uses the repository point-cloud IO reader
 only to provide sampled points to the browser.
 
-Supported upload formats are `.ply`, `.pcd`, `.xyz`, `.txt`, and KITTI-like
-`.bin`. The backend rejects path-like filenames and limits upload size.
+Supported upload formats are `.ply`, `.pcd`, `.xyz`, `.txt`, KITTI-like
+`.bin`, and ModelNet-like `.off`. The backend rejects path-like filenames and
+limits upload size.
 
 The Web Console includes:
 
@@ -86,4 +87,5 @@ It does not add full nonlinear GICP, a SLAM backend, CUDA acceleration,
 PointNet training pages, or an official KITTI benchmark.
 
 Benchmark timing and memory values are local machine references only.
-
+Tasks currently run synchronously inside the backend process. Long portfolio or
+benchmark requests may block until completion.

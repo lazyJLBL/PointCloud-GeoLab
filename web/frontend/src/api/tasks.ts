@@ -13,5 +13,6 @@ export async function listTasks(): Promise<TaskRecord[]> {
 
 export function artifactUrl(taskId: string, artifactName: string): string {
   const base = apiClient.defaults.baseURL ?? '/api'
-  return `${base}/artifacts/${encodeURIComponent(taskId)}/${encodeURIComponent(artifactName)}`
+  const safeArtifact = artifactName.split('/').map(encodeURIComponent).join('/')
+  return `${base}/artifacts/${encodeURIComponent(taskId)}/${safeArtifact}`
 }

@@ -90,7 +90,7 @@ These are useful, but intentionally not exported from `pointcloud_geolab.__all__
 - `run_visualization`: optional HTML visualization workflow.
 - `run_train_pointnet` and `run_infer_pointnet`: optional PyTorch demo.
 - GICP-style covariance-weighted ICP internals: experimental, not a full
-  nonlinear GICP optimizer, and not part of the v1.0.0 stable API promise.
+  nonlinear GICP optimizer, and not part of the v1.1.0 stable API promise.
 - User-provided real-data workflow helpers: documented as examples plus
   verifier scripts, not stable public API. Use
   `examples/kitti_lidar_segmentation.py` and

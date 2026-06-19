@@ -3,9 +3,9 @@
 This checklist is for a release reviewer who wants to verify the portfolio
 without trusting committed generated artifacts.
 
-The current package version is `1.0.0`. It is a portfolio, learning, and
-reviewer-oriented release, not a deployed LiDAR stack or an official KITTI
-benchmark release.
+The current package version is `1.1.0`. It is a portfolio, learning, and
+reviewer-oriented release with an experimental Web Console, not a deployed
+LiDAR stack, production web platform, or official KITTI benchmark release.
 
 ## 1. Install
 
@@ -126,6 +126,7 @@ Run the v1 scale quick gate:
 
 ```bash
 make verify-scale-benchmark
+make verify-web
 ```
 
 Expected result: `outputs/scale_benchmark/scale_benchmark.{json,csv,md,png}`
@@ -139,6 +140,16 @@ make verify-realdata
 
 Expected result: a temporary synthetic KITTI-like frame exercises the same
 report and metrics validation used for user-provided local data.
+
+Run the experimental Web Console checks:
+
+```bash
+make verify-web
+```
+
+Expected result: Web backend tests pass and the Vue frontend builds. This does
+not make the Web Console a production web platform; tasks still run
+synchronously and may block long requests.
 
 For local repeat statistics:
 
@@ -180,11 +191,12 @@ Review especially:
   not real dataset benchmarks.
 - Stanford Bunny, KITTI, and ModelNet are documented workflows requiring local
   datasets.
-- v1.0.0 still does not include official real KITTI benchmark results.
-- v1.0.0 is not a full nonlinear GICP optimizer.
-- v1.0.0 is not a SLAM backend.
-- v1.0.0 is not CUDA accelerated.
-- v1.0.0 is not a PointNet training release.
+- v1.1.0 still does not include official real KITTI benchmark results.
+- v1.1.0 is not a full nonlinear GICP optimizer.
+- v1.1.0 is not a SLAM backend.
+- v1.1.0 is not CUDA accelerated.
+- v1.1.0 is not a PointNet training release.
+- v1.1.0 is not a production web platform.
 
 ## 8. Check Repository Hygiene
 
@@ -220,7 +232,7 @@ make verify-v1-candidate
 
 Expected result: core checks, portfolio verification, benchmark verification,
 realdata dry-run, scale quick gate, and release-ready metadata checks pass. The
-latest v1 artifact manifest is `docs/releases/v1.0.0_artifacts.json`.
+latest v1 artifact manifest is `docs/releases/v1.1.0_artifacts.json`.
 
 For an audit snapshot:
 

@@ -4,10 +4,10 @@ PointCloud-GeoLab is a portfolio and learning project. It is meant to make
 point-cloud geometry algorithms readable, runnable, and reviewable in a compact
 Python codebase.
 
-The current `1.0.0` release is portfolio-stable and reviewer-stable. It
+The current `1.1.0` release is portfolio-stable and reviewer-oriented. It
 improves verification, package sanity, artifact schemas, local case-study
-workflows, and documentation boundaries without turning the project into a
-deployed perception system.
+workflows, Web reviewer workflows, and documentation boundaries without turning
+the project into a deployed perception system or production web platform.
 
 It is not intended to replace mature libraries such as PCL or Open3D. Those
 projects remain the right baseline for production systems, broad hardware
@@ -38,6 +38,9 @@ Demo-ready workflows are designed for reviewer smoke checks:
 - The KITTI-like LiDAR workflow reads a user-provided single-frame `.bin` file
   and writes JSON, Markdown, HTML, PLY, and PNG artifacts. It is not an
   official KITTI benchmark.
+- The experimental Web Console exposes uploads, previews, task runs, and
+  artifact downloads for reviewer workflows. It is not a production web
+  platform, and long tasks currently execute synchronously.
 - The scale benchmark quick gate records local synthetic 1k/10k reference
   timings and memory metadata.
 - Verifier scripts check generated artifact content, not only file existence.
@@ -74,6 +77,7 @@ PointCloud-GeoLab is:
 - not a SLAM backend;
 - not a full nonlinear GICP optimizer;
 - not a production LiDAR stack;
+- not a production web platform;
 - not a CUDA acceleration project;
 - not a PointNet training release;
 - not an official KITTI benchmark release;

@@ -53,6 +53,10 @@ separate implemented work from planned work.
 - API stability, CLI reference, versioning, gallery, and v1 readiness docs.
 - Portfolio pipeline implementation split into smaller input, metrics, figure,
   report, and runner modules while preserving the compatibility import path.
+- Experimental Web Console MVP with FastAPI backend, Vue 3 frontend, upload,
+  preview, task, artifact, benchmark, portfolio, and report pages.
+- Web artifact downloads preserve nested relative paths, `.off` upload/preview
+  is supported, and Web verification is available through `make verify-web`.
 - Lightweight artifact schema checker for release, portfolio, and benchmark
   JSON.
 - Repository audit script for local and optional GitHub release-review
@@ -79,21 +83,16 @@ separate implemented work from planned work.
   local checks that do not require Git metadata.
 - Keep the experimental Web Console isolated from the core Python package.
 
-### v1.1 Experimental Web Console MVP
-
-- Add a FastAPI backend that calls only stable public task API entry points for
-  point-cloud processing tasks.
-- Add a Vue 3 reviewer console for uploads, previews, task status, metrics, and
-  artifact downloads.
-- Keep benchmark timing labels clear that values are local machine references.
-
 ### v1.2 Web Visualization and Report Gallery
 
+- Expand static and Web Console visualization/report gallery coverage while
+  keeping generated artifacts out of Git.
+- Add background-task plumbing if Web Console long-running portfolio or
+  benchmark workflows need non-blocking behavior.
+- Add frontend code splitting if the reviewer MVP bundle grows.
 - Add confidence-interval style summaries once enough repeated local runs are
   available.
 - Compare benchmark output schemas across releases.
-- Expand static and Web Console visualization/report gallery coverage while
-  keeping generated artifacts out of Git.
 
 ### v1.x Real Data Coverage
 

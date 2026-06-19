@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 
+import { errorMessage } from '../api/client'
 import { deleteDataset, getDatasetPreview, listDatasets } from '../api/datasets'
 import type { DatasetPreview, DatasetRecord } from '../types'
 
@@ -17,7 +18,7 @@ export const useDatasetStore = defineStore('datasets', {
       try {
         this.items = await listDatasets()
       } catch (error) {
-        this.error = error instanceof Error ? error.message : String(error)
+        this.error = errorMessage(error)
       } finally {
         this.loading = false
       }
@@ -28,7 +29,7 @@ export const useDatasetStore = defineStore('datasets', {
       try {
         this.preview = await getDatasetPreview(datasetId)
       } catch (error) {
-        this.error = error instanceof Error ? error.message : String(error)
+        this.error = errorMessage(error)
       } finally {
         this.loading = false
       }

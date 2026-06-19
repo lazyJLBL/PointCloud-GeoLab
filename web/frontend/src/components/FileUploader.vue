@@ -1,7 +1,7 @@
 <template>
   <div class="surface">
     <div class="toolbar">
-      <input ref="input" type="file" accept=".ply,.pcd,.xyz,.txt,.bin" @change="pickFile" />
+      <input ref="input" type="file" accept=".ply,.pcd,.xyz,.txt,.bin,.off" @change="pickFile" />
       <el-button type="primary" :loading="loading" :disabled="!file" @click="submit">
         Upload
       </el-button>
@@ -25,6 +25,7 @@ import { uploadDataset } from '../api/datasets'
 import type { DatasetRecord } from '../types'
 
 const emit = defineEmits<{ uploaded: [record: DatasetRecord] }>()
+const input = ref<HTMLInputElement | null>(null)
 const file = ref<File | null>(null)
 const loading = ref(false)
 const error = ref('')
@@ -42,6 +43,7 @@ async function submit() {
   try {
     emit('uploaded', await uploadDataset(file.value))
     file.value = null
+    if (input.value) input.value.value = ''
   } catch (caught) {
     error.value = errorMessage(caught)
   } finally {

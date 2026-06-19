@@ -7,7 +7,7 @@ PYTHON ?= python
 .PHONY: benchmark scale-benchmark verify-core verify-portfolio verify-benchmarks
 .PHONY: verify-realdata verify-scale-benchmark verify-release-candidate
 .PHONY: verify-v1-candidate verify-full verify cpp-demo
-.PHONY: web-backend web-frontend web-test
+.PHONY: web-backend web-frontend web-build web-test verify-web
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -99,5 +99,10 @@ web-backend:
 web-frontend:
 	cd web/frontend && npm run dev -- --host 127.0.0.1
 
+web-build:
+	cd web/frontend && npm install && npm test && npm run build
+
 web-test:
 	$(PYTHON) -m pytest web/backend/tests
+
+verify-web: web-test web-build

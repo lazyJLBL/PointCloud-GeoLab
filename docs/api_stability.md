@@ -44,7 +44,10 @@ tokens.
 - user-provided KITTI-like case study workflow
 
 The GICP-style path is not a full nonlinear GICP optimizer and is not part of a
-strong stable API promise for v1.0.0.
+strong stable API promise for v1.1.0.
+
+The Web Console is experimental and calls stable API functions where it runs
+core PointCloud-GeoLab tasks. It is not itself a stable public API surface.
 
 The real-data workflow is intentionally documented as an example plus verifier
 script, not a stable public API entry point. Reviewers should use

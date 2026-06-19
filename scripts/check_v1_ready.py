@@ -1,4 +1,4 @@
-"""Check v1.0.0 portfolio-stable release readiness."""
+"""Check current v1 portfolio-stable release readiness."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ from scripts.check_repo_hygiene import (
     regex_value,
 )
 
-CURRENT_VERSION = "1.0.0"
-RELEASE_DATE = "2026-06-18"
+CURRENT_VERSION = "1.1.0"
+RELEASE_DATE = "2026-06-19"
 GENERATED_PREFIXES = (
     "outputs/",
     "results/",
@@ -30,8 +30,8 @@ GENERATED_PREFIXES = (
 )
 
 REQUIRED_DOCS = (
-    "docs/releases/v1.0.0.md",
-    "docs/releases/v1.0.0_artifacts.json",
+    "docs/releases/v1.1.0.md",
+    "docs/releases/v1.1.0_artifacts.json",
     "docs/versioning.md",
     "docs/api_stability.md",
     "docs/cli_reference.md",
@@ -40,6 +40,11 @@ REQUIRED_DOCS = (
     "docs/gallery/README.md",
     "docs/scale_benchmark.md",
     "docs/case_studies/kitti_lidar_result.md",
+    "docs/web_console.md",
+    "docs/web_api.md",
+    "web/README.md",
+    "web/backend/tests/test_web_backend.py",
+    "web/frontend/package.json",
 )
 
 REQUIRED_ASSETS = (
@@ -56,12 +61,13 @@ REQUIRED_MAKE_TARGETS = (
     "verify-realdata",
     "verify-scale-benchmark",
     "verify-v1-candidate",
+    "verify-web",
 )
 
 
 @dataclass(frozen=True, slots=True)
 class V1ReadyResult:
-    """Result of v1.0.0 release checks."""
+    """Result of current v1 release checks."""
 
     root: Path
     issues: list[str]
@@ -77,7 +83,7 @@ def run_v1_ready(
     tracked_files: list[str] | None = None,
     require_git: bool = False,
 ) -> V1ReadyResult:
-    """Run v1.0.0 readiness checks."""
+    """Run current v1 readiness checks."""
 
     repo = Path(root).resolve()
     issues: list[str] = []
@@ -98,7 +104,7 @@ def run_v1_ready(
 
 
 def check_version_consistency(root: Path) -> list[str]:
-    """Return issues for v1.0.0 metadata mismatches."""
+    """Return issues for current v1 metadata mismatches."""
 
     versions = {
         "pyproject.toml": regex_value(root / "pyproject.toml", r'^version\s*=\s*"([^"]+)"'),
@@ -107,6 +113,14 @@ def check_version_consistency(root: Path) -> list[str]:
             r'^__version__\s*=\s*"([^"]+)"',
         ),
         "CITATION.cff": regex_value(root / "CITATION.cff", r'^version:\s*"([^"]+)"'),
+        "web/frontend/package.json": regex_value(
+            root / "web" / "frontend" / "package.json",
+            r'^\s*"version":\s*"([^"]+)"',
+        ),
+        "web/backend/app/main.py": regex_value(
+            root / "web" / "backend" / "app" / "main.py",
+            r'^\s*version="([^"]+)"',
+        ),
     }
     issues = [
         f"{name}: expected version {CURRENT_VERSION}, got {value or '<missing>'}"
@@ -121,7 +135,11 @@ def check_version_consistency(root: Path) -> list[str]:
         expected = f"## v{CURRENT_VERSION} - {RELEASE_DATE}"
         if expected not in text:
             issues.append(f"CHANGELOG.md: missing `{expected}` section")
-        for historical in ["## v0.1.1 - 2026-06-18", "## v0.1.0 Portfolio Release"]:
+        for historical in [
+            "## v1.0.0 - 2026-06-18",
+            "## v0.1.1 - 2026-06-18",
+            "## v0.1.0 Portfolio Release",
+        ]:
             if historical not in text:
                 issues.append(f"CHANGELOG.md: missing historical section `{historical}`")
     return issues
@@ -143,7 +161,7 @@ def check_required_files(root: Path) -> list[str]:
 def check_release_manifest(root: Path) -> list[str]:
     """Return issues for the v1 artifact manifest."""
 
-    manifest = root / "docs" / "releases" / "v1.0.0_artifacts.json"
+    manifest = root / "docs" / "releases" / "v1.1.0_artifacts.json"
     try:
         payload = json.loads(manifest.read_text(encoding="utf-8"))
     except FileNotFoundError:
@@ -169,6 +187,8 @@ def check_release_manifest(root: Path) -> list[str]:
             issues.append(f"{display_path(root, manifest)}: scale benchmark artifacts not listed")
         if not any("kitti_segmentation" in item for item in artifacts.get("realdata", [])):
             issues.append(f"{display_path(root, manifest)}: KITTI workflow artifacts not listed")
+        if not any("outputs/web" in item for item in artifacts.get("web", [])):
+            issues.append(f"{display_path(root, manifest)}: Web Console artifacts not listed")
     limitations = " ".join(str(item).lower() for item in payload.get("limitations", []))
     for required in [
         "not a full nonlinear gicp",
@@ -239,8 +259,11 @@ def check_boundary_wording(root: Path) -> list[str]:
         root / "README.md",
         root / "docs" / "limitations.md",
         root / "docs" / "project_boundary.md",
-        root / "docs" / "releases" / "v1.0.0.md",
+        root / "docs" / "releases" / "v1.1.0.md",
         root / "docs" / "case_studies" / "kitti_lidar_result.md",
+        root / "docs" / "web_console.md",
+        root / "docs" / "web_api.md",
+        root / "web" / "README.md",
     ]
     combined = "\n".join(
         path.read_text(encoding="utf-8") for path in paths if path.exists() and path.is_file()
@@ -251,6 +274,7 @@ def check_boundary_wording(root: Path) -> list[str]:
         "not a slam backend",
         "not cuda",
         "not a pointnet training release",
+        "not a production web platform",
         "synthetic",
     ]
     for phrase in required_phrases:
@@ -288,15 +312,15 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     result = run_v1_ready(args.root, require_git=args.require_git)
-    print(f"v1.0.0 readiness checked repository: {result.root}")
+    print(f"v{CURRENT_VERSION} readiness checked repository: {result.root}")
     for warning in result.warnings:
         print(f"Warning: {warning}")
     if result.issues:
-        print("v1.0.0 readiness failed:")
+        print(f"v{CURRENT_VERSION} readiness failed:")
         for issue in result.issues:
             print(f"- {issue}")
         return 1
-    print("v1.0.0 portfolio-stable release checks passed.")
+    print(f"v{CURRENT_VERSION} portfolio-stable release checks passed.")
     return 0
 
 

@@ -20,6 +20,7 @@ GENERATED_PREFIXES = (
 CLAIM_DOC_PATTERNS = (
     "README.md",
     "docs/**/*.md",
+    "web/README.md",
 )
 
 TEXT_SHAPE_PATTERNS = (
@@ -29,6 +30,7 @@ TEXT_SHAPE_PATTERNS = (
     "Makefile",
     ".github/workflows/*.yml",
     "docs/**/*.md",
+    "web/README.md",
     "scripts/**/*.py",
 )
 
@@ -36,9 +38,13 @@ POST_RELEASE_WORDING_FILES = (
     "README.md",
     "CHANGELOG.md",
     "docs/releases/v1.0.0.md",
+    "docs/releases/v1.1.0.md",
     "docs/ROADMAP.md",
     "docs/coverage.md",
     "docs/reviewer_checklist.md",
+    "docs/web_console.md",
+    "docs/web_api.md",
+    "web/README.md",
 )
 
 POST_RELEASE_WORDING_PATTERNS = (
@@ -46,14 +52,27 @@ POST_RELEASE_WORDING_PATTERNS = (
         "v1.0.0 release candidate",
         re.compile(r"\bv1\.0\.0\s+release\s+candidate\b", re.IGNORECASE),
     ),
+    (
+        "v1.1.0 release candidate",
+        re.compile(r"\bv1\.1\.0\s+release\s+candidate\b", re.IGNORECASE),
+    ),
     ("v1.0.0 target", re.compile(r"\bv1\.0\.0\s+target\b", re.IGNORECASE)),
+    ("v1.1.0 target", re.compile(r"\bv1\.1\.0\s+target\b", re.IGNORECASE)),
     (
         "v1.0.0 release readiness",
         re.compile(r"\bv1\.0\.0\s+release\s+readiness\b", re.IGNORECASE),
     ),
     (
+        "v1.1.0 release readiness",
+        re.compile(r"\bv1\.1\.0\s+release\s+readiness\b", re.IGNORECASE),
+    ),
+    (
         "uncreated v1.0.0 release",
         re.compile(r"do\s+not\s+create\s+a\s+v1\.0\.0\s+tag", re.IGNORECASE),
+    ),
+    (
+        "uncreated v1.1.0 release",
+        re.compile(r"do\s+not\s+create\s+a\s+v1\.1\.0\s+tag", re.IGNORECASE),
     ),
     ("stale issue #2 reference", re.compile(r"\bissue\s+#2\b", re.IGNORECASE)),
 )
@@ -293,7 +312,7 @@ def check_text_file_shape(
 
 
 def check_post_release_wording(root: Path, paths: list[Path]) -> list[str]:
-    """Return issues for stale v1.0.0 release-candidate or issue-state wording."""
+    """Return issues for stale release-candidate or issue-state wording."""
 
     issues: list[str] = []
     for path in paths:

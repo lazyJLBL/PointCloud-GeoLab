@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_RELEASE_MANIFEST = ROOT / "docs" / "releases" / "v1.0.0_artifacts.json"
+DEFAULT_RELEASE_MANIFEST = ROOT / "docs" / "releases" / "v1.1.0_artifacts.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,10 +45,11 @@ def validate_release_manifest(payload: dict[str, Any], path: Path) -> list[str]:
         _require_list(artifacts, "portfolio", str, issues, "expected_generated_artifacts")
         _require_list(artifacts, "benchmarks", str, issues, "expected_generated_artifacts")
         _require_list(artifacts, "realdata", str, issues, "expected_generated_artifacts")
+        _require_list(artifacts, "web", str, issues, "expected_generated_artifacts")
 
     version = payload.get("version")
     if isinstance(version, str) and not re.match(r"^\d+\.\d+\.\d+$", version):
-        issues.append("version must be a semantic project version such as 1.0.0")
+        issues.append("version must be a semantic project version such as 1.1.0")
     if not str(payload.get("commit", "")).strip():
         issues.append("commit must be a hash or explicit placeholder")
     return _prefix(path, issues)

@@ -1,8 +1,8 @@
 # Experimental Web API
 
 The Web API is provided by the FastAPI backend under `web/backend`. It is for
-the experimental Web Console and reviewer workflows. It is not a production
-service boundary.
+the v1.1.0 experimental Web Console and reviewer workflows. It is not a
+production service boundary or production web platform.
 
 Supported backend Python versions are 3.10-3.12.
 
@@ -33,8 +33,8 @@ Returns service status and marks the Web Console as experimental.
 - `DELETE /api/datasets/{dataset_id}`
 - `GET /api/datasets/{dataset_id}/preview`
 
-Uploads accept `.ply`, `.pcd`, `.xyz`, `.txt`, and `.bin` files. Preview
-responses sample at most 10,000 points.
+Uploads accept `.ply`, `.pcd`, `.xyz`, `.txt`, `.bin`, and `.off` files.
+Preview responses sample at most 10,000 points.
 
 ## Tasks
 
@@ -69,8 +69,9 @@ Available task routes:
 - `GET /api/tasks`
 - `GET /api/tasks/{task_id}`
 
-Tasks are currently executed synchronously but still persist a lifecycle state:
-`pending`, `running`, `completed`, or `failed`.
+Tasks are currently executed synchronously and may block long requests, but
+they still persist a lifecycle state: `pending`, `running`, `completed`, or
+`failed`.
 
 All PointCloud-GeoLab task results are serialized through
 `TaskResult.to_dict()` before being stored in `result.json`.
@@ -83,5 +84,5 @@ machine references only.
 - `GET /api/artifacts/{task_id}/{artifact_name}`
 
 The backend only serves files from the selected task directory and rejects path
-traversal attempts.
-
+traversal attempts. Nested artifact paths such as
+`artifacts/figures/result.png` are supported.

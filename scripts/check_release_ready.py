@@ -26,9 +26,9 @@ from scripts.check_repo_hygiene import (
     regex_value,
 )
 
-CURRENT_VERSION = "1.0.0"
-RELEASE_DATE = "2026-06-18"
-ARTIFACT_MANIFEST = "v1.0.0_artifacts.json"
+CURRENT_VERSION = "1.1.0"
+RELEASE_DATE = "2026-06-19"
+ARTIFACT_MANIFEST = "v1.1.0_artifacts.json"
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
@@ -169,6 +169,8 @@ def check_changelog_section(path: Path, version: str) -> list[str]:
         issues.append(f"CHANGELOG.md: missing `{expected_heading}` section")
     if "## v0.1.0 Portfolio Release" not in text:
         issues.append("CHANGELOG.md: missing historical v0.1.0 release section")
+    if version != "1.0.0" and "## v1.0.0 - 2026-06-18" not in text:
+        issues.append("CHANGELOG.md: missing historical v1.0.0 release section")
     return issues
 
 
@@ -231,6 +233,7 @@ def check_artifact_manifest(
         required = {
             "python scripts/check_release_ready.py",
             "make verify-release-candidate",
+            "make verify-web",
         }
         missing = sorted(command for command in required if command not in commands)
         issues.extend(f"missing verification command `{command}`" for command in missing)
@@ -241,6 +244,7 @@ def check_artifact_manifest(
     else:
         issues.extend(check_expected_artifact_group(path, expected, "portfolio"))
         issues.extend(check_expected_artifact_group(path, expected, "benchmarks"))
+        issues.extend(check_expected_artifact_group(path, expected, "web"))
 
     ignored = manifest.get("ignored_artifact_paths")
     if not isinstance(ignored, list):
@@ -251,8 +255,12 @@ def check_artifact_manifest(
                 issues.append(f"ignored_artifact_paths missing `{prefix}`")
 
     limitations = " ".join(str(item).lower() for item in manifest.get("limitations", []))
-    if "not real" not in limitations or "not a full nonlinear gicp" not in limitations:
-        issues.append("limitations must state real-data and full-GICP boundaries")
+    if (
+        "not real" not in limitations
+        or "not a full nonlinear gicp" not in limitations
+        or "not a production web platform" not in limitations
+    ):
+        issues.append("limitations must state real-data, full-GICP, and Web boundaries")
 
     roadmap = " ".join(str(item).lower() for item in manifest.get("open_roadmap_items", []))
     if "full nonlinear gicp" not in roadmap or "real kitti benchmark" not in roadmap:

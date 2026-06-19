@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 from web.backend.app.config import Settings
 from web.backend.app.schemas import DatasetRecord, TaskRecord, TaskStatus
@@ -108,6 +109,16 @@ class WebStorage:
         dataset_dir = assert_safe_child(self.uploads_root, Path(record.path).parent)
         shutil.rmtree(dataset_dir)
 
+    def cleanup_dataset_dir(self, dataset_id: str) -> None:
+        """Remove a partially created dataset directory if it is safe to do so."""
+
+        try:
+            dataset_dir = assert_safe_child(self.uploads_root, self.uploads_root / dataset_id)
+        except ValueError:
+            return
+        if dataset_dir.exists():
+            shutil.rmtree(dataset_dir)
+
     def init_task(self, task_type: str, request: dict[str, Any]) -> TaskRecord:
         task_id = make_id("task")
         task_dir = self.task_dir(task_id)
@@ -174,13 +185,19 @@ class WebStorage:
         return self.task_dir(task_id) / "artifacts"
 
     def artifact_path(self, task_id: str, artifact_name: str) -> Path:
-        if "/" in artifact_name or "\\" in artifact_name or artifact_name in {"", ".", ".."}:
-            raise ValueError("artifact_name is not safe")
         task_dir = self.task_dir(task_id)
-        if artifact_name in {"request.json", "result.json", "logs.txt", "task.json"}:
-            path = task_dir / artifact_name
+        relative = safe_relative_artifact_path(artifact_name)
+        if relative.parts[0] == "artifacts":
+            path = task_dir.joinpath(*relative.parts)
+        elif len(relative.parts) == 1 and relative.name in {
+            "request.json",
+            "result.json",
+            "logs.txt",
+            "task.json",
+        }:
+            path = task_dir / relative.name
         else:
-            path = task_dir / "artifacts" / artifact_name
+            path = task_dir / "artifacts" / relative
         resolved = assert_safe_child(task_dir, path)
         if not resolved.exists() or not resolved.is_file():
             raise FileNotFoundError(f"artifact not found: {artifact_name}")
@@ -189,13 +206,14 @@ class WebStorage:
     def collect_artifacts(self, task_id: str) -> dict[str, str]:
         task_dir = self.task_dir(task_id)
         artifacts = {
-            "request": "request.json",
-            "result": "result.json",
-            "logs": "logs.txt",
+            "request.json": "request.json",
+            "result.json": "result.json",
+            "logs.txt": "logs.txt",
         }
         for path in sorted((task_dir / "artifacts").rglob("*")):
             if path.is_file():
-                artifacts[path.stem if path.name == "metrics.json" else path.name] = path.name
+                relative = path.relative_to(task_dir).as_posix()
+                artifacts[relative] = relative
         return artifacts
 
     def _dataset_metadata_path(self, dataset_id: str) -> Path:
@@ -203,3 +221,15 @@ class WebStorage:
 
     def _task_metadata_path(self, task_id: str) -> Path:
         return assert_safe_child(self.tasks_root, self.tasks_root / task_id / "task.json")
+
+
+def safe_relative_artifact_path(raw_path: str) -> Path:
+    """Normalize an artifact path while rejecting traversal and absolute paths."""
+
+    normalized = unquote(raw_path).replace("\\", "/")
+    if normalized.startswith("/") or normalized.startswith("//"):
+        raise ValueError("artifact path must be relative")
+    parts = [part for part in normalized.split("/") if part]
+    if not parts or any(part in {".", ".."} for part in parts):
+        raise ValueError("artifact path is not safe")
+    return Path(*parts)

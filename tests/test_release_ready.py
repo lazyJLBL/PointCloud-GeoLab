@@ -19,7 +19,7 @@ def test_release_ready_script_runs_on_repository() -> None:
 
 
 def test_release_manifest_json_parses() -> None:
-    manifest, issues = load_artifact_manifest(ROOT / "docs" / "releases" / "v1.0.0_artifacts.json")
+    manifest, issues = load_artifact_manifest(ROOT / "docs" / "releases" / "v1.1.0_artifacts.json")
 
     assert issues == []
     assert manifest is not None
@@ -38,7 +38,7 @@ def test_release_ready_finds_version_mismatch(tmp_path: Path) -> None:
     result = run_release_ready(tmp_path, tracked_files=[], status_output="")
 
     assert not result.success
-    assert any("expected version 1.0.0" in issue for issue in result.issues)
+    assert any("expected version 1.1.0" in issue for issue in result.issues)
 
 
 def test_release_ready_finds_missing_changelog_section(tmp_path: Path) -> None:
@@ -51,7 +51,7 @@ def test_release_ready_finds_missing_changelog_section(tmp_path: Path) -> None:
 
     issues = check_changelog_section(changelog, CURRENT_VERSION)
 
-    assert any("missing `## v1.0.0 - 2026-06-18`" in issue for issue in issues)
+    assert any("missing `## v1.1.0 - 2026-06-19`" in issue for issue in issues)
 
 
 def test_release_ready_finds_tracked_generated_path(tmp_path: Path) -> None:
@@ -127,7 +127,7 @@ def _write_minimal_release_repo(root: Path) -> None:
     (root / "pointcloud_geolab").mkdir()
 
     (root / "README.md").write_text(
-        "# Demo\n\n[Release](docs/releases/v1.0.0.md)\n",
+        "# Demo\n\n[Release](docs/releases/v1.1.0.md)\n",
         encoding="utf-8",
     )
     (root / "docs" / "releases" / "v0.1.0.md").write_text(
@@ -144,26 +144,35 @@ def _write_minimal_release_repo(root: Path) -> None:
         "This is not a full nonlinear GICP optimizer and not real KITTI data.\n",
         encoding="utf-8",
     )
-    (root / "docs" / "releases" / "v1.0.0_artifacts.json").write_text(
+    (root / "docs" / "releases" / "v1.1.0.md").write_text(
+        "# v1.1.0 Experimental Web Console MVP\n\n"
+        "This is not a full nonlinear GICP optimizer, not real KITTI data, "
+        "and not a production web platform.\n",
+        encoding="utf-8",
+    )
+    (root / "docs" / "releases" / "v1.1.0_artifacts.json").write_text(
         json.dumps(_artifact_manifest(), indent=2),
         encoding="utf-8",
     )
     (root / "pyproject.toml").write_text(
-        '[project]\nname = "demo"\nversion = "1.0.0"\n',
+        '[project]\nname = "demo"\nversion = "1.1.0"\n',
         encoding="utf-8",
     )
     (root / "pointcloud_geolab" / "__init__.py").write_text(
-        '__version__ = "1.0.0"\n',
+        '__version__ = "1.1.0"\n',
         encoding="utf-8",
     )
     (root / "CITATION.cff").write_text(
-        'version: "1.0.0"\ndate-released: "2026-06-18"\n',
+        'version: "1.1.0"\ndate-released: "2026-06-19"\n',
         encoding="utf-8",
     )
     (root / "CHANGELOG.md").write_text(
         "# Changelog\n\n"
         "## Unreleased\n\n"
         "No unreleased changes yet.\n\n"
+        "## v1.1.0 - 2026-06-19\n\n"
+        "### Added\n\n"
+        "- Web checks.\n\n"
         "## v1.0.0 - 2026-06-18\n\n"
         "### Added\n\n"
         "- Release checks.\n\n"
@@ -181,17 +190,19 @@ def _write_minimal_release_repo(root: Path) -> None:
 
 def _artifact_manifest() -> dict[str, object]:
     return {
-        "version": "1.0.0",
-        "release_date": "2026-06-18",
+        "version": "1.1.0",
+        "release_date": "2026-06-19",
         "commit": "HEAD",
         "local_verification_commands": [
             "python scripts/check_release_ready.py",
             "make verify-release-candidate",
             "make verify-v1-candidate",
+            "make verify-web",
         ],
         "expected_generated_artifacts": {
             "portfolio": ["outputs/portfolio_demo/report.md"],
             "benchmarks": ["outputs/benchmarks/all_benchmark.json"],
+            "web": ["outputs/web/tasks/{task_id}/result.json"],
         },
         "ignored_artifact_paths": [
             "outputs/",
@@ -202,6 +213,7 @@ def _artifact_manifest() -> dict[str, object]:
         "limitations": [
             "Synthetic fixtures are not real benchmarks.",
             "This is not a full nonlinear GICP optimizer.",
+            "This is not a production web platform.",
         ],
         "open_roadmap_items": [
             "Implement full nonlinear GICP optimizer.",
