@@ -108,6 +108,24 @@ def test_repo_hygiene_finds_positive_overclaim(tmp_path: Path) -> None:
     assert any("overclaim term `full GICP`" in issue for issue in result.issues)
 
 
+def test_repo_hygiene_warns_without_git_metadata(tmp_path: Path) -> None:
+    _write_minimal_repo(tmp_path)
+
+    result = run_hygiene(tmp_path)
+
+    assert result.success, result.issues
+    assert any(".git metadata not found" in warning for warning in result.warnings)
+
+
+def test_repo_hygiene_can_require_git_metadata(tmp_path: Path) -> None:
+    _write_minimal_repo(tmp_path)
+
+    result = run_hygiene(tmp_path, require_git=True)
+
+    assert not result.success
+    assert any(".git metadata not found" in issue for issue in result.issues)
+
+
 def test_verify_core_runs_hygiene() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 

@@ -67,7 +67,7 @@ separate implemented work from planned work.
 
 ## Next Milestones
 
-### v1.0.1 Post-Release Polish
+### v1.0.1 Web-Ready Cleanup
 
 - Keep public API error contracts and documentation aligned.
 - Keep path-aware IO error tests for supported point-cloud formats.
@@ -75,12 +75,25 @@ separate implemented work from planned work.
 - Keep repository audit output useful without requiring `gh` for local checks.
 - Keep generated `outputs/`, benchmark bundles, demo data, and coverage reports
   out of Git.
+- Keep Python support explicit at 3.10-3.12 and make ZIP downloads usable for
+  local checks that do not require Git metadata.
+- Keep the experimental Web Console isolated from the core Python package.
 
-### v0.3.1 Benchmark Hardening
+### v1.1 Experimental Web Console MVP
+
+- Add a FastAPI backend that calls only stable public task API entry points for
+  point-cloud processing tasks.
+- Add a Vue 3 reviewer console for uploads, previews, task status, metrics, and
+  artifact downloads.
+- Keep benchmark timing labels clear that values are local machine references.
+
+### v1.2 Web Visualization and Report Gallery
 
 - Add confidence-interval style summaries once enough repeated local runs are
   available.
 - Compare benchmark output schemas across releases.
+- Expand static and Web Console visualization/report gallery coverage while
+  keeping generated artifacts out of Git.
 
 ### v1.x Real Data Coverage
 
@@ -97,13 +110,7 @@ separate implemented work from planned work.
 - Add SHOT-like descriptor experiments and compare against Open3D FPFH.
 - Add adaptive DBSCAN or range-image clustering for uneven LiDAR density.
 
-### v0.5 Visualization and Reporting
-
-- Add a static docs asset gallery generated from the portfolio pipeline.
-- Publish the static HTML report as an optional local artifact or docs page.
-- Add benchmark comparison plots with confidence intervals.
-
-### v0.6 Optional Systems Integration
+### v1.x Optional Systems Integration
 
 - Expand the C++ demo into a pybind11 optional extension or a standalone CLI.
 - Add a ROS2 perception-node wrapper design for streaming LiDAR frames.

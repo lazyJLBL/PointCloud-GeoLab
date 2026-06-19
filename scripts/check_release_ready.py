@@ -22,7 +22,7 @@ from scripts.check_repo_hygiene import (
     check_tracked_generated_paths,
     collect_files,
     display_path,
-    git_tracked_generated_files,
+    git_tracked_generated_files_for_check,
     regex_value,
 )
 
@@ -53,6 +53,7 @@ def run_release_ready(
     tracked_files: list[str] | None = None,
     status_output: str | None = None,
     runner: Runner = subprocess.run,
+    require_git: bool = False,
 ) -> ReleaseReadyResult:
     """Run release readiness checks without requiring network access."""
 
@@ -81,7 +82,12 @@ def run_release_ready(
 
     if tracked_files is None:
         try:
-            tracked_files = git_tracked_generated_files(repo)
+            tracked_files, git_warning = git_tracked_generated_files_for_check(
+                repo,
+                require_git=require_git,
+            )
+            if git_warning:
+                warnings.append(git_warning)
         except RuntimeError as exc:
             issues.append(str(exc))
             tracked_files = []
@@ -90,7 +96,10 @@ def run_release_ready(
     if status_output is None:
         status_output, status_warning = git_status(repo, runner=runner)
         if status_warning:
-            warnings.append(status_warning)
+            if require_git:
+                issues.append(status_warning)
+            else:
+                warnings.append(status_warning)
     workspace_clean = not status_output.strip()
     if not workspace_clean:
         warnings.append(
@@ -311,12 +320,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--version", default=CURRENT_VERSION)
+    parser.add_argument(
+        "--require-git",
+        action="store_true",
+        help="Fail instead of warning when Git metadata is unavailable.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    result = run_release_ready(args.root, version=args.version)
+    result = run_release_ready(args.root, version=args.version, require_git=args.require_git)
     print(f"Release readiness checked {len(result.checked_files)} files.")
     for warning in result.warnings:
         print(f"Warning: {warning}")

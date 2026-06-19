@@ -5,16 +5,19 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.check_repo_hygiene import display_path, regex_value
+from scripts.check_repo_hygiene import (
+    display_path,
+    git_tracked_generated_files_for_check,
+    regex_value,
+)
 
 CURRENT_VERSION = "1.0.0"
 RELEASE_DATE = "2026-06-18"
@@ -62,24 +65,36 @@ class V1ReadyResult:
 
     root: Path
     issues: list[str]
+    warnings: list[str] = field(default_factory=list)
 
     @property
     def success(self) -> bool:
         return not self.issues
 
 
-def run_v1_ready(root: str | Path = ROOT, tracked_files: list[str] | None = None) -> V1ReadyResult:
+def run_v1_ready(
+    root: str | Path = ROOT,
+    tracked_files: list[str] | None = None,
+    require_git: bool = False,
+) -> V1ReadyResult:
     """Run v1.0.0 readiness checks."""
 
     repo = Path(root).resolve()
     issues: list[str] = []
+    warnings: list[str] = []
     issues.extend(check_version_consistency(repo))
     issues.extend(check_required_files(repo))
     issues.extend(check_release_manifest(repo))
     issues.extend(check_makefile_targets(repo))
-    issues.extend(check_generated_paths(repo, tracked_files))
+    generated_issues, generated_warnings = check_generated_paths_for_run(
+        repo,
+        tracked_files=tracked_files,
+        require_git=require_git,
+    )
+    issues.extend(generated_issues)
+    warnings.extend(generated_warnings)
     issues.extend(check_boundary_wording(repo))
-    return V1ReadyResult(repo, sorted(set(issues)))
+    return V1ReadyResult(repo, sorted(set(issues)), sorted(set(warnings)))
 
 
 def check_version_consistency(root: Path) -> list[str]:
@@ -183,16 +198,28 @@ def check_makefile_targets(root: Path) -> list[str]:
 def check_generated_paths(root: Path, tracked_files: list[str] | None = None) -> list[str]:
     """Return issues for generated or external paths tracked by Git."""
 
+    issues, warnings = check_generated_paths_for_run(root, tracked_files=tracked_files)
+    return [*issues, *warnings]
+
+
+def check_generated_paths_for_run(
+    root: Path,
+    tracked_files: list[str] | None = None,
+    require_git: bool = False,
+) -> tuple[list[str], list[str]]:
+    """Return generated-path issues and non-fatal Git warnings."""
+
+    warnings: list[str] = []
     if tracked_files is None:
-        completed = subprocess.run(
-            ["git", "-C", str(root), "ls-files", "--", *GENERATED_PREFIXES],
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        if completed.returncode != 0:
-            return [f"git ls-files failed: {completed.stderr.strip() or completed.stdout.strip()}"]
-        tracked_files = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+        try:
+            tracked_files, git_warning = git_tracked_generated_files_for_check(
+                root,
+                require_git=require_git,
+            )
+            if git_warning:
+                warnings.append(git_warning)
+        except RuntimeError as exc:
+            return [str(exc)], warnings
     issues: list[str] = []
     for item in tracked_files:
         normalized = item.replace("\\", "/")
@@ -201,7 +228,7 @@ def check_generated_paths(root: Path, tracked_files: list[str] | None = None) ->
             for prefix in GENERATED_PREFIXES
         ):
             issues.append(f"generated path is tracked by git: {normalized}")
-    return issues
+    return issues, warnings
 
 
 def check_boundary_wording(root: Path) -> list[str]:
@@ -250,13 +277,20 @@ def check_boundary_wording(root: Path) -> list[str]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument(
+        "--require-git",
+        action="store_true",
+        help="Fail instead of warning when Git metadata is unavailable.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    result = run_v1_ready(args.root)
+    result = run_v1_ready(args.root, require_git=args.require_git)
     print(f"v1.0.0 readiness checked repository: {result.root}")
+    for warning in result.warnings:
+        print(f"Warning: {warning}")
     if result.issues:
         print("v1.0.0 readiness failed:")
         for issue in result.issues:

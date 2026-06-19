@@ -12,6 +12,7 @@ Open3D, Plotly, and PyTorch only as optional baselines or demos.
 Latest release: `v1.0.0` Portfolio-Stable Release. This is a portfolio,
 learning, and reviewer-oriented stable release; the v0.1.0 and v0.1.1 tags and
 GitHub releases remain historical artifacts and should not be rewritten.
+Supported Python versions are 3.10-3.12.
 
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
@@ -274,8 +275,9 @@ and are not benchmark evidence. Real datasets still belong under
 ## Reproducible Review Environment
 
 Reviewers can open the repository in the included DevContainer. It uses a
-Python slim image, installs `.[dev,vis,bench]`, and keeps Open3D/ML extras and
-real datasets out of the default environment.
+Python 3.12 slim image, installs `.[dev,vis,bench]`, and keeps Open3D/ML extras
+and real datasets out of the default environment. Local development and CI
+target Python 3.10-3.12.
 
 Useful release-sanity commands:
 
@@ -314,6 +316,8 @@ committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
 
 - [Algorithms](docs/algorithms.md)
 - [Public API](docs/api.md)
+- [Experimental Web Console](docs/web_console.md)
+- [Web API](docs/web_api.md)
 - [Project Boundary](docs/project_boundary.md)
 - [Architecture](docs/architecture.md)
 - [Testing Strategy](docs/testing_strategy.md)
@@ -343,6 +347,22 @@ committing generated artifacts. The v0.1.0 and v0.1.1 notes remain historical.
 - [v0.1.1 Hardening Release](docs/releases/v0.1.1.md)
 - [v1.0.0 Portfolio-Stable Release](docs/releases/v1.0.0.md)
 
+## Experimental Web Console
+
+The repository includes an isolated experimental Web Console under `web/`.
+It provides a FastAPI backend and Vue 3 frontend for reviewer-friendly uploads,
+previews, task runs, and artifact downloads. It is not a production LiDAR
+platform and does not change the stable Python package install.
+
+```bash
+python -m pip install -r web/backend/requirements.txt
+make web-backend
+
+cd web/frontend
+npm install
+npm run dev
+```
+
 ## Resume Description
 
 Built PointCloud-GeoLab, a point-cloud geometry portfolio project with custom
@@ -353,6 +373,6 @@ real-data workflows.
 
 [tests-badge]: https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml/badge.svg
 [tests-workflow]: https://github.com/lazyJLBL/PointCloud-GeoLab/actions/workflows/tests.yml
-[python-badge]: https://img.shields.io/badge/python-3.10%2B-blue
+[python-badge]: https://img.shields.io/badge/python-3.10--3.12-blue
 [license-badge]: https://img.shields.io/badge/license-MIT-green
 [coverage-badge]: https://img.shields.io/badge/coverage%20threshold-75%25-informational

@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,6 +88,7 @@ class HygieneResult:
 
     checked_files: list[Path]
     issues: list[str]
+    warnings: list[str] = field(default_factory=list)
 
     @property
     def success(self) -> bool:
@@ -98,16 +99,23 @@ def run_hygiene(
     root: str | Path = ROOT,
     tracked_files: list[str] | None = None,
     max_line_length: int = 140,
+    require_git: bool = False,
 ) -> HygieneResult:
     """Run all repository hygiene checks."""
 
     repo = Path(root).resolve()
     checked_files: list[Path] = []
     issues: list[str] = []
+    warnings: list[str] = []
 
     if tracked_files is None:
         try:
-            tracked_files = git_tracked_generated_files(repo)
+            tracked_files, git_warning = git_tracked_generated_files_for_check(
+                repo,
+                require_git=require_git,
+            )
+            if git_warning:
+                warnings.append(git_warning)
         except RuntimeError as exc:
             issues.append(str(exc))
             tracked_files = []
@@ -146,6 +154,7 @@ def run_hygiene(
     return HygieneResult(
         checked_files=unique_paths(checked_files),
         issues=sorted(issues),
+        warnings=sorted(set(warnings)),
     )
 
 
@@ -158,6 +167,42 @@ def git_tracked_generated_files(root: Path) -> list[str]:
         detail = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(f"git ls-files failed: {detail}")
     return [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+
+
+def git_tracked_generated_files_for_check(
+    root: Path,
+    require_git: bool = False,
+) -> tuple[list[str], str | None]:
+    """Return tracked generated files or a warning for non-Git source trees."""
+
+    if not has_git_metadata(root):
+        message = (
+            "git-only generated-path check skipped: .git metadata not found; "
+            "pass --require-git for strict release gates"
+        )
+        if require_git:
+            raise RuntimeError(message)
+        return [], message
+    try:
+        return git_tracked_generated_files(root), None
+    except RuntimeError as exc:
+        if require_git:
+            raise
+        return [], f"git-only generated-path check skipped: {exc}"
+
+
+def has_git_metadata(root: Path) -> bool:
+    """Return True when root has enough Git metadata for git-only checks."""
+
+    if (root / ".git").exists():
+        return True
+    completed = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--is-inside-work-tree"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return completed.returncode == 0 and completed.stdout.strip() == "true"
 
 
 def check_tracked_generated_paths(tracked_files: list[str]) -> list[str]:
@@ -330,13 +375,24 @@ def build_parser() -> argparse.ArgumentParser:
         default=140,
         help="Maximum line length for README, CHANGELOG, pyproject, workflow, and docs.",
     )
+    parser.add_argument(
+        "--require-git",
+        action="store_true",
+        help="Fail instead of warning when Git metadata is unavailable.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    result = run_hygiene(args.root, max_line_length=args.max_line_length)
+    result = run_hygiene(
+        args.root,
+        max_line_length=args.max_line_length,
+        require_git=args.require_git,
+    )
     print(f"Repository hygiene checked {len(result.checked_files)} files.")
+    for warning in result.warnings:
+        print(f"Warning: {warning}")
     if result.issues:
         print("Repository hygiene failed:")
         for issue in result.issues:

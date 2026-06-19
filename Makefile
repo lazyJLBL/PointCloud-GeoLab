@@ -7,6 +7,7 @@ PYTHON ?= python
 .PHONY: benchmark scale-benchmark verify-core verify-portfolio verify-benchmarks
 .PHONY: verify-realdata verify-scale-benchmark verify-release-candidate
 .PHONY: verify-v1-candidate verify-full verify cpp-demo
+.PHONY: web-backend web-frontend web-test
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -91,3 +92,12 @@ verify: verify-full
 cpp-demo:
 	cmake -S cpp -B cpp/build
 	cmake --build cpp/build --config Release
+
+web-backend:
+	$(PYTHON) -m uvicorn web.backend.app.main:app --reload --host 127.0.0.1 --port 8000
+
+web-frontend:
+	cd web/frontend && npm run dev -- --host 127.0.0.1
+
+web-test:
+	$(PYTHON) -m pytest web/backend/tests

@@ -84,6 +84,24 @@ def test_v1_ready_detects_stale_issue_two_wording(tmp_path: Path) -> None:
     assert any("issue #2" in issue for issue in issues)
 
 
+def test_v1_ready_warns_without_git_metadata(tmp_path: Path) -> None:
+    _write_minimal_v1_repo(tmp_path)
+
+    result = run_v1_ready(tmp_path)
+
+    assert result.success, result.issues
+    assert any(".git metadata not found" in warning for warning in result.warnings)
+
+
+def test_v1_ready_can_require_git_metadata(tmp_path: Path) -> None:
+    _write_minimal_v1_repo(tmp_path)
+
+    result = run_v1_ready(tmp_path, require_git=True)
+
+    assert not result.success
+    assert any(".git metadata not found" in issue for issue in result.issues)
+
+
 def _write_minimal_v1_repo(root: Path) -> None:
     (root / "docs" / "releases").mkdir(parents=True)
     (root / "docs" / "case_studies").mkdir(parents=True)

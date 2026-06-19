@@ -91,6 +91,24 @@ def test_release_ready_reports_clean_workspace_prompt(tmp_path: Path) -> None:
     assert result.warnings == []
 
 
+def test_release_ready_warns_without_git_metadata(tmp_path: Path) -> None:
+    _write_minimal_release_repo(tmp_path)
+
+    result = run_release_ready(tmp_path, status_output="")
+
+    assert result.success, result.issues
+    assert any(".git metadata not found" in warning for warning in result.warnings)
+
+
+def test_release_ready_can_require_git_metadata(tmp_path: Path) -> None:
+    _write_minimal_release_repo(tmp_path)
+
+    result = run_release_ready(tmp_path, status_output="", require_git=True)
+
+    assert not result.success
+    assert any(".git metadata not found" in issue for issue in result.issues)
+
+
 def test_verify_release_candidate_target_exists() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 

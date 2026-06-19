@@ -10,6 +10,8 @@ venv/
 build/
 dist/
 *.egg-info/
+web/frontend/node_modules/
+web/frontend/dist/
 
 # Local/generated datasets. Keep committed tiny demo fixtures, but do not commit
 # downloaded Stanford/KITTI/ModelNet data or temporary generated data.
