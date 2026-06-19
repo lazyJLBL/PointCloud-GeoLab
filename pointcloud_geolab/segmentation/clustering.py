@@ -92,6 +92,10 @@ def euclidean_clustering(
     pts = _ensure_points(points)
     if tolerance <= 0:
         raise ValueError("tolerance must be positive")
+    if min_points <= 0:
+        raise ValueError("min_points must be positive")
+    if len(pts) == 0:
+        return ClusteringResult(np.empty(0, dtype=int), [], np.empty(0, dtype=int))
     tree = KDTree(pts)
     labels = np.full(len(pts), -1, dtype=int)
     visited = np.zeros(len(pts), dtype=bool)

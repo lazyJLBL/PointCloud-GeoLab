@@ -4,7 +4,14 @@ All notable changes for PointCloud-GeoLab are recorded here.
 
 ## Unreleased
 
-No unreleased changes yet.
+### Fixed
+
+- Post-release v1.0.0 wording now consistently describes the latest stable
+  release instead of a release candidate or future target.
+- Repository hygiene checks now guard current release docs against stale
+  release-candidate and issue-state wording.
+- KITTI-like workflow, scale benchmark, artifact schema, documented command,
+  and CLI JSON-error edge cases now have tighter validation.
 
 ## v1.0.0 - 2026-06-18
 
@@ -36,7 +43,7 @@ No unreleased changes yet.
 ### Changed
 
 - Current package, citation, release-ready metadata, and README version wording
-  are prepared for v1.0.0 while v0.1.0 and v0.1.1 remain historical releases.
+  are set to v1.0.0 while v0.1.0 and v0.1.1 remain historical releases.
 - GICP-style covariance-weighted ICP remains Experimental and outside the
   stable API commitment; it is not a full nonlinear GICP optimizer.
 - KITTI documentation now separates the user-provided single-frame workflow

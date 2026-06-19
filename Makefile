@@ -2,6 +2,7 @@ PYTHON ?= python
 
 .PHONY: install install-dev compile data pipeline test lint format-check
 .PHONY: check-hygiene check-packaging check-devcontainer check-fixtures
+.PHONY: check-documented-commands
 .PHONY: check-artifact-schema check-release-ready check-v1-ready audit-repository
 .PHONY: benchmark scale-benchmark verify-core verify-portfolio verify-benchmarks
 .PHONY: verify-realdata verify-scale-benchmark verify-release-candidate
@@ -46,6 +47,9 @@ check-fixtures:
 check-artifact-schema:
 	$(PYTHON) scripts/check_artifact_schema.py
 
+check-documented-commands:
+	$(PYTHON) scripts/check_documented_commands.py
+
 check-release-ready:
 	$(PYTHON) scripts/check_release_ready.py
 
@@ -62,6 +66,7 @@ scale-benchmark:
 	$(PYTHON) scripts/run_scale_benchmark.py --quick --repeat 2 --output-dir outputs/scale_benchmark
 
 verify-core: compile lint format-check test check-hygiene check-devcontainer check-packaging check-fixtures check-artifact-schema
+	$(PYTHON) scripts/check_documented_commands.py
 
 verify-portfolio: data pipeline
 	$(PYTHON) scripts/verify_portfolio.py --quick --output-dir outputs

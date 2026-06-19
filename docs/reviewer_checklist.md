@@ -42,7 +42,8 @@ python scripts/check_artifact_schema.py
 ```
 
 Expected result: formatting, lint, tests, the 75% coverage gate, and repository
-hygiene, DevContainer, packaging, tiny fixture, and artifact schema checks pass.
+hygiene, DevContainer, packaging, documented-command help, tiny fixture, and
+artifact schema checks pass.
 
 ## 3. Optional DevContainer Reproduction
 
@@ -219,7 +220,7 @@ make verify-v1-candidate
 
 Expected result: core checks, portfolio verification, benchmark verification,
 realdata dry-run, scale quick gate, and release-ready metadata checks pass. The
-v1 artifact manifest is `docs/releases/v1.0.0_artifacts.json`.
+latest v1 artifact manifest is `docs/releases/v1.0.0_artifacts.json`.
 
 For an audit snapshot:
 

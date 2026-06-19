@@ -75,8 +75,8 @@ def test_benchmark_schema_requires_repeat_and_memory_metadata(tmp_path: Path) ->
         "benchmark": "kdtree",
         "metadata": {
             "parameters": {},
-            "repeat": {"count": 2},
-            "memory": {"available": True, "peak_bytes": 1234},
+            "repeat": {"count": 2, "statistics": {"enabled": True}},
+            "memory": {"available": True, "method": "tracemalloc", "peak_bytes": 1234},
         },
         "conclusion": "local run",
         "rows": [{"kd_time_mean": 0.01}],
@@ -112,6 +112,7 @@ def test_artifact_schema_cli_validates_explicit_files(tmp_path: Path) -> None:
                 "expected_generated_artifacts": {
                     "portfolio": ["outputs/portfolio_demo/report.md"],
                     "benchmarks": ["outputs/benchmarks/all_benchmark.json"],
+                    "realdata": ["outputs/kitti_segmentation/report.md"],
                 },
                 "ignored_artifact_paths": ["outputs/"],
                 "limitations": ["not real benchmark data"],

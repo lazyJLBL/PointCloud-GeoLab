@@ -14,10 +14,10 @@ below the current measured coverage because optional Open3D/PyTorch/Plotly
 paths are separated from the core geometry evidence, but it prevents coverage
 from silently collapsing.
 
-For v1.0.0 release work, the target is to keep local coverage at or
-above 80% while enforcing a 75% gate. The gate stays below the current measured
-value so small platform or optional-dependency differences do not make routine
-review brittle.
+For the latest v1.0.0 stable release, local coverage should stay at or above
+80% while enforcing a 75% gate. The gate stays below the current measured value
+so small platform or optional-dependency differences do not make routine review
+brittle.
 
 Generate an HTML report:
 
@@ -47,9 +47,9 @@ correctness evidence for the geometry implementation.
 
 Core geometry modules should stay meaningfully covered, and the CLI pipeline
 should keep smoke coverage. Repository hygiene, artifact schema, DevContainer,
-packaging sanity, and tiny fixture checks now run as part of `verify-core`,
-next to the coverage gate. Docker daemon availability and the optional `build`
-module are treated as friendly skips. Release checks are available through
-`make verify-release-candidate` and `make verify-v1-candidate`. Raising the
-threshold further should come after optional dependency paths are split into
-their own coverage view.
+packaging sanity, documented-command help checks, and tiny fixture checks now
+run as part of `verify-core`, next to the coverage gate. Docker daemon
+availability and the optional `build` module are treated as friendly skips.
+Release checks are available through `make verify-release-candidate` and
+`make verify-v1-candidate`. Raising the threshold further should come after
+optional dependency paths are split into their own coverage view.

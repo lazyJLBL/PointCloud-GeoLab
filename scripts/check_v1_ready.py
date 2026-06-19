@@ -239,6 +239,11 @@ def check_boundary_wording(root: Path) -> list[str]:
         match = re.search(pattern, combined)
         if match:
             issues.append(f"v1 docs contain overclaim wording `{match.group(0)}`")
+    if re.search(r"\bissue\s+#2\b", combined):
+        issues.append(
+            "v1 docs should describe official KITTI benchmark as future work, "
+            "not by stale issue #2 state"
+        )
     return issues
 
 

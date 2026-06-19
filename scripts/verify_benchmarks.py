@@ -231,6 +231,7 @@ def _validate_repeat_stats(
             continue
         for field in timing_fields:
             if field not in row:
+                invalid.append(f"{path}: row {row_index} missing timing field `{field}`")
                 continue
             for aggregate in ["mean", "std", "min", "max"]:
                 stat_key = f"{field}_{aggregate}"

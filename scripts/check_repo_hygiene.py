@@ -32,6 +32,32 @@ TEXT_SHAPE_PATTERNS = (
     "scripts/**/*.py",
 )
 
+POST_RELEASE_WORDING_FILES = (
+    "README.md",
+    "CHANGELOG.md",
+    "docs/releases/v1.0.0.md",
+    "docs/ROADMAP.md",
+    "docs/coverage.md",
+    "docs/reviewer_checklist.md",
+)
+
+POST_RELEASE_WORDING_PATTERNS = (
+    (
+        "v1.0.0 release candidate",
+        re.compile(r"\bv1\.0\.0\s+release\s+candidate\b", re.IGNORECASE),
+    ),
+    ("v1.0.0 target", re.compile(r"\bv1\.0\.0\s+target\b", re.IGNORECASE)),
+    (
+        "v1.0.0 release readiness",
+        re.compile(r"\bv1\.0\.0\s+release\s+readiness\b", re.IGNORECASE),
+    ),
+    (
+        "uncreated v1.0.0 release",
+        re.compile(r"do\s+not\s+create\s+a\s+v1\.0\.0\s+tag", re.IGNORECASE),
+    ),
+    ("stale issue #2 reference", re.compile(r"\bissue\s+#2\b", re.IGNORECASE)),
+)
+
 BANNED_CLAIM_PATTERNS = (
     ("production-ready", re.compile(r"\bproduction-ready\b", re.IGNORECASE)),
     ("industrial-grade", re.compile(r"\bindustrial-grade\b", re.IGNORECASE)),
@@ -102,6 +128,9 @@ def run_hygiene(
             max_line_length=max_line_length,
         )
     )
+    post_release_files = [repo / relative for relative in POST_RELEASE_WORDING_FILES]
+    checked_files.extend(post_release_files)
+    issues.extend(check_post_release_wording(repo, post_release_files))
 
     current_version = regex_value(repo / "pyproject.toml", r'^version\s*=\s*"([^"]+)"')
     version_files = [
@@ -215,6 +244,23 @@ def check_text_file_shape(
                 issues.append(
                     f"{label}:{line_number}: line length {len(line)} exceeds " f"{max_line_length}"
                 )
+    return issues
+
+
+def check_post_release_wording(root: Path, paths: list[Path]) -> list[str]:
+    """Return issues for stale v1.0.0 release-candidate or issue-state wording."""
+
+    issues: list[str] = []
+    for path in paths:
+        if not path.exists():
+            continue
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            for label, pattern in POST_RELEASE_WORDING_PATTERNS:
+                if pattern.search(line):
+                    issues.append(
+                        f"{display_path(root, path)}:{line_number}: stale post-release "
+                        f"wording `{label}`"
+                    )
     return issues
 
 

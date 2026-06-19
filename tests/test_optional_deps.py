@@ -16,6 +16,14 @@ def test_optional_dependency_report_contains_known_optional_packages() -> None:
     assert "install_hint" in report["torch"]
 
 
+def test_optional_dependency_report_covers_all_documented_optional_packages() -> None:
+    report = optional_dependency_report()
+
+    assert {"open3d", "plotly", "laspy", "torch", "scipy", "sklearn", "pandas"} <= set(report)
+    for status in report.values():
+        assert {"installed", "purpose", "install_hint", "error"} <= set(status)
+
+
 def test_require_optional_reports_unavailable_dependency(monkeypatch: pytest.MonkeyPatch) -> None:
     real_find_spec = importlib.util.find_spec
 

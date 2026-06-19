@@ -71,3 +71,4 @@ def test_task_result_to_json_preserves_error_contract() -> None:
     assert payload["success"] is False
     assert payload["error"] == "missing file"
     assert payload["parameters"]["input"] == "missing.ply"
+    assert payload["path"] == "missing.ply"

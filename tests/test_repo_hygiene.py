@@ -4,6 +4,7 @@ from pathlib import Path
 
 from scripts.check_repo_hygiene import (
     ROOT,
+    check_post_release_wording,
     check_readme_links,
     check_text_file_shape,
     main,
@@ -62,6 +63,26 @@ def test_repo_hygiene_finds_long_single_line_text(tmp_path: Path) -> None:
 
     assert any("compressed into 1 line" in issue for issue in issues)
     assert any("line length 180 exceeds 100" in issue for issue in issues)
+
+
+def test_repo_hygiene_finds_compressed_script(tmp_path: Path) -> None:
+    path = tmp_path / "scripts" / "check.py"
+    path.parent.mkdir()
+    path.write_text("print(" + repr("x" * 160) + ")\n", encoding="utf-8")
+
+    issues = check_text_file_shape(tmp_path, [path], max_line_length=100)
+
+    assert any("scripts/check.py" in issue for issue in issues)
+
+
+def test_repo_hygiene_finds_stale_post_release_wording(tmp_path: Path) -> None:
+    readme = tmp_path / "README.md"
+    readme.write_text("v1.0.0 release candidate still mentions issue #2.\n", encoding="utf-8")
+
+    issues = check_post_release_wording(tmp_path, [readme])
+
+    assert any("v1.0.0 release candidate" in issue for issue in issues)
+    assert any("issue #2" in issue for issue in issues)
 
 
 def test_repo_hygiene_finds_version_mismatch(tmp_path: Path) -> None:

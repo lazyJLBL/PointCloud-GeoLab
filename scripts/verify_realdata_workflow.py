@@ -80,6 +80,7 @@ def verify_kitti_workflow_outputs(output_dir: str | Path) -> list[str]:
     issues.extend(_validate_metrics(metrics_path, metrics))
     for png_name in ["kitti_bev.png", "kitti_clusters.png", "kitti_height_histogram.png"]:
         issues.extend(_validate_png(root / png_name))
+    issues.extend(_validate_ply(root / "kitti_clusters.ply"))
 
     report_text = (
         (root / "report.md").read_text(encoding="utf-8") if (root / "report.md").exists() else ""
@@ -94,6 +95,11 @@ def verify_kitti_workflow_outputs(output_dir: str | Path) -> list[str]:
         issues.append(f"{root / 'report.md'}: missing KITTI benchmark boundary wording")
     if boundary not in html_text:
         issues.append(f"{root / 'report.html'}: missing KITTI benchmark boundary wording")
+    for marker in ["metrics_json", "html_report", "cluster_cloud", "cluster_figure"]:
+        if marker not in report_text:
+            issues.append(f"{root / 'report.md'}: missing artifact marker `{marker}`")
+        if marker not in html_text:
+            issues.append(f"{root / 'report.html'}: missing artifact marker `{marker}`")
     return sorted(issues)
 
 
@@ -197,6 +203,13 @@ def _validate_metrics(path: Path, payload: object) -> list[str]:
         issues.append(f"{path}: memory metadata must be available")
     elif int(memory.get("peak_bytes", -1)) < 0:
         issues.append(f"{path}: memory.peak_bytes must be non-negative")
+    artifacts = payload.get("artifacts", {})
+    if not isinstance(artifacts, dict):
+        issues.append(f"{path}: artifacts must be an object")
+    else:
+        for key in ["metrics_json", "report", "html_report", "cluster_cloud", "cluster_figure"]:
+            if not isinstance(artifacts.get(key), str) or not artifacts[key]:
+                issues.append(f"{path}: artifacts missing `{key}`")
     limitations = " ".join(str(item) for item in payload.get("limitations", []))
     if "not an official KITTI benchmark" not in limitations:
         issues.append(f"{path}: limitations must state this is not an official KITTI benchmark")
@@ -211,6 +224,18 @@ def _validate_png(path: Path) -> list[str]:
         return [f"{path}: missing PNG signature"]
     if len(data) < 33 or data[12:16] != b"IHDR":
         return [f"{path}: missing PNG IHDR chunk"]
+    return []
+
+
+def _validate_ply(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    try:
+        first_line = path.read_text(encoding="utf-8", errors="ignore").splitlines()[0]
+    except IndexError:
+        return [f"{path}: empty PLY file"]
+    if first_line.strip() != "ply":
+        return [f"{path}: missing PLY header"]
     return []
 
 

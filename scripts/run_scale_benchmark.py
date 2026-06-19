@@ -52,8 +52,7 @@ def run_scale_benchmark(
 ) -> dict[str, Any]:
     """Run deterministic scale measurements and write CSV/JSON/Markdown/PNG artifacts."""
 
-    if repeat < 1:
-        raise ValueError("repeat must be at least 1")
+    validate_scale_parameters(repeat=repeat, sizes=sizes, quick=quick, queries=queries)
     point_sizes = tuple(sizes or (QUICK_SIZES if quick else FULL_SIZES))
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -76,6 +75,8 @@ def run_scale_benchmark(
             tracemalloc.stop()
 
     rows = _aggregate_runs(all_runs)
+    if not rows:
+        raise ValueError("scale benchmark produced no rows")
     metadata = {
         "benchmark": "scale",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -156,6 +157,26 @@ def main(argv: list[str] | None = None) -> int:
         f"{len(payload['rows'])} rows to {Path(args.output_dir).resolve()}",
     )
     return 0
+
+
+def validate_scale_parameters(
+    repeat: int,
+    sizes: list[int] | None,
+    quick: bool,
+    queries: int,
+) -> None:
+    """Validate scale-benchmark parameters with clear CLI/API errors."""
+
+    if repeat < 1:
+        raise ValueError("repeat must be at least 1")
+    if queries < 1:
+        raise ValueError("queries must be at least 1")
+    point_sizes = tuple(sizes or (QUICK_SIZES if quick else FULL_SIZES))
+    if not point_sizes:
+        raise ValueError("at least one point count is required")
+    bad_sizes = [size for size in point_sizes if size <= 0]
+    if bad_sizes:
+        raise ValueError(f"point counts must be positive; got {bad_sizes}")
 
 
 def _run_one_size(points_count: int, seed: int, queries: int) -> ScaleRun:

@@ -44,6 +44,7 @@ def validate_release_manifest(payload: dict[str, Any], path: Path) -> list[str]:
     else:
         _require_list(artifacts, "portfolio", str, issues, "expected_generated_artifacts")
         _require_list(artifacts, "benchmarks", str, issues, "expected_generated_artifacts")
+        _require_list(artifacts, "realdata", str, issues, "expected_generated_artifacts")
 
     version = payload.get("version")
     if isinstance(version, str) and not re.match(r"^\d+\.\d+\.\d+$", version):
@@ -94,12 +95,18 @@ def validate_benchmark_json(payload: dict[str, Any], path: Path) -> list[str]:
         _require_type(metadata, "memory", dict, issues, "metadata")
         repeat = metadata.get("repeat")
         if isinstance(repeat, dict):
-            _require_nonnegative_number(repeat, "count", issues, "metadata.repeat")
-            if isinstance(repeat.get("count"), (int, float)) and repeat["count"] < 1:
-                issues.append("metadata.repeat.count must be at least 1")
+            repeat_count = repeat.get("count")
+            if isinstance(repeat_count, (int, float)) and not isinstance(repeat_count, bool):
+                if repeat_count < 1:
+                    issues.append("metadata.repeat.count must be at least 1")
+                if repeat_count > 1:
+                    _require_type(repeat, "statistics", dict, issues, "metadata.repeat")
+            else:
+                issues.append("metadata.repeat.count must be a positive number")
         memory = metadata.get("memory")
         if isinstance(memory, dict):
             _require_type(memory, "available", bool, issues, "metadata.memory")
+            _require_type(memory, "method", str, issues, "metadata.memory")
             if memory.get("available") is True:
                 _require_nonnegative_number(memory, "peak_bytes", issues, "metadata.memory")
 

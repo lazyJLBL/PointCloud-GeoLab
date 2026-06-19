@@ -9,9 +9,9 @@ PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
 the core math visible in Python and NumPy while using SciPy, scikit-learn,
 Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
-Current version: `1.0.0` Portfolio-Stable Release. This is a portfolio,
-learning, and reviewer-oriented release; the v0.1.0 and v0.1.1 tags and GitHub
-releases remain historical artifacts and should not be rewritten.
+Latest release: `v1.0.0` Portfolio-Stable Release. This is a portfolio,
+learning, and reviewer-oriented stable release; the v0.1.0 and v0.1.1 tags and
+GitHub releases remain historical artifacts and should not be rewritten.
 
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
@@ -216,6 +216,7 @@ python scripts/check_packaging.py
 python scripts/check_dataset_fixtures.py
 python scripts/check_release_ready.py
 python scripts/check_artifact_schema.py
+python scripts/check_documented_commands.py
 python scripts/verify_realdata_workflow.py --dry-run
 python scripts/check_v1_ready.py
 python scripts/audit_repository_state.py --help
@@ -248,7 +249,8 @@ make verify-full
 
 `verify-core` runs compile, lint, format, tests with coverage, repository
 hygiene, DevContainer, packaging, tiny dataset fixture, and artifact schema
-checks. CI runs `verify-core` and `verify-portfolio`.
+checks, plus help checks for documented commands. CI runs `verify-core` and
+`verify-portfolio`.
 `verify-release-candidate` is heavier: it also regenerates portfolio and
 benchmark artifacts, verifies them, and runs release-ready metadata checks.
 `verify-v1-candidate` adds the real-data dry-run, scale benchmark quick gate,

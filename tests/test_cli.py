@@ -325,6 +325,27 @@ def test_cli_missing_file_json_error_is_machine_readable(tmp_path: Path) -> None
     assert payload["success"] is False
     assert payload["task"] == "geometry"
     assert "missing.ply" in payload["error"]
+    assert payload["path"] == str(tmp_path / "missing.ply")
+
+
+def test_cli_benchmark_json_error_contract_includes_path(tmp_path: Path) -> None:
+    completed = run_cli(
+        "benchmark",
+        "kdtree",
+        "--points",
+        "0",
+        "--output-dir",
+        str(tmp_path / "bad_benchmark"),
+        "--format",
+        "json",
+    )
+
+    payload = json.loads(completed.stdout)
+    assert completed.returncode == 1
+    assert payload["task"] == "benchmark:kdtree"
+    assert payload["success"] is False
+    assert payload["parameters"]["points"] == [0]
+    assert payload["path"] == str(tmp_path / "bad_benchmark")
 
 
 def test_cli_subcommand_help_is_available() -> None:

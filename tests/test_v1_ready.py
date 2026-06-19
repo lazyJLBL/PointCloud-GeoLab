@@ -69,6 +69,21 @@ def test_v1_ready_detects_missing_boundary_wording(tmp_path: Path) -> None:
     assert any("full nonlinear gicp" in issue for issue in issues)
 
 
+def test_v1_ready_detects_stale_issue_two_wording(tmp_path: Path) -> None:
+    _write_minimal_v1_repo(tmp_path)
+    release = tmp_path / "docs" / "releases" / "v1.0.0.md"
+    release.write_text(
+        "not a full nonlinear GICP; not an official KITTI benchmark; "
+        "not a SLAM backend; not CUDA accelerated; not a PointNet training "
+        "release; synthetic fixture boundary; issue #2 remains open.\n",
+        encoding="utf-8",
+    )
+
+    issues = check_boundary_wording(tmp_path)
+
+    assert any("issue #2" in issue for issue in issues)
+
+
 def _write_minimal_v1_repo(root: Path) -> None:
     (root / "docs" / "releases").mkdir(parents=True)
     (root / "docs" / "case_studies").mkdir(parents=True)

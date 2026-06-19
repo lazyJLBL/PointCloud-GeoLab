@@ -71,6 +71,7 @@ def main(argv: list[str] | None = None) -> int:
 def run_kitti_segmentation(args: argparse.Namespace) -> dict[str, Any]:
     """Run the KITTI-like segmentation workflow and write artifacts."""
 
+    validate_args(args)
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
     started_tracing = not tracemalloc.is_tracing()
@@ -84,6 +85,7 @@ def run_kitti_segmentation(args: argparse.Namespace) -> dict[str, Any]:
         timings["load_seconds"] = time.perf_counter() - load_started
         if len(xyzi) > args.max_points:
             xyzi = xyzi[: args.max_points]
+        validate_frame(args.frame, xyzi)
         points = xyzi[:, :3]
         intensities = xyzi[:, 3]
 
@@ -173,6 +175,32 @@ def write_outputs(
         "height_histogram": str(histogram_path),
         "cluster_report": str(cluster_report),
     }
+
+
+def validate_args(args: argparse.Namespace) -> None:
+    """Validate KITTI workflow parameters before creating artifacts."""
+
+    if args.eps <= 0:
+        raise ValueError("--eps must be positive")
+    if args.min_points < 1:
+        raise ValueError("--min-points must be at least 1")
+    if args.max_points < 3:
+        raise ValueError("--max-points must be at least 3")
+    if args.ground_threshold <= 0:
+        raise ValueError("--ground-threshold must be positive")
+    if not 0.0 <= args.ground_angle_threshold <= 90.0:
+        raise ValueError("--ground-angle-threshold must be between 0 and 90 degrees")
+
+
+def validate_frame(path: Path, xyzi: np.ndarray) -> None:
+    """Validate a loaded KITTI-like frame with path-aware messages."""
+
+    if xyzi.ndim != 2 or xyzi.shape[1] != 4:
+        raise ValueError(f"{path}: KITTI-like frame must have shape (N, 4)")
+    if len(xyzi) < 3:
+        raise ValueError(f"{path}: KITTI-like frame has {len(xyzi)} points; at least 3 required")
+    if not np.all(np.isfinite(xyzi)):
+        raise ValueError(f"{path}: KITTI-like frame contains NaN or infinite values")
 
 
 def build_metrics(
@@ -311,9 +339,7 @@ def format_markdown_report(metrics: dict[str, Any]) -> str:
 
 def format_html_report(metrics: dict[str, Any]) -> str:
     artifact_links = "\n".join(
-        f'<li><a href="{escape(Path(path).name)}">{escape(name)}</a></li>'
-        for name, path in metrics["artifacts"].items()
-        if Path(path).parent == Path(next(iter(metrics["artifacts"].values()))).parent
+        _format_html_artifact_link(name, path) for name, path in metrics["artifacts"].items()
     )
     limitations = "\n".join(f"<li>{escape(item)}</li>" for item in metrics["limitations"])
     metrics_json = escape(json.dumps(metrics, indent=2))
@@ -356,6 +382,13 @@ def format_html_report(metrics: dict[str, Any]) -> str:
             "",
         ]
     )
+
+
+def _format_html_artifact_link(name: str, path: str) -> str:
+    if name == "frame":
+        return f"<li><code>{escape(name)}</code>: <code>{escape(path)}</code></li>"
+    href = escape(Path(path).name)
+    return f'<li><a href="{href}">{escape(name)}</a>: <code>{escape(path)}</code></li>'
 
 
 def bounds(points: np.ndarray) -> dict[str, list[float]]:

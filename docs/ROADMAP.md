@@ -67,7 +67,7 @@ separate implemented work from planned work.
 
 ## Next Milestones
 
-### v1.0.0 Release Readiness
+### v1.0.1 Post-Release Polish
 
 - Keep public API error contracts and documentation aligned.
 - Keep path-aware IO error tests for supported point-cloud formats.
@@ -75,7 +75,6 @@ separate implemented work from planned work.
 - Keep repository audit output useful without requiring `gh` for local checks.
 - Keep generated `outputs/`, benchmark bundles, demo data, and coverage reports
   out of Git.
-- Do not create a v1.0.0 tag or GitHub release until explicitly requested.
 
 ### v0.3.1 Benchmark Hardening
 
@@ -88,7 +87,7 @@ separate implemented work from planned work.
 - Add checksum-verified public-domain micro fixtures if licensing allows, kept
   separate from benchmark claims.
 - Add SemanticKITTI or nuScenes documentation as optional LiDAR extensions.
- - Add an official real KITTI benchmark report only as a separate future task.
+- Add an official real KITTI benchmark report only as a separate future task.
 
 ### v1.x Algorithm Depth
 

@@ -103,8 +103,12 @@ class TaskResult:
     parameters: dict[str, Any] = field(default_factory=dict)
     data: dict[str, Any] = field(default_factory=dict)
     error: str | None = None
+    path: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        error_path = self.path
+        if error_path is None and not self.success:
+            error_path = _first_error_path(self.parameters)
         return _json_ready(
             {
                 "task": self.task,
@@ -114,6 +118,7 @@ class TaskResult:
                 "parameters": self.parameters,
                 "data": self.data,
                 "error": self.error,
+                "path": error_path,
             }
         )
 
@@ -575,6 +580,12 @@ def run_benchmark(
     try:
         if repeat < 1:
             raise ValueError("repeat must be at least 1")
+        if queries < 1:
+            raise ValueError("queries must be at least 1")
+        if points is not None:
+            invalid_points = [value for value in points if value <= 0]
+            if invalid_points:
+                raise ValueError(f"points must be positive; got {invalid_points}")
         memory_metadata: dict[str, Any]
         suite_summaries: list[dict[str, Any]] = []
         started_tracing = not tracemalloc.is_tracing()
@@ -2605,6 +2616,25 @@ def _finalize_result(result: TaskResult, output_dir: str | Path) -> TaskResult:
 
 def _parameters(values: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in values.items() if key not in {"self"}}
+
+
+def _first_error_path(parameters: dict[str, Any]) -> str | None:
+    for key in [
+        "path",
+        "input_path",
+        "input",
+        "source",
+        "target",
+        "model",
+        "config",
+        "batch",
+        "output",
+        "output_dir",
+    ]:
+        value = parameters.get(key)
+        if isinstance(value, (str, Path)):
+            return str(value)
+    return None
 
 
 def _json_ready(value: Any) -> Any:

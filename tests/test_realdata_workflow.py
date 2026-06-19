@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
+
 from examples.kitti_lidar_segmentation import main as kitti_main
 from examples.kitti_lidar_segmentation import run_kitti_segmentation
 from scripts.verify_realdata_workflow import (
@@ -50,6 +52,9 @@ def test_kitti_workflow_writes_report_metrics_and_figures(tmp_path: Path) -> Non
     assert issues == []
     assert metrics["memory"]["available"] is True
     assert "not an official KITTI benchmark" in " ".join(metrics["limitations"])
+    html = (output_dir / "report.html").read_text(encoding="utf-8")
+    assert "kitti_bev.png" in html
+    assert "metrics_json" in html
 
 
 def test_realdata_verifier_dry_run_main_passes() -> None:
@@ -64,6 +69,51 @@ def test_realdata_verifier_reports_missing_artifact(tmp_path: Path) -> None:
 
     assert any("metrics.json" in issue for issue in issues)
     assert any("report.md" in issue for issue in issues)
+
+
+def test_kitti_example_rejects_bad_bin_with_path(tmp_path: Path) -> None:
+    frame = tmp_path / "bad.bin"
+    np.asarray([1.0, 2.0, 3.0], dtype=np.float32).tofile(frame)
+
+    code = kitti_main(["--frame", str(frame), "--output-dir", str(tmp_path / "out")])
+
+    assert code == 1
+
+
+def test_kitti_example_rejects_too_few_points(tmp_path: Path) -> None:
+    frame = tmp_path / "tiny.bin"
+    np.asarray([[0.0, 0.0, 0.0, 0.5], [1.0, 0.0, 0.0, 0.6]], dtype=np.float32).tofile(frame)
+
+    code = kitti_main(["--frame", str(frame), "--output-dir", str(tmp_path / "out")])
+
+    assert code == 1
+
+
+def test_kitti_workflow_handles_no_clusters(tmp_path: Path) -> None:
+    frame = tmp_path / "ground_only.bin"
+    xs = np.linspace(-1.0, 1.0, 6)
+    ys = np.linspace(-1.0, 1.0, 6)
+    xx, yy = np.meshgrid(xs, ys)
+    points = np.column_stack([xx.ravel(), yy.ravel(), np.zeros(xx.size), np.ones(xx.size)])
+    points.astype(np.float32).tofile(frame)
+    output_dir = tmp_path / "ground_only"
+
+    run_kitti_segmentation(
+        argparse.Namespace(
+            frame=frame,
+            output_dir=output_dir,
+            eps=0.2,
+            min_points=50,
+            max_points=5000,
+            ground_threshold=0.05,
+            ground_angle_threshold=35.0,
+            seed=7,
+        )
+    )
+
+    metrics = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert metrics["segmentation"]["clusters"] == 0
+    assert verify_kitti_workflow_outputs(output_dir) == []
 
 
 def test_realdata_verifier_rejects_bad_metrics_json(tmp_path: Path) -> None:
