@@ -5,9 +5,11 @@
 ![License][license-badge]
 ![Coverage threshold][coverage-badge]
 
-PointCloud-GeoLab is a compact point-cloud geometry portfolio project. It keeps
-the core math visible in Python and NumPy while using SciPy, scikit-learn,
-Open3D, Plotly, and PyTorch only as optional baselines or demos.
+PointCloud-GeoLab = point-cloud geometry core + reproducible
+reports/benchmarks + Experimental Web Console.
+
+It keeps the core math visible in Python and NumPy while using SciPy,
+scikit-learn, Open3D, Plotly, and PyTorch only as optional baselines or demos.
 
 Latest release: `v1.1.0` Experimental Web Console MVP. This is a portfolio,
 learning, and reviewer-oriented release that adds an experimental Web Console
@@ -18,6 +20,52 @@ Supported Python versions are 3.10-3.12.
 The goal is not to replace Open3D or PCL. The goal is to make KDTree search,
 ICP, RANSAC primitive fitting, PCA/OBB, GICP-style covariance-weighted ICP, and
 LiDAR segmentation understandable, runnable, and testable.
+
+## Experimental Web Console
+
+The repository includes an isolated experimental Web Console under `web/`.
+It adds a reviewer-friendly FastAPI backend and Vue 3 frontend for uploads,
+sampled previews, task runs, metrics, and artifact downloads. It is a
+presentation layer over the stable Python task API, not a production web
+platform or production LiDAR system.
+
+![Web Console dashboard mockup](docs/assets/web_console_dashboard.svg)
+
+Start the backend:
+
+```bash
+python -m pip install -e ".[dev,vis,bench]"
+python -m pip install -r web/backend/requirements.txt
+make web-backend
+```
+
+Start the frontend in a second shell:
+
+```bash
+make web-frontend
+
+cd web/frontend
+npm install
+npm run dev
+```
+
+The backend runs at `http://127.0.0.1:8000` and the Vite frontend runs at
+`http://127.0.0.1:5173`. The Web Console accepts `.ply`, `.pcd`, `.xyz`,
+`.txt`, `.bin`, and `.off` uploads, samples previews to keep the browser
+responsive, and stores generated Web files under ignored `outputs/web/` paths.
+
+Verify the Web layer:
+
+```bash
+make verify-web
+```
+
+Web tasks currently execute synchronously. Long portfolio or benchmark tasks
+may block until completion. The Web Console does not add full nonlinear GICP,
+SLAM, CUDA, PointNet training, or an official KITTI benchmark.
+
+More Web walkthroughs live in [docs/web_console.md](docs/web_console.md),
+[docs/web_api.md](docs/web_api.md), and [web/README.md](web/README.md).
 
 ## One Command Demo
 
@@ -346,29 +394,14 @@ historical.
 - [Reviewer Checklist](docs/reviewer_checklist.md)
 - [Portfolio Review Template](docs/portfolio_report_template.md)
 - [Roadmap](docs/ROADMAP.md)
-- [v0.1.2 Planning](docs/planning/v0.1.2.md)
 - [Changelog](CHANGELOG.md)
 - [v0.1.1 Hardening Release](docs/releases/v0.1.1.md)
 - [v1.0.0 Portfolio-Stable Release](docs/releases/v1.0.0.md)
 - [v1.1.0 Experimental Web Console MVP](docs/releases/v1.1.0.md)
 
-## Experimental Web Console
+Historical and archived planning notes:
 
-The repository includes an isolated experimental Web Console under `web/`.
-It provides a FastAPI backend and Vue 3 frontend for reviewer-friendly uploads,
-previews, task runs, and artifact downloads. It is not a production LiDAR
-platform, not a production web platform, and does not change the stable Python
-package install. Long Web tasks currently run synchronously and may block the
-request until they finish.
-
-```bash
-python -m pip install -r web/backend/requirements.txt
-make web-backend
-
-cd web/frontend
-npm install
-npm run dev
-```
+- [v0.1.2 Planning](docs/planning/v0.1.2.md)
 
 ## Resume Description
 

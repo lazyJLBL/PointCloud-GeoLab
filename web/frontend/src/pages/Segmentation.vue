@@ -17,7 +17,10 @@
       <el-input-number v-model="eps" :min="0.001" :step="0.01" />
       <el-input-number v-model="minPoints" :min="1" />
     </div>
-    <el-button type="primary" :loading="loading" @click="run">Run segmentation</el-button>
+    <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
+    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
+      Run segmentation
+    </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
     <MetricsPanel :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
@@ -45,10 +48,20 @@ const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
+const canRun = computed(() => Boolean(datasetId.value))
+const selectionHint = computed(() =>
+  datasets.items.length === 0
+    ? 'Upload a dataset before running segmentation.'
+    : 'Choose a dataset before running segmentation.',
+)
 
 onMounted(datasets.refresh)
 
 async function run() {
+  if (!canRun.value) {
+    error.value = selectionHint.value
+    return
+  }
   loading.value = true
   error.value = ''
   try {

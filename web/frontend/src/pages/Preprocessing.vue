@@ -13,7 +13,10 @@
       <el-input-number v-model="params.sample_count" :min="0" :step="100" placeholder="sample_count" />
       <el-switch v-model="params.normalize" active-text="Normalize" />
     </div>
-    <el-button type="primary" :loading="loading" @click="run">Run preprocessing</el-button>
+    <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
+    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
+      Run preprocessing
+    </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
     <MetricsPanel :metrics="metrics" />
     <TaskResultJson :value="task?.result" />
@@ -37,10 +40,20 @@ const error = ref('')
 const task = ref<TaskRecord | null>(null)
 const params = reactive({ voxel_size: 0, radius: 0, sample_count: 0, normalize: false })
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
+const canRun = computed(() => Boolean(datasetId.value))
+const selectionHint = computed(() =>
+  datasets.items.length === 0
+    ? 'Upload a dataset before running preprocessing.'
+    : 'Choose a dataset before running preprocessing.',
+)
 
 onMounted(datasets.refresh)
 
 async function run() {
+  if (!canRun.value) {
+    error.value = selectionHint.value
+    return
+  }
   loading.value = true
   error.value = ''
   try {

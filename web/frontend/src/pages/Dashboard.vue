@@ -3,7 +3,8 @@
     <div class="surface">
       <h1>Dashboard</h1>
       <p class="muted">
-        Experimental reviewer console for uploads, previews, metrics, and artifact downloads.
+        Experimental reviewer console for the PointCloud-GeoLab geometry core:
+        upload, preview, run API-backed tasks, and inspect reproducible artifacts.
       </p>
     </div>
     <div class="form-grid">
@@ -20,8 +21,8 @@
       <div class="surface">
         <h3>Boundaries</h3>
         <p class="muted">
-          No full nonlinear GICP, SLAM backend, CUDA stack, PointNet training page, or official
-          KITTI benchmark is added here.
+          Reviewer interface only. No full nonlinear GICP, SLAM backend, CUDA stack,
+          PointNet training page, official KITTI benchmark, or production web platform.
         </p>
       </div>
     </div>

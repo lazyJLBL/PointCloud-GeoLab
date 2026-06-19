@@ -18,7 +18,10 @@
       </el-select>
       <el-input-number v-model="maxIterations" :min="1" :max="200" />
     </div>
-    <el-button type="primary" :loading="loading" @click="run">Run registration</el-button>
+    <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
+    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
+      Run registration
+    </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
     <MetricsPanel :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
@@ -46,10 +49,20 @@ const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
+const canRun = computed(() => Boolean(sourceId.value && targetId.value))
+const selectionHint = computed(() =>
+  datasets.items.length < 2
+    ? 'Upload at least two datasets before running registration.'
+    : 'Choose source and target datasets before running registration.',
+)
 
 onMounted(datasets.refresh)
 
 async function run() {
+  if (!canRun.value) {
+    error.value = selectionHint.value
+    return
+  }
   loading.value = true
   error.value = ''
   try {

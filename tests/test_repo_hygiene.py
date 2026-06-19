@@ -135,6 +135,13 @@ def test_verify_core_runs_hygiene() -> None:
     assert "check-hygiene" in verify_core
 
 
+def test_compile_target_includes_web_backend() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    compile_target = makefile.split("compile:", 1)[1].split("\n\n", 1)[0]
+
+    assert "web/backend" in compile_target
+
+
 def _write_minimal_repo(root: Path) -> None:
     (root / ".github" / "workflows").mkdir(parents=True)
     (root / "docs" / "releases").mkdir(parents=True)

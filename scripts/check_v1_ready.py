@@ -55,6 +55,9 @@ REQUIRED_ASSETS = (
     "docs/assets/portfolio_bbox_normals.png",
     "docs/assets/kitti_case_study_tiny.png",
     "docs/assets/scale_benchmark_quick.png",
+    "docs/assets/web_console_dashboard.svg",
+    "docs/assets/web_console_dataset_preview.svg",
+    "docs/assets/web_console_task_artifacts.svg",
 )
 
 REQUIRED_MAKE_TARGETS = (
@@ -92,6 +95,7 @@ def run_v1_ready(
     issues.extend(check_required_files(repo))
     issues.extend(check_release_manifest(repo))
     issues.extend(check_makefile_targets(repo))
+    issues.extend(check_web_presentation(repo))
     generated_issues, generated_warnings = check_generated_paths_for_run(
         repo,
         tracked_files=tracked_files,
@@ -213,6 +217,36 @@ def check_makefile_targets(root: Path) -> list[str]:
         for target in REQUIRED_MAKE_TARGETS
         if f"{target}:" not in text
     ]
+
+
+def check_web_presentation(root: Path) -> list[str]:
+    """Return issues for missing Web Console presentation cues."""
+
+    issues: list[str] = []
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    required_readme = [
+        "PointCloud-GeoLab = point-cloud geometry core",
+        "Experimental Web Console",
+        "docs/assets/web_console_dashboard.svg",
+        "make web-backend",
+        "npm run dev",
+        "not a production web platform",
+    ]
+    for phrase in required_readme:
+        if phrase not in readme:
+            issues.append(f"README.md: missing Web presentation phrase `{phrase}`")
+
+    gallery = (root / "docs" / "gallery" / "README.md").read_text(encoding="utf-8")
+    required_gallery = [
+        "Experimental Web Console",
+        "../assets/web_console_dashboard.svg",
+        "../assets/web_console_dataset_preview.svg",
+        "../assets/web_console_task_artifacts.svg",
+    ]
+    for phrase in required_gallery:
+        if phrase not in gallery:
+            issues.append(f"docs/gallery/README.md: missing Web gallery phrase `{phrase}`")
+    return issues
 
 
 def check_generated_paths(root: Path, tracked_files: list[str] | None = None) -> list[str]:

@@ -9,6 +9,7 @@ from scripts.check_v1_ready import (
     check_generated_paths,
     check_release_manifest,
     check_version_consistency,
+    check_web_presentation,
     main,
     run_v1_ready,
 )
@@ -51,6 +52,25 @@ def test_v1_ready_detects_bad_release_manifest(tmp_path: Path) -> None:
     issues = check_release_manifest(tmp_path)
 
     assert any(f"version must be {CURRENT_VERSION}" in issue for issue in issues)
+
+
+def test_v1_ready_detects_missing_web_assets(tmp_path: Path) -> None:
+    _write_minimal_v1_repo(tmp_path)
+    (tmp_path / "docs" / "assets" / "web_console_dashboard.svg").unlink()
+
+    result = run_v1_ready(tmp_path, tracked_files=[])
+
+    assert not result.success
+    assert any("web_console_dashboard.svg" in issue for issue in result.issues)
+
+
+def test_v1_ready_checks_web_presentation_text(tmp_path: Path) -> None:
+    _write_minimal_v1_repo(tmp_path)
+    (tmp_path / "README.md").write_text("No Web hero here.\n", encoding="utf-8")
+
+    issues = check_web_presentation(tmp_path)
+
+    assert any("README.md: missing Web presentation phrase" in issue for issue in issues)
 
 
 def test_v1_ready_detects_missing_boundary_wording(tmp_path: Path) -> None:
@@ -146,12 +166,26 @@ def _write_minimal_v1_repo(root: Path) -> None:
         "web/README.md",
         "web/backend/tests/test_web_backend.py",
     ]:
-        (root / relative).write_text(
+        text = (
             "not a full nonlinear GICP; not an official KITTI benchmark; "
             "not a SLAM backend; not CUDA accelerated; not a PointNet training "
-            "release; not a production web platform; synthetic fixture boundary.\n",
-            encoding="utf-8",
+            "release; not a production web platform; synthetic fixture boundary.\n"
         )
+        if relative == "README.md":
+            text += (
+                "PointCloud-GeoLab = point-cloud geometry core + reports + "
+                "Experimental Web Console.\n"
+                "![Web](docs/assets/web_console_dashboard.svg)\n"
+                "make web-backend\nnpm run dev\n"
+            )
+        if relative == "docs/gallery/README.md":
+            text += (
+                "## Experimental Web Console\n"
+                "![Dashboard](../assets/web_console_dashboard.svg)\n"
+                "![Preview](../assets/web_console_dataset_preview.svg)\n"
+                "![Artifacts](../assets/web_console_task_artifacts.svg)\n"
+            )
+        (root / relative).write_text(text, encoding="utf-8")
     (root / "web" / "frontend" / "package.json").write_text(
         '{\n  "version": "1.1.0"\n}\n',
         encoding="utf-8",
@@ -169,8 +203,12 @@ def _write_minimal_v1_repo(root: Path) -> None:
         "portfolio_bbox_normals.png",
         "kitti_case_study_tiny.png",
         "scale_benchmark_quick.png",
+        "web_console_dashboard.svg",
+        "web_console_dataset_preview.svg",
+        "web_console_task_artifacts.svg",
     ]:
-        (root / "docs" / "assets" / asset).write_bytes(b"png")
+        suffix = b"svg" if asset.endswith(".svg") else b"png"
+        (root / "docs" / "assets" / asset).write_bytes(suffix)
     (root / "Makefile").write_text(
         "verify-realdata:\n\nverify-scale-benchmark:\n\n" "verify-v1-candidate:\n\nverify-web:\n",
         encoding="utf-8",

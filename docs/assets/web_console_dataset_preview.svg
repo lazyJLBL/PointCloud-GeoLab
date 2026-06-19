@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Dataset upload and preview mockup</title>
+  <desc id="desc">Documentation mockup showing accepted point-cloud formats and sampled preview.</desc>
+  <rect width="960" height="540" fill="#f6f8fb"/>
+  <rect x="34" y="34" width="892" height="84" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="70" y="75" fill="#14213d" font-family="Arial, sans-serif" font-size="28" font-weight="700">Datasets</text>
+  <text x="70" y="102" fill="#526070" font-family="Arial, sans-serif" font-size="15">
+    Upload .ply, .pcd, .xyz, .txt, .bin, or .off files and preview a sampled point cloud.
+  </text>
+  <rect x="34" y="148" width="330" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="66" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Upload</text>
+  <rect x="66" y="220" width="250" height="74" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
+  <text x="91" y="264" fill="#2f80ed" font-family="Arial, sans-serif" font-size="17">Choose point-cloud file</text>
+  <g fill="#526070" font-family="Arial, sans-serif" font-size="14">
+    <text x="66" y="332">Allowed formats</text>
+    <text x="66" y="360">.ply .pcd .xyz .txt .bin .off</text>
+    <text x="66" y="398">Saved under ignored outputs/web/</text>
+    <text x="66" y="426">Oversize or failed writes clean up</text>
+  </g>
+  <rect x="394" y="148" width="532" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="426" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Sampled Preview</text>
+  <rect x="426" y="220" width="468" height="216" rx="8" fill="#102033"/>
+  <g fill="#7ee0c8">
+    <circle cx="486" cy="286" r="4"/>
+    <circle cx="534" cy="320" r="3"/>
+    <circle cx="612" cy="260" r="4"/>
+    <circle cx="684" cy="340" r="3"/>
+    <circle cx="742" cy="292" r="4"/>
+    <circle cx="814" cy="366" r="3"/>
+    <circle cx="850" cy="250" r="4"/>
+    <circle cx="570" cy="392" r="3"/>
+    <circle cx="718" cy="238" r="3"/>
+    <circle cx="646" cy="388" r="4"/>
+  </g>
+  <text x="426" y="462" fill="#526070" font-family="Arial, sans-serif" font-size="14">
+    Preview API samples at most 10,000 points to keep the browser responsive.
+  </text>
+</svg>

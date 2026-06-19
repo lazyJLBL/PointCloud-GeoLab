@@ -6,6 +6,9 @@ production service boundary or production web platform.
 
 Supported backend Python versions are 3.10-3.12.
 
+See [Experimental Web Console](web_console.md) for the upload -> preview ->
+task -> artifacts reviewer workflow and mockup images.
+
 ## Start
 
 ```bash
@@ -78,6 +81,9 @@ All PointCloud-GeoLab task results are serialized through
 
 Benchmark tasks default to quick mode. Timing and memory metadata are local
 machine references only.
+
+Long tasks currently run synchronously in the backend process. The API is meant
+for local review and should not be treated as a production web platform.
 
 ## Artifacts
 

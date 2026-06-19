@@ -2,7 +2,9 @@
   <section class="page">
     <div class="surface">
       <h1>Datasets</h1>
-      <p class="muted">Upload .ply, .pcd, .xyz, .txt, or KITTI-like .bin files.</p>
+      <p class="muted">
+        Upload .ply, .pcd, .xyz, .txt, KITTI-like .bin, or ModelNet-like .off files.
+      </p>
     </div>
     <FileUploader @uploaded="afterUpload" />
     <el-alert v-if="store.error" :title="store.error" type="error" show-icon :closable="false" />

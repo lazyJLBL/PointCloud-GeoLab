@@ -7,6 +7,11 @@ package.
 Backend Python support is 3.10-3.12. The DevContainer and local backend docs use
 Python 3.12 as the recommended default.
 
+The workflow is upload -> sampled preview -> task run -> metrics and artifacts.
+See `docs/assets/web_console_dashboard.svg`,
+`docs/assets/web_console_dataset_preview.svg`, and
+`docs/assets/web_console_task_artifacts.svg` for documentation mockups.
+
 ## Backend
 
 ```bash
@@ -20,17 +25,26 @@ The backend starts at `http://127.0.0.1:8000` and exposes `/api` routes.
 ## Frontend
 
 ```bash
+make web-frontend
+```
+
+The Vite dev server starts at `http://127.0.0.1:5173`.
+
+Equivalent direct commands:
+
+```bash
 cd web/frontend
 npm install
 npm run dev
 ```
 
-The Vite dev server starts at `http://127.0.0.1:5173`.
+Uploads support `.ply`, `.pcd`, `.xyz`, `.txt`, `.bin`, and `.off` files.
 
 ## Tests
 
 ```bash
 make web-test
+make verify-web
 ```
 
 The Web tests are independent from `verify-core`. Core repository checks do not

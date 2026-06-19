@@ -21,6 +21,7 @@ CLAIM_DOC_PATTERNS = (
     "README.md",
     "docs/**/*.md",
     "web/README.md",
+    "web/frontend/src/**/*.vue",
 )
 
 TEXT_SHAPE_PATTERNS = (
@@ -31,6 +32,8 @@ TEXT_SHAPE_PATTERNS = (
     ".github/workflows/*.yml",
     "docs/**/*.md",
     "web/README.md",
+    "web/frontend/src/**/*.vue",
+    "web/frontend/src/**/*.ts",
     "scripts/**/*.py",
 )
 

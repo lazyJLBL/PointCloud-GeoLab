@@ -20,7 +20,10 @@
       </el-select>
       <el-input-number v-model="threshold" :min="0.001" :step="0.01" />
     </div>
-    <el-button type="primary" :loading="loading" @click="run">Run primitive task</el-button>
+    <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
+    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
+      Run primitive task
+    </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
     <MetricsPanel :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
@@ -48,10 +51,20 @@ const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
+const canRun = computed(() => Boolean(datasetId.value))
+const selectionHint = computed(() =>
+  datasets.items.length === 0
+    ? 'Upload a dataset before running primitive fitting.'
+    : 'Choose a dataset before running primitive fitting.',
+)
 
 onMounted(datasets.refresh)
 
 async function run() {
+  if (!canRun.value) {
+    error.value = selectionHint.value
+    return
+  }
   loading.value = true
   error.value = ''
   try {

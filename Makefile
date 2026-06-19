@@ -16,7 +16,7 @@ install-dev:
 	$(PYTHON) -m pip install -e ".[dev,vis,bench]"
 
 compile:
-	$(PYTHON) -m compileall -q main.py pointcloud_geolab tests examples scripts benchmarks
+	$(PYTHON) -m compileall -q main.py pointcloud_geolab tests examples scripts benchmarks web/backend
 
 data:
 	$(PYTHON) examples/generate_demo_data.py --output examples/demo_data

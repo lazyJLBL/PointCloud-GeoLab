@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Task artifacts mockup</title>
+  <desc id="desc">Documentation mockup showing task status, metrics, JSON result, and nested artifacts.</desc>
+  <rect width="960" height="540" fill="#f6f8fb"/>
+  <rect x="34" y="34" width="892" height="84" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="70" y="75" fill="#14213d" font-family="Arial, sans-serif" font-size="28" font-weight="700">Task Artifacts</text>
+  <text x="70" y="102" fill="#526070" font-family="Arial, sans-serif" font-size="15">
+    Each Web task stores request.json, result.json, logs.txt, and nested artifacts.
+  </text>
+  <rect x="34" y="148" width="280" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="66" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Status</text>
+  <rect x="66" y="220" width="116" height="34" rx="17" fill="#d7f5e8"/>
+  <text x="92" y="243" fill="#147d52" font-family="Arial, sans-serif" font-size="15" font-weight="700">completed</text>
+  <g fill="#526070" font-family="Arial, sans-serif" font-size="15">
+    <text x="66" y="298">task: preprocessing</text>
+    <text x="66" y="328">success: true</text>
+    <text x="66" y="358">points_after: 921</text>
+    <text x="66" y="388">artifacts: 5</text>
+  </g>
+  <rect x="344" y="148" width="250" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="376" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Metrics JSON</text>
+  <rect x="376" y="220" width="186" height="190" rx="8" fill="#102033"/>
+  <g fill="#d8f3ff" font-family="Consolas, monospace" font-size="13">
+    <text x="394" y="252">{</text>
+    <text x="410" y="282">"initial_rmse": 0.17,</text>
+    <text x="410" y="312">"final_rmse": 0.008,</text>
+    <text x="410" y="342">"fitness": 0.98</text>
+    <text x="394" y="372">}</text>
+  </g>
+  <rect x="624" y="148" width="302" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="656" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Downloads</text>
+  <g font-family="Arial, sans-serif" font-size="15">
+    <rect x="656" y="220" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
+    <text x="678" y="245" fill="#2f80ed">request.json</text>
+    <rect x="656" y="274" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
+    <text x="678" y="299" fill="#2f80ed">result.json</text>
+    <rect x="656" y="328" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
+    <text x="678" y="353" fill="#2f80ed">artifacts/figures/result.png</text>
+    <rect x="656" y="382" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
+    <text x="678" y="407" fill="#2f80ed">artifacts/metrics.json</text>
+  </g>
+  <text x="656" y="458" fill="#526070" font-family="Arial, sans-serif" font-size="14">
+    Nested paths are preserved; traversal attempts are rejected.
+  </text>
+</svg>

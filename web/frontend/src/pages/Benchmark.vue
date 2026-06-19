@@ -3,7 +3,8 @@
     <div class="surface">
       <h1>Benchmark</h1>
       <p class="muted">
-        Quick mode is used by default. Timing and memory metadata are local machine references.
+        Web benchmarks always use quick mode. Timing and memory metadata are local
+        machine references, not portable performance claims.
       </p>
     </div>
     <div class="surface form-grid">
@@ -16,7 +17,7 @@
         <el-option label="GICP-style ICP" value="gicp" />
         <el-option label="Segmentation" value="segmentation" />
       </el-select>
-      <el-input-number v-model="repeat" :min="1" :max="5" />
+      <el-input-number v-model="repeat" :min="1" :max="3" />
     </div>
     <el-button type="primary" :loading="loading" @click="run">Run quick benchmark</el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />

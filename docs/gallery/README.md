@@ -4,6 +4,26 @@ This gallery gives reviewers a quick map of the visual outputs that the project
 can generate. Images are synthetic, tiny fixture, or user-provided workflow
 examples as labeled.
 
+## Experimental Web Console
+
+![Web Console dashboard mockup](../assets/web_console_dashboard.svg)
+
+Documentation mockup of the reviewer dashboard. The Web Console is an
+experimental FastAPI/Vue presentation layer over the stable Python task API,
+not a production web platform.
+
+![Web Console dataset preview mockup](../assets/web_console_dataset_preview.svg)
+
+Documentation mockup of the upload and sampled-preview workflow. Supported
+formats include `.ply`, `.pcd`, `.xyz`, `.txt`, KITTI-like `.bin`, and
+ModelNet-like `.off`.
+
+![Web Console task artifacts mockup](../assets/web_console_task_artifacts.svg)
+
+Documentation mockup of task status, metrics JSON, logs, and nested artifact
+downloads. Web tasks currently run synchronously, so long portfolio or
+benchmark runs may block until completion.
+
 ## Portfolio Pipeline
 
 ![Raw synthetic point cloud](../assets/portfolio_raw_pointcloud.png)

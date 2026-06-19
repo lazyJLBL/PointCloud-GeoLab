@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Experimental Web Console dashboard mockup</title>
+  <desc id="desc">Documentation mockup showing dashboard, datasets, tasks, and boundary notes.</desc>
+  <rect width="960" height="540" fill="#f6f8fb"/>
+  <rect x="0" y="0" width="220" height="540" fill="#14213d"/>
+  <text x="28" y="54" fill="#ffffff" font-family="Arial, sans-serif" font-size="24" font-weight="700">PointCloud</text>
+  <text x="28" y="82" fill="#a9c3ff" font-family="Arial, sans-serif" font-size="15">Experimental Console</text>
+  <g fill="#dce7ff" font-family="Arial, sans-serif" font-size="15">
+    <text x="32" y="142">Dashboard</text>
+    <text x="32" y="182">Datasets</text>
+    <text x="32" y="222">Preprocessing</text>
+    <text x="32" y="262">Registration</text>
+    <text x="32" y="302">Segmentation</text>
+    <text x="32" y="342">Reports</text>
+  </g>
+  <rect x="250" y="34" width="670" height="92" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="282" y="72" fill="#14213d" font-family="Arial, sans-serif" font-size="30" font-weight="700">Reviewer Dashboard</text>
+  <text x="282" y="104" fill="#526070" font-family="Arial, sans-serif" font-size="16">
+    Upload, preview, run tasks, and inspect artifacts without changing the stable Python API.
+  </text>
+  <g font-family="Arial, sans-serif">
+    <rect x="250" y="158" width="200" height="126" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+    <text x="278" y="198" fill="#14213d" font-size="20" font-weight="700">Datasets</text>
+    <text x="278" y="238" fill="#2f80ed" font-size="38" font-weight="700">6</text>
+    <text x="324" y="238" fill="#526070" font-size="15">uploaded files</text>
+    <rect x="480" y="158" width="200" height="126" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+    <text x="508" y="198" fill="#14213d" font-size="20" font-weight="700">Tasks</text>
+    <text x="508" y="238" fill="#2f80ed" font-size="38" font-weight="700">14</text>
+    <text x="564" y="238" fill="#526070" font-size="15">recorded runs</text>
+    <rect x="710" y="158" width="210" height="126" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+    <text x="738" y="198" fill="#14213d" font-size="20" font-weight="700">Scope</text>
+    <text x="738" y="232" fill="#526070" font-size="15">Reviewer interface</text>
+    <text x="738" y="258" fill="#526070" font-size="15">Not production platform</text>
+  </g>
+  <rect x="250" y="318" width="670" height="154" rx="10" fill="#ffffff" stroke="#d8dee9"/>
+  <text x="282" y="356" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Workflow</text>
+  <g fill="none" stroke="#2f80ed" stroke-width="3">
+    <path d="M310 408 H450"/>
+    <path d="M520 408 H660"/>
+    <path d="M730 408 H850"/>
+  </g>
+  <g fill="#ffffff" stroke="#2f80ed" stroke-width="3">
+    <circle cx="310" cy="408" r="32"/>
+    <circle cx="485" cy="408" r="32"/>
+    <circle cx="695" cy="408" r="32"/>
+    <circle cx="878" cy="408" r="32"/>
+  </g>
+  <g fill="#14213d" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">
+    <text x="310" y="414">Upload</text>
+    <text x="485" y="414">Preview</text>
+    <text x="695" y="414">Task</text>
+    <text x="878" y="414">Artifacts</text>
+  </g>
+</svg>

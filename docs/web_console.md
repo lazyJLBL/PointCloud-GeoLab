@@ -7,6 +7,8 @@ and does not change the stable Python package API.
 Supported backend Python versions are 3.10-3.12. Python 3.12 is recommended
 for the local Web Console environment.
 
+![Web Console dashboard mockup](assets/web_console_dashboard.svg)
+
 ## Install
 
 ```bash
@@ -37,6 +39,29 @@ make web-frontend
 ```
 
 The frontend Vite server proxies `/api` to `http://127.0.0.1:8000`.
+
+Verify the Web layer without running the full release gate:
+
+```bash
+make verify-web
+```
+
+On Windows without `make`, run `mingw32-make verify-web`.
+
+## Reviewer Workflow
+
+![Dataset preview mockup](assets/web_console_dataset_preview.svg)
+
+The intended reviewer path is:
+
+1. Upload a tiny or local point-cloud file.
+2. Preview the sampled point cloud in the browser.
+3. Run a preprocessing, registration, segmentation, geometry, primitive,
+   quick benchmark, or portfolio task.
+4. Inspect metrics and download `request.json`, `result.json`, `logs.txt`, and
+   nested files under `artifacts/`.
+
+![Task artifacts mockup](assets/web_console_task_artifacts.svg)
 
 ## Storage
 
