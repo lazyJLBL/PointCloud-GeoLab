@@ -1,45 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
-  <title id="title">Task artifacts mockup</title>
-  <desc id="desc">Documentation mockup showing task status, metrics, JSON result, and nested artifacts.</desc>
-  <rect width="960" height="540" fill="#f6f8fb"/>
-  <rect x="34" y="34" width="892" height="84" rx="10" fill="#ffffff" stroke="#d8dee9"/>
-  <text x="70" y="75" fill="#14213d" font-family="Arial, sans-serif" font-size="28" font-weight="700">Task Artifacts</text>
-  <text x="70" y="102" fill="#526070" font-family="Arial, sans-serif" font-size="15">
-    Each Web task stores request.json, result.json, logs.txt, and nested artifacts.
-  </text>
-  <rect x="34" y="148" width="280" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
-  <text x="66" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Status</text>
-  <rect x="66" y="220" width="116" height="34" rx="17" fill="#d7f5e8"/>
-  <text x="92" y="243" fill="#147d52" font-family="Arial, sans-serif" font-size="15" font-weight="700">completed</text>
-  <g fill="#526070" font-family="Arial, sans-serif" font-size="15">
-    <text x="66" y="298">task: preprocessing</text>
-    <text x="66" y="328">success: true</text>
-    <text x="66" y="358">points_after: 921</text>
-    <text x="66" y="388">artifacts: 5</text>
-  </g>
-  <rect x="344" y="148" width="250" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
-  <text x="376" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Metrics JSON</text>
-  <rect x="376" y="220" width="186" height="190" rx="8" fill="#102033"/>
-  <g fill="#d8f3ff" font-family="Consolas, monospace" font-size="13">
-    <text x="394" y="252">{</text>
-    <text x="410" y="282">"initial_rmse": 0.17,</text>
-    <text x="410" y="312">"final_rmse": 0.008,</text>
-    <text x="410" y="342">"fitness": 0.98</text>
-    <text x="394" y="372">}</text>
-  </g>
-  <rect x="624" y="148" width="302" height="330" rx="10" fill="#ffffff" stroke="#d8dee9"/>
-  <text x="656" y="190" fill="#14213d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Downloads</text>
-  <g font-family="Arial, sans-serif" font-size="15">
-    <rect x="656" y="220" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
-    <text x="678" y="245" fill="#2f80ed">request.json</text>
-    <rect x="656" y="274" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
-    <text x="678" y="299" fill="#2f80ed">result.json</text>
-    <rect x="656" y="328" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
-    <text x="678" y="353" fill="#2f80ed">artifacts/figures/result.png</text>
-    <rect x="656" y="382" width="214" height="38" rx="8" fill="#eef5ff" stroke="#8bb8ff"/>
-    <text x="678" y="407" fill="#2f80ed">artifacts/metrics.json</text>
-  </g>
-  <text x="656" y="458" fill="#526070" font-family="Arial, sans-serif" font-size="14">
-    Nested paths are preserved; traversal attempts are rejected.
-  </text>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" fill="none" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#f8fafc" rx="8" />
+  <!-- Sidebar -->
+  <rect width="200" height="400" fill="#f8fafc" rx="8" />
+  <path stroke="#e2e8f0" d="M200 0v400" />
+  <text x="20" y="40" fill="#0f172a" font-family="sans-serif" font-size="14" font-weight="600">PointCloud-GeoLab</text>
+  
+  <rect x="10" y="240" width="180" height="30" fill="#e2e8f0" rx="4" />
+  <text x="20" y="260" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="500">Reports</text>
+  
+  <!-- Topbar -->
+  <path stroke="#e2e8f0" d="M200 60h600" />
+  
+  <!-- Reports Filter -->
+  <rect x="220" y="80" width="560" height="50" fill="#ffffff" rx="8" stroke="#e2e8f0" />
+  <text x="240" y="110" fill="#0f172a" font-family="sans-serif" font-size="14" font-weight="600">Reports</text>
+  <rect x="680" y="93" width="80" height="24" fill="#f1f5f9" rx="4" />
+  <text x="692" y="109" fill="#334155" font-family="sans-serif" font-size="11">Refresh</text>
+  
+  <!-- Task Entry -->
+  <rect x="220" y="150" width="560" height="230" fill="#ffffff" rx="8" stroke="#e2e8f0" />
+  <text x="240" y="180" fill="#0f172a" font-family="sans-serif" font-size="14" font-weight="600">registration/icp</text>
+  <rect x="360" y="165" width="70" height="20" fill="#10b981" rx="10" />
+  <text x="372" y="179" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="600">COMPLETED</text>
+  <text x="640" y="180" fill="#64748b" font-family="sans-serif" font-size="11">2026-06-20T12:00:00Z</text>
+  
+  <!-- Metrics -->
+  <rect x="240" y="200" width="520" height="70" fill="#ffffff" rx="4" stroke="#e2e8f0" />
+  <text x="250" y="220" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="600">Metrics</text>
+  <path stroke="#e2e8f0" d="M240 230h520" />
+  <text x="250" y="250" fill="#64748b" font-family="sans-serif" font-size="11">fitness</text>
+  <text x="350" y="250" fill="#0f172a" font-family="sans-serif" font-size="11">0.9984</text>
+  <path stroke="#e2e8f0" d="M500 230v40" />
+  <text x="510" y="250" fill="#64748b" font-family="sans-serif" font-size="11">inlier_rmse</text>
+  <text x="610" y="250" fill="#0f172a" font-family="sans-serif" font-size="11">0.021</text>
+  
+  <!-- Artifacts -->
+  <text x="240" y="300" fill="#0f172a" font-family="sans-serif" font-size="13" font-weight="600">Artifacts</text>
+  <rect x="240" y="315" width="160" height="24" fill="#ffffff" rx="4" stroke="#e2e8f0" />
+  <text x="250" y="331" fill="#334155" font-family="sans-serif" font-size="11">Download aligned.ply</text>
+  
+  <!-- JSON Toggle -->
+  <rect x="240" y="355" width="520" height="30" fill="#f1f5f9" rx="4" />
+  <text x="250" y="375" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="500">▶ TaskResult JSON</text>
 </svg>

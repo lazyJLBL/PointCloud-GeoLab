@@ -3,8 +3,15 @@
     <h3>Artifacts</h3>
     <el-empty v-if="items.length === 0" description="No artifacts yet" />
     <div v-else class="toolbar">
-      <el-button v-for="[label, name] in items" :key="label" tag="a" :href="url(name)" target="_blank">
-        {{ label }}
+      <el-button
+        v-for="[label, name] in items"
+        :key="label"
+        tag="a"
+        :href="url(name)"
+        target="_blank"
+        type="default"
+      >
+        Download {{ label }}
       </el-button>
     </div>
   </div>

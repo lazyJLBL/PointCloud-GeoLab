@@ -4,28 +4,37 @@
       <h1>Registration</h1>
       <p class="muted">Run ICP, robust ICP, or multiscale ICP between two uploaded datasets.</p>
     </div>
-    <div class="surface form-grid">
-      <el-select v-model="sourceId" placeholder="Source">
-        <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
-      </el-select>
-      <el-select v-model="targetId" placeholder="Target">
-        <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
-      </el-select>
-      <el-select v-model="mode">
-        <el-option label="ICP" value="registration/icp" />
-        <el-option label="Robust ICP" value="registration/robust-icp" />
-        <el-option label="Multiscale ICP" value="registration/multiscale-icp" />
-      </el-select>
-      <el-input-number v-model="maxIterations" :min="1" :max="200" />
+
+    <div class="surface">
+      <h3 style="margin-top: 0">Algorithm Settings</h3>
+      <div class="form-grid">
+        <el-select v-model="sourceId" placeholder="Select Source Dataset" style="width: 100%">
+          <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
+        </el-select>
+        <el-select v-model="targetId" placeholder="Select Target Dataset" style="width: 100%">
+          <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
+        </el-select>
+        <el-select v-model="mode" style="width: 100%">
+          <el-option label="ICP" value="registration/icp" />
+          <el-option label="Robust ICP" value="registration/robust-icp" />
+          <el-option label="Multiscale ICP" value="registration/multiscale-icp" />
+        </el-select>
+        <div>
+          <span class="muted text-sm" style="display: block; margin-bottom: 4px">Max Iterations:</span>
+          <el-input-number v-model="maxIterations" :min="1" :max="200" style="width: 100%" />
+        </div>
+      </div>
     </div>
+
     <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
-    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
-      Run registration
+    <el-button type="primary" size="large" :loading="loading" :disabled="!canRun" @click="run">
+      Run Registration Task
     </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-    <MetricsPanel :metrics="metrics" />
+
+    <MetricsPanel v-if="task" :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
-    <TaskResultJson :value="task?.result" />
+    <TaskResultJson v-if="task" :value="task.result" />
   </section>
 </template>
 
@@ -48,12 +57,13 @@ const maxIterations = ref(50)
 const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
+
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
 const canRun = computed(() => Boolean(sourceId.value && targetId.value))
 const selectionHint = computed(() =>
   datasets.items.length < 2
     ? 'Upload at least two datasets before running registration.'
-    : 'Choose source and target datasets before running registration.',
+    : 'Choose both source and target datasets before running registration.',
 )
 
 onMounted(datasets.refresh)

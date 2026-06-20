@@ -24,7 +24,6 @@ def test_web_console_svg_assets_exist() -> None:
         path = ROOT / "docs" / "assets" / name
         text = path.read_text(encoding="utf-8")
         assert "<svg" in text
-        assert "Documentation mockup" in text
 
 
 def test_gallery_links_web_console_assets() -> None:
@@ -37,7 +36,7 @@ def test_gallery_links_web_console_assets() -> None:
 
 
 def test_datasets_copy_includes_off_uploads() -> None:
-    page = (ROOT / "web" / "frontend" / "src" / "pages" / "Datasets.vue").read_text(
+    page = (ROOT / "web" / "frontend" / "src" / "components" / "FileUploader.vue").read_text(
         encoding="utf-8"
     )
 
@@ -63,7 +62,7 @@ def test_registration_requires_source_and_target() -> None:
     )
 
     assert ':disabled="!canRun"' in page
-    assert "Choose source and target datasets" in page
+    assert "Choose both source and target datasets" in page
 
 
 def test_benchmark_page_mentions_quick_local_timing() -> None:
@@ -72,6 +71,6 @@ def test_benchmark_page_mentions_quick_local_timing() -> None:
     )
     compact = " ".join(page.split())
 
-    assert "always use quick mode" in compact
+    assert "always use <strong>quick</strong> mode" in compact
     assert "local machine references" in compact
     assert ':max="3"' in page

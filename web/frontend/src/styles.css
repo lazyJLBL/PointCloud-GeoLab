@@ -5,10 +5,10 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #f6f8fb;
-  color: #1f2937;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -18,7 +18,11 @@ a {
 
 .page {
   display: grid;
-  gap: 16px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  width: 100%;
 }
 
 .toolbar {
@@ -29,37 +33,57 @@ a {
 }
 
 .surface {
-  border: 1px solid #d9e2ec;
-  border-radius: 8px;
-  background: #fff;
-  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.surface:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.surface h1, .surface h2, .surface h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #0f172a;
 }
 
 .muted {
   color: #64748b;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
 }
 
 .viewer-shell {
-  min-height: 360px;
+  min-height: 480px;
   overflow: hidden;
-  border: 1px solid #d9e2ec;
-  border-radius: 8px;
-  background: #111827;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #0f172a;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .json-block {
-  max-height: 360px;
+  max-height: 400px;
   overflow: auto;
   margin: 0;
-  padding: 12px;
-  border-radius: 6px;
-  background: #111827;
-  color: #e5e7eb;
-  font-size: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.el-alert {
+  margin-bottom: 16px;
 }

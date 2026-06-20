@@ -4,27 +4,39 @@
       <h1>Segmentation</h1>
       <p class="muted">Run DBSCAN, Euclidean, region growing, or ground-object segmentation.</p>
     </div>
-    <div class="surface form-grid">
-      <el-select v-model="datasetId" placeholder="Dataset">
-        <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
-      </el-select>
-      <el-select v-model="method">
-        <el-option label="DBSCAN" value="dbscan" />
-        <el-option label="Euclidean" value="euclidean" />
-        <el-option label="Region growing" value="region_growing" />
-        <el-option label="Ground-object" value="ground-object" />
-      </el-select>
-      <el-input-number v-model="eps" :min="0.001" :step="0.01" />
-      <el-input-number v-model="minPoints" :min="1" />
+
+    <div class="surface">
+      <h3 style="margin-top: 0">Algorithm Settings</h3>
+      <div class="form-grid">
+        <el-select v-model="datasetId" placeholder="Select Dataset" style="width: 100%">
+          <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
+        </el-select>
+        <el-select v-model="method" style="width: 100%">
+          <el-option label="DBSCAN" value="dbscan" />
+          <el-option label="Euclidean" value="euclidean" />
+          <el-option label="Region growing" value="region_growing" />
+          <el-option label="Ground-object" value="ground-object" />
+        </el-select>
+        <div>
+          <span class="muted text-sm" style="display: block; margin-bottom: 4px">Epsilon (eps):</span>
+          <el-input-number v-model="eps" :min="0.001" :step="0.01" style="width: 100%" />
+        </div>
+        <div>
+          <span class="muted text-sm" style="display: block; margin-bottom: 4px">Min Points:</span>
+          <el-input-number v-model="minPoints" :min="1" style="width: 100%" />
+        </div>
+      </div>
     </div>
+
     <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
-    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
-      Run segmentation
+    <el-button type="primary" size="large" :loading="loading" :disabled="!canRun" @click="run">
+      Run Segmentation Task
     </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-    <MetricsPanel :metrics="metrics" />
+
+    <MetricsPanel v-if="task" :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
-    <TaskResultJson :value="task?.result" />
+    <TaskResultJson v-if="task" :value="task.result" />
   </section>
 </template>
 
@@ -47,6 +59,7 @@ const minPoints = ref(5)
 const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
+
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
 const canRun = computed(() => Boolean(datasetId.value))
 const selectionHint = computed(() =>

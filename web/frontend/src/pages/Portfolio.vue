@@ -2,16 +2,29 @@
   <section class="page">
     <div class="surface">
       <h1>Portfolio</h1>
-      <p class="muted">
+      <p class="muted" style="max-width: 800px">
         Run the existing portfolio verification workflow and collect generated reports under the
-        task artifacts directory.
+        task artifacts directory. Note that the generation task may take a longer time depending on the available compute.
       </p>
+      <el-alert
+        type="info"
+        :closable="false"
+        show-icon
+        title="Long Running Task"
+        style="margin-top: 12px"
+      >
+        Web tasks currently run synchronously and may block until the generation is completed.
+      </el-alert>
     </div>
-    <el-button type="primary" :loading="loading" @click="run">Generate portfolio report</el-button>
+
+    <el-button type="primary" size="large" :loading="loading" @click="run">
+      Generate Portfolio Report
+    </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-    <MetricsPanel :metrics="metrics" />
+
+    <MetricsPanel v-if="task" :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
-    <TaskResultJson :value="task?.result" />
+    <TaskResultJson v-if="task" :value="task.result" />
   </section>
 </template>
 
@@ -28,6 +41,7 @@ import type { TaskRecord } from '../types'
 const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
+
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
 
 async function run() {

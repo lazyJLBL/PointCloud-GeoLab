@@ -1,10 +1,14 @@
 <template>
   <div class="surface">
-    <div class="toolbar">
+    <div class="toolbar" style="margin-bottom: 12px">
       <input ref="input" type="file" accept=".ply,.pcd,.xyz,.txt,.bin,.off" @change="pickFile" />
       <el-button type="primary" :loading="loading" :disabled="!file" @click="submit">
-        Upload
+        Upload Dataset
       </el-button>
+    </div>
+    <div class="muted text-sm">
+      <p style="margin: 0">Supported formats: .ply, .pcd, .xyz, .txt, .bin (KITTI-like), .off (ModelNet-like).</p>
+      <p style="margin: 4px 0 0">Size limit: Check backend limits (usually ~50MB for experimental endpoints).</p>
     </div>
     <el-alert
       v-if="error"

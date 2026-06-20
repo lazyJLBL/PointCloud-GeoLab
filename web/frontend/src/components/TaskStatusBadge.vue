@@ -1,5 +1,5 @@
 <template>
-  <el-tag :type="tagType" effect="light">{{ status }}</el-tag>
+  <el-tag :type="tagType" effect="dark" round size="small">{{ status.toUpperCase() }}</el-tag>
 </template>
 
 <script setup lang="ts">

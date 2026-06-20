@@ -1,7 +1,7 @@
 <template>
-  <details class="surface">
-    <summary>TaskResult JSON</summary>
-    <pre class="json-block">{{ formatted }}</pre>
+  <details class="surface" style="margin-top: 16px">
+    <summary style="cursor: pointer; font-weight: 500; color: #0f172a">TaskResult JSON</summary>
+    <pre class="json-block" style="margin-top: 12px">{{ formatted }}</pre>
   </details>
 </template>
 

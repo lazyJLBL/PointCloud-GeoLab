@@ -4,19 +4,25 @@
       <h1>Geometry</h1>
       <p class="muted">Compute AABB, OBB, and PCA metrics for one dataset.</p>
     </div>
-    <div class="surface form-grid">
-      <el-select v-model="datasetId" placeholder="Dataset">
-        <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
-      </el-select>
+
+    <div class="surface">
+      <h3 style="margin-top: 0">Algorithm Settings</h3>
+      <div class="form-grid">
+        <el-select v-model="datasetId" placeholder="Select Dataset" style="width: 100%">
+          <el-option v-for="item in datasets.items" :key="item.id" :label="item.filename" :value="item.id" />
+        </el-select>
+      </div>
     </div>
+
     <el-alert v-if="!canRun" :title="selectionHint" type="info" show-icon :closable="false" />
-    <el-button type="primary" :loading="loading" :disabled="!canRun" @click="run">
-      Run geometry analysis
+    <el-button type="primary" size="large" :loading="loading" :disabled="!canRun" @click="run">
+      Run Geometry Analysis Task
     </el-button>
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
-    <MetricsPanel :metrics="metrics" />
+
+    <MetricsPanel v-if="task" :metrics="metrics" />
     <ArtifactDownloads v-if="task" :task-id="task.id" :artifacts="task.artifacts" />
-    <TaskResultJson :value="task?.result" />
+    <TaskResultJson v-if="task" :value="task.result" />
   </section>
 </template>
 
@@ -36,6 +42,7 @@ const datasetId = ref('')
 const loading = ref(false)
 const error = ref('')
 const task = ref<TaskRecord | null>(null)
+
 const metrics = computed(() => task.value?.result?.metrics as Record<string, unknown> | undefined)
 const canRun = computed(() => Boolean(datasetId.value))
 const selectionHint = computed(() =>
